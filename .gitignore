@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 data/
 scratch/
+
+# In-progress run outputs. Untracked WHILE RUNNING only, to avoid committing
+# dozens of partial snapshots. These lines are removed and the completed files
+# committed once the runs finish. See RESULTS.md for the final numbers.
+results/grid.csv
+results/secondary.csv
