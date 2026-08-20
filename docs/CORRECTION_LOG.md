@@ -9,7 +9,105 @@ not established).
 
 ---
 
-## C-01 Prior run: the "true root cause" was a label lookup, not a discovery
+## Formal correction IDs, for lifting into the canonical history
+
+Assigned in the framework's existing convention. Section 15.1 of Canonical
+Thesis v2.1 runs to R12 and section 15.5 runs to T-L, so retirements
+continue at R13 and tensions at T-M. These four entries concern the prior
+Experiment 1 sandbox run reported in `result_summary.md`.
+
+### R13  Root cause presented as discovered when it was a label lookup
+
+The prior Experiment 1 run reported identifying checkoutservice as the root
+cause by inspecting CPU metrics, and framed the appearance of signal after
+that step as a methodological finding. The case used was RCAEval's
+`multi-source-data` sample, which sits inside the RE2-OB archive at
+`RE2-OB/checkoutservice_cpu/multi-source-data` and whose `traces.csv` is
+byte-identical to `RE2-OB/checkoutservice_cpu/1/traces.csv`
+(md5 956052e9c07123b4517e37a0b536d9cf, 391,997 spans, inject_time
+1705354566 in both). The annotated root cause was encoded in the directory
+name throughout. The CPU-metric step recovered a label the dataset already
+supplied, so it established nothing about the method's ability to locate a
+root cause. The arithmetic in that run is correct; the discovery framing is
+withdrawn. [Strong.]
+
+### R14  A headline number taken from a source nobody opened
+
+**This is the one to read.** The prior run's central figures, paymentservice
+degrading x4.08 while the true culprit checkoutservice sat at x0.92, were
+computed from `tracets_lat.csv`. Those figures reproduce exactly, so the
+arithmetic is sound. The file is not. Its semantics are undocumented in
+RCAEval, and no tested formula reproduced its values from `traces.csv`:
+per-15s-bucket mean, median and p90 span duration were tried, as were span
+counts above fixed thresholds from 20 to 100 microseconds and above
+quantile thresholds from q90 to q995. The best agreement reached was
+r = +0.33 with 12 percent exact match. RCAEval's own pipeline never reads
+the file; `read_data` uses `{service}_latency-90`, and that canonical
+column was present in the very sample the prior run used. Recomputing the
+same case on `latency-90` shows every service between x0.95 and x1.06,
+with paymentservice at x1.06 and checkoutservice at x0.99. Nothing
+degraded. The x4.08 signal exists only inside the undocumented file.
+**This is the same failure mode as the patent citation error recorded at
+v1.1c: a number lifted from a source that was never opened at its own
+level of detail, then carried forward as established.** The framework's
+existing diagnosis applies without modification, that the failure mode was
+confidence rather than ignorance. [Strong.]
+
+### R15  A comparative claim true only under an undisclosed restriction
+
+`result_summary.md` states "Node-local symptom severity names paymentservice
+(x4.08) as worst" and concludes "Ranking by node-local symptom misidentifies
+the source. The graph does not." Across every service present in
+`tracets_lat.csv` for that case, shippingservice at x13.85 and traceservice
+at x13.27 both exceed paymentservice at x4.08. paymentservice is worst only
+after restricting the comparison to the seven services that appear in the
+mined graph. The prior script applied that restriction in code; the summary
+does not disclose it. Applied to everything observable, the naive
+rank-by-worst-symptom control would have named shippingservice. The second
+sentence of the conclusion is separately unsupported: the run did not show
+the graph locating the root cause, because the root cause was supplied to
+it as a seed. [Strong.]
+
+### R16  A showcase case unrepresentative of its own benchmark
+
+Measured across all 90 RE2-OB cases on `latency-90`, the median
+largest-degradation-by-any-service is x18.3 and 85 of 90 cases contain at
+least one service exceeding x1.5. The case the prior run selected,
+`checkoutservice_cpu/1`, peaks at x1.06, placing it among the five weakest
+of ninety. It is also one of only 18 hard cases in 90 under the brief's own
+A.4 definition, reported without that base rate. A single case selected from
+the tail of a distribution and reported without the distribution is an
+anecdote, which the prior summary conceded in part ("One fault case is an
+anecdote") without noting that the case was also atypical. [Strong.]
+
+### T-M  Transmission probability unbounded above in the specification
+
+Appendix A.2 of the experiment brief defines
+`p_transmit = p_base + p_shared * theta` with no upper bound. The required
+sensitivity grid includes p_base = 0.75 with Beta(5,2), whose mean theta is
+5/7, giving p_transmit = 1.036. That is not a probability. Closed by
+clamping to `min(1, p_base + p_shared * theta)`, recorded in
+PREREGISTRATION.md section 6.2 rather than patched silently. [Strong.]
+
+### T-N  The ranking statistic contains the control it is compared against
+
+Appendix A.3 scores candidates by `Spearman(predicted, observed)` where the
+predicted vector assigns the seed itself probability 1.0, its maximum. Rank
+correlation is therefore maximised by candidates that are themselves badly
+degraded, which is exactly the naive control's rule. The A.3 statistic
+contains the naive control as a dominant term, so comparing the two would
+compare a quantity against a component of itself and would return a small
+positive result even if the graph contributed nothing. Closed by excluding
+the seed's own coordinate from the correlation, at a stated cost in
+resolution. See PREREGISTRATION.md section 7. [Strong.]
+
+---
+Indicative (evidence points this way, not conclusive), Asserted (judgement,
+not established).
+
+---
+
+## C-01 [formal ID: R13] Prior run: the "true root cause" was a label lookup, not a discovery
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -30,7 +128,7 @@ whole time. Deriving it from CPU metrics recovered a label the dataset
 already provides. This does not make the prior arithmetic wrong, but it
 removes the discovery framing.
 
-## C-02 Prior run: the headline degradation signal is an undocumented file
+## C-02 [formal ID: R14] Prior run: the headline degradation signal is an undocumented file
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -72,7 +170,7 @@ Nothing degraded. The x4.08 paymentservice signal exists only in
 `tracets_lat.csv`. Under the metric RCAEval itself treats as canonical, this
 case shows no latency propagation at all.
 
-## C-03 Prior run: "worst symptom names paymentservice" holds only under an undisclosed restriction
+## C-03 [formal ID: R15] Prior run: "worst symptom names paymentservice" holds only under an undisclosed restriction
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -87,7 +185,7 @@ appear in the mined graph. The prior script applied that restriction
 rank-by-worst-symptom control, applied to everything observable, would have
 named shippingservice, not paymentservice.
 
-## C-04 Prior run: the showcase case is unrepresentative
+## C-04 [formal ID: R16] Prior run: the showcase case is unrepresentative
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -102,7 +200,7 @@ definition (the annotated root cause IS the worst-degraded service). The
 prior run selected one of the 18 hard cases and reported it without noting
 the base rate.
 
-## C-05 Brief, Appendix A.2: the method as specified cannot run on Train Ticket
+## C-05 [resolved: see PREREGISTRATION.md section 5, SCC condensation] Brief, Appendix A.2: the method as specified cannot run on Train Ticket
 
 Status: OPEN, needs a decision before pre-registration. Grade: Strong.
 
