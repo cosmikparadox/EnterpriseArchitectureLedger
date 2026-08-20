@@ -928,9 +928,11 @@ Pre-registration commit    b0db614791c597dd7b0e91358bf7079762d4ddeb
                            the immediately following commit, which
                            changes nothing else)
 
-Analysis code commit       PENDING. To be recorded here before the
-                           Gate 3 run. No scoring output produced by
-                           uncommitted code is admissible.
+Analysis code commit       7cc789688b8ae8296b144d9daaded23e4d35a67e
+                           src/ledger_h4.py and src/run_cases.py.
+                           Committed BEFORE any scoring run. No scoring
+                           output produced by uncommitted code is
+                           admissible.
 ```
 
 The method is frozen as of b0db614791c5. Everything
