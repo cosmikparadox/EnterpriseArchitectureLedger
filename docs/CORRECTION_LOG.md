@@ -279,6 +279,71 @@ topology that could have been written down once.
 
 ---
 
+## STANDING METHOD RULES
+
+Rules adopted as standing practice, not one-off notes. Each was adopted
+because it was violated first.
+
+### M-01  A file retrieved through a representation layer is not the file
+
+**Adopted 2026-08-20.** [Strong.]
+
+```
+Any canonical document pulled into this repository must be
+byte-exact against the source's reported size, verified by
+hash, or it does not count as committed.
+```
+
+**What happened here.** The four canonical documents at revision "c" were
+first pulled using the Drive `read_file_content` tool. That tool returns a
+natural-language *representation* of a document, not its bytes. The pulled
+files were short of source by 5,483 to 71,011 bytes:
+
+```
++---------------------------------------------+---------+---------+---------+
+| FILE                                        |  SOURCE |  PULLED |   DELTA |
++---------------------------------------------+---------+---------+---------+
+| Architecture_Ledger_Research_Paper_v1_1c.md |  136144 |   65133 |  -71011 |
+| Part_IX_Mathematics_v3_1c.md                |  128723 |  120418 |   -8305 |
+| Canonical_Thesis_v2_1c.md                   |  142078 |  136595 |   -5483 |
+| The_Numbers_Explained_v1_1c.md              |   83557 |   84644 |   +1087 |
++---------------------------------------------+---------+---------+---------+
+```
+
+The largest discrepancy was not a truncation at all but a wrong file: the
+tool result being read had been mislabelled in flight, and what was written
+to `Architecture_Ledger_Research_Paper_v1_1c.md` was in fact Canonical
+Thesis **v2.1**, the stale document. A size check alone caught it only
+because the delta was gross. Note the fourth row: one file came out
+*larger* than source, so "short of expected" is not a reliable detector
+either.
+
+The bad pull was discarded. The documents were re-fetched with
+`download_file_content`, base64-decoded to bytes, and all four now match
+the Drive-reported size exactly, with SHA256 recorded in
+`docs/canonical/README.md`.
+
+**Why this is a standing rule and not a note.** The same failure occurred
+in the session that produced the v1.1c documents themselves, where ASCII
+table padding was rebuilt by hand and verified against expectation rather
+than against the source bytes. A method that has now failed the same way
+twice in two sessions is a method, not an accident.
+
+**Family.** This belongs with R18 and with the patent citation error
+corrected at v1.1c and v2.1c. All three have one shape: **a source taken
+at one level of detail and carried forward as established.** In R18 it was
+a number read from a derived file whose semantics were never checked
+against the file that produced it. In the patent error it was a family
+described from a summary rather than read at claim level. Here it was a
+document read through a representation layer rather than fetched as bytes.
+
+The framework's existing diagnosis applies unchanged: the failure mode is
+confidence, not ignorance. What defeats it is not more care but a
+mechanical check that does not depend on judgement. Hence a rule with a
+pass/fail test in it, rather than an instruction to be careful.
+
+---
+
 ## DEVIATIONS
 
 ### 2026-08-20  Correction IDs renumbered, first assignment was against a stale canonical set
