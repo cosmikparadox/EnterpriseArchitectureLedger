@@ -836,10 +836,19 @@ match what was done.
 ## 17. FREEZE RECORD
 
 ```
-Pre-registration commit    to be recorded immediately below this
-                           document's first commit
-Analysis code commit       to be recorded before the Gate 3 run
+Pre-registration commit    b0db614791c597dd7b0e91358bf7079762d4ddeb
+                           (the commit that first introduced this
+                           document; this FREEZE RECORD is written in
+                           the immediately following commit, which
+                           changes nothing else)
+
+Analysis code commit       PENDING. To be recorded here before the
+                           Gate 3 run. No scoring output produced by
+                           uncommitted code is admissible.
 ```
+
+The method is frozen as of b0db614791c5. Everything
+above section 16 was fixed before any scoring code existed.
 
 ---
 
