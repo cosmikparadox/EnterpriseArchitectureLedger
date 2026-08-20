@@ -11,12 +11,17 @@ not established).
 
 ## Formal correction IDs, for lifting into the canonical history
 
-Assigned in the framework's existing convention. Section 15.1 of Canonical
-Thesis v2.1 runs to R12 and section 15.5 runs to T-L, so retirements
-continue at R13 and tensions at T-M. These four entries concern the prior
-Experiment 1 sandbox run reported in `result_summary.md`.
+Assigned in the framework's existing convention, against the CURRENT
+canonical set at revision "c". These entries concern the prior Experiment 1
+sandbox run reported in `result_summary.md` and the specification of the
+experiment brief.
 
-### R13  Root cause presented as discovered when it was a label lookup
+**Renumbered 2026-08-20. See DEVIATIONS at the end of this document.** The
+first assignment of these IDs (R13 to R16, T-M, T-N) was made against
+Canonical Thesis v2.1 and collided with existing claims in v2.1c. Retirements
+in v2.1c run to R16 and tensions to T-S, so these continue at R17 and T-T.
+
+### R17  Root cause presented as discovered when it was a label lookup
 
 The prior Experiment 1 run reported identifying checkoutservice as the root
 cause by inspecting CPU metrics, and framed the appearance of signal after
@@ -31,7 +36,7 @@ supplied, so it established nothing about the method's ability to locate a
 root cause. The arithmetic in that run is correct; the discovery framing is
 withdrawn. [Strong.]
 
-### R14  A headline number taken from a source nobody opened
+### R18  A headline number taken from a source nobody opened
 
 **This is the one to read.** The prior run's central figures, paymentservice
 degrading x4.08 while the true culprit checkoutservice sat at x0.92, were
@@ -53,7 +58,7 @@ level of detail, then carried forward as established.** The framework's
 existing diagnosis applies without modification, that the failure mode was
 confidence rather than ignorance. [Strong.]
 
-### R15  A comparative claim true only under an undisclosed restriction
+### R19  A comparative claim true only under an undisclosed restriction
 
 `result_summary.md` states "Node-local symptom severity names paymentservice
 (x4.08) as worst" and concludes "Ranking by node-local symptom misidentifies
@@ -68,7 +73,7 @@ sentence of the conclusion is separately unsupported: the run did not show
 the graph locating the root cause, because the root cause was supplied to
 it as a seed. [Strong.]
 
-### R16  A showcase case unrepresentative of its own benchmark
+### R20  A showcase case unrepresentative of its own benchmark
 
 Measured across all 90 RE2-OB cases on `latency-90`, the median
 largest-degradation-by-any-service is x18.3 and 85 of 90 cases contain at
@@ -80,7 +85,7 @@ the tail of a distribution and reported without the distribution is an
 anecdote, which the prior summary conceded in part ("One fault case is an
 anecdote") without noting that the case was also atypical. [Strong.]
 
-### T-M  Transmission probability unbounded above in the specification
+### T-T  Transmission probability unbounded above in the specification
 
 Appendix A.2 of the experiment brief defines
 `p_transmit = p_base + p_shared * theta` with no upper bound. The required
@@ -89,7 +94,7 @@ sensitivity grid includes p_base = 0.75 with Beta(5,2), whose mean theta is
 clamping to `min(1, p_base + p_shared * theta)`, recorded in
 PREREGISTRATION.md section 6.2 rather than patched silently. [Strong.]
 
-### T-N  The ranking statistic contains the control it is compared against
+### T-U  The ranking statistic contains the control it is compared against
 
 Appendix A.3 scores candidates by `Spearman(predicted, observed)` where the
 predicted vector assigns the seed itself probability 1.0, its maximum. Rank
@@ -107,7 +112,7 @@ not established).
 
 ---
 
-## C-01 [formal ID: R13] Prior run: the "true root cause" was a label lookup, not a discovery
+## C-01 [formal ID: R17] Prior run: the "true root cause" was a label lookup, not a discovery
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -128,7 +133,7 @@ whole time. Deriving it from CPU metrics recovered a label the dataset
 already provides. This does not make the prior arithmetic wrong, but it
 removes the discovery framing.
 
-## C-02 [formal ID: R14] Prior run: the headline degradation signal is an undocumented file
+## C-02 [formal ID: R18] Prior run: the headline degradation signal is an undocumented file
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -170,7 +175,7 @@ Nothing degraded. The x4.08 paymentservice signal exists only in
 `tracets_lat.csv`. Under the metric RCAEval itself treats as canonical, this
 case shows no latency propagation at all.
 
-## C-03 [formal ID: R15] Prior run: "worst symptom names paymentservice" holds only under an undisclosed restriction
+## C-03 [formal ID: R19] Prior run: "worst symptom names paymentservice" holds only under an undisclosed restriction
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -185,7 +190,7 @@ appear in the mined graph. The prior script applied that restriction
 rank-by-worst-symptom control, applied to everything observable, would have
 named shippingservice, not paymentservice.
 
-## C-04 [formal ID: R16] Prior run: the showcase case is unrepresentative
+## C-04 [formal ID: R20] Prior run: the showcase case is unrepresentative
 
 Status: CONFIRMED. Grade: Strong.
 
@@ -271,3 +276,69 @@ The brief states "The mining is part of the claim." For Online Boutique the
 mining returns the same fixed topology 90 times. Whatever the method
 achieves on OB, per-case mining contributes nothing beyond a constant
 topology that could have been written down once.
+
+---
+
+## DEVIATIONS
+
+### 2026-08-20  Correction IDs renumbered, first assignment was against a stale canonical set
+
+**What happened.** Formal IDs R13, R14, R15, R16, T-M and T-N were assigned
+to the six corrections above on 2026-08-20, on the basis of Canonical Thesis
+**v2.1**, whose section 15.1 runs to R12 and whose section 15.5 runs to T-L.
+
+**Why it was wrong.** v2.1 is not the current canonical set. The current set
+is at revision "c". In Canonical Thesis **v2.1c** every one of those six IDs
+is already taken by a different, existing claim:
+
+```
++-------+--------------------------------------------------------+
+| ID    | ALREADY OCCUPIED IN v2.1c BY                           |
++-------+--------------------------------------------------------+
+| R13   | practice is telemetry-derived throughout               |
+| R14   | ledger entries aggregate to a portfolio position       |
+| R15   | E3 only partially occupied / patent family constrains  |
+|       | rather than occupies                                   |
+| R16   | risk quantification vendors do not scope from a mined  |
+|       | dependency graph                                       |
+| T-M   | retrieval-assisted reading (with T-M-a, T-M-b, T-M-c)  |
+| T-N   | the graph moves under the measurement                  |
+| T-O   | Goodhart                                               |
+| T-P   | selection effect on H1                                 |
+| T-Q   | counterfactual adjudication                            |
+| T-R   | source grade / prior art assessed by proxy             |
+| T-S   | concentration of the remaining claim                   |
++-------+--------------------------------------------------------+
+```
+
+**The renumbering applied:**
+
+```
++---------+---------+----------------------------------------------+
+| WAS     | NOW     | CORRECTION                                   |
++---------+---------+----------------------------------------------+
+| R13     | R17     | root cause presented as discovered when it   |
+|         |         | was a label lookup                           |
+| R14     | R18     | headline number taken from a source nobody   |
+|         |         | opened                                       |
+| R15     | R19     | comparative claim true only under an         |
+|         |         | undisclosed restriction                      |
+| R16     | R20     | showcase case unrepresentative of its own    |
+|         |         | benchmark                                    |
+| T-M     | T-T     | transmission probability unbounded above     |
+| T-N     | T-U     | ranking statistic contains the control it is |
+|         |         | compared against                             |
++---------+---------+----------------------------------------------+
+```
+
+**Note on PREREGISTRATION.md.** Section 6.2 of the pre-registration refers to
+the clamp correction as "T-M". That document is frozen at commit
+b0db614791c597dd7b0e91358bf7079762d4ddeb and is NOT edited to match. The
+renumbering is recorded in its own DEVIATIONS section instead. Read "T-M" in
+PREREGISTRATION.md section 6.2 as T-T.
+
+**Cause, and it is the familiar one.** The ID range was taken from the most
+recent canonical document this session had actually opened, rather than from
+the current one. That is the same failure mode recorded at R18 and at v1.1c:
+a fact carried forward from a source not checked at its own level of detail.
+It is logged rather than quietly fixed. [Strong.]

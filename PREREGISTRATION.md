@@ -827,9 +827,95 @@ Any departure from this document after the freeze commit is recorded
 here with a date and a reason. The document above is never edited to
 match what was done.
 
+### D-01  2026-08-20  Correction ID renumbering (documentation only, no method change)
+
+Section 6.2 above logs the p_transmit clamp as tension **T-M**, and section
+3.3 points at correction **R14** in CORRECTION_LOG.md. Both IDs were assigned
+against Canonical Thesis v2.1, which is not the current canonical set. In
+v2.1c both are already occupied by different claims (T-M is retrieval-assisted
+reading; R14 is ledger entries aggregate to a portfolio position).
+
+The corrections were renumbered in CORRECTION_LOG.md:
+
 ```
-(none at freeze)
++---------+---------+
+| WAS     | NOW     |
++---------+---------+
+| R13     | R17     |
+| R14     | R18     |
+| R15     | R19     |
+| R16     | R20     |
+| T-M     | T-T     |
+| T-N     | T-U     |
++---------+---------+
 ```
+
+**Sections 3.3 and 6.2 above are NOT edited.** This document is frozen at
+b0db614791c597dd7b0e91358bf7079762d4ddeb. Read "T-M" in section 6.2 as
+**T-T**, and "R14" in section 3.3 as **R18**.
+
+Nothing about the method, the metrics, the test, the exclusions or the power
+analysis changes. This deviation is bookkeeping. [Strong.]
+
+### D-02  2026-08-20  Canonical citations refreshed to revision "c"
+
+Sections 1.1, 2.1, 2.2 and 2.3 above cite the canonical documents. The
+citations to **Part IX Mathematics v3.1c** and **Research Paper v1.1c** were
+already to the current "c" revision and stand unchanged. The citation in
+section 1.1 to the H4 statement was taken from **Canonical Thesis v2.1**,
+which is superseded by **v2.1c**.
+
+The four current canonical documents have been pulled into the repository at
+`docs/canonical/` so that every citation resolves against a fixed local copy.
+Commit hash recorded in section 17.
+
+Any citation to the canonical documents from this point is to the "c"
+revision.
+
+**Verification performed against the local copies, not against a summary.**
+
+```
++--------------------------------------+-------------------------------+
+| CHECKED                              | RESULT                        |
++--------------------------------------+-------------------------------+
+| H4 statement and kill condition      | IDENTICAL in v2.1c to what    |
+| in Canonical Thesis v2.1c            | section 1.1 records. Section  |
+|                                      | 1.1 stands unchanged.         |
++--------------------------------------+-------------------------------+
+| Highest retirement ID in v2.1c       | R16. So R17 to R20 are free.  |
++--------------------------------------+-------------------------------+
+| Highest tension ID in v2.1c          | T-S. So T-T and T-U are free. |
++--------------------------------------+-------------------------------+
+| E3 grading in v2.1c                  | OCCUPIED. Section 2.1 stands. |
++--------------------------------------+-------------------------------+
+```
+
+**Section 2.1 is understated, and the stronger form is recorded here.**
+Canonical Thesis v2.1c states, at the close of its E3 analysis:
+
+> "The risk axis of this framework is occupied. What the framework does at
+> E3 is run an occupied method over a different substrate for a different
+> unit of account. That is an integration position, not a residual, and it
+> must be described that way."
+
+And on the family itself:
+
+> "It builds a discovered dependency graph, propagates a seeded disruption
+> through it by Monte Carlo with a conditional compromise probability on
+> each edge, assesses monetary loss at each node, aggregates across assets,
+> entities and portfolios, and reports a loss exceedance curve denominated
+> in US dollars. Priority runs from March 2018. E3 is re-graded OCCUPIED."
+
+That description is a description of the method under test in this
+experiment, minus the monetary layer this experiment explicitly excludes.
+The prohibition in section 2.1 therefore binds harder, not softer: a
+positive result here demonstrates that an occupied method runs on a
+different substrate. **It establishes nothing about novelty.** [Strong.]
+
+Also recorded, from v2.1c: US 12,380,090 and US 11,356,469, cited since
+v1.0 and withdrawn at v2.1 as unverifiable, have been read at source, are
+granted, and are NOT in the family and NOT relevant. Corrected rather than
+withdrawn. Neither is cited anywhere in this experiment. [Strong.]
 
 ---
 
