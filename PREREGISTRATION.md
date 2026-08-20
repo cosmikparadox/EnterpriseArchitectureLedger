@@ -917,6 +917,49 @@ v1.0 and withdrawn at v2.1 as unverifiable, have been read at source, are
 granted, and are NOT in the family and NOT relevant. Corrected rather than
 withdrawn. Neither is cited anywhere in this experiment. [Strong.]
 
+### D-03  2026-08-20  Secondary candidate set was not implemented in the frozen runner
+
+**Found during the full run.** Preregistration section 9.2 requires a
+SECONDARY candidate set of all traced services, reported as an upper bound.
+The frozen runner `src/run_cases.py` builds the graph from edges only, so
+graph-isolated services are never nodes and the secondary set was not
+computed.
+
+This is an omission in the code, not a change to the design. It is corrected
+by adding `src/run_secondary.py`, which is identical except that every
+service appearing in `traces.csv` is added as a node before condensation.
+The frozen code is NOT edited. The new file is committed with its own hash
+before it is run.
+
+**A correction to the reasoning in section 9.2, recorded rather than
+hidden.** Section 9.2 states that admitting graph-isolated candidates "lets
+the method fall back to naive-control behaviour exactly where the graph
+failed". That is true of S_full but NOT of the primary statistic S_graph.
+Under S_graph the seed's own coordinate is excluded, so an isolated
+candidate has an all-zero predicted vector over the remaining services, the
+correlation is undefined, and it ranks last. The secondary candidate set
+therefore cannot import naive behaviour under S_graph; it can only add
+competitors, which weakly worsens ranks.
+
+The upper-bound caption still applies, and applies to S_full where the
+described mechanism is real. Both statistics are reported for the secondary
+set so the asymmetry is visible. [Strong.]
+
+### D-04  2026-08-20  RCD baseline is not runnable against any released causal-learn
+
+Preregistration section 10 lists RCD among the baselines. RCAEval 1.6.0's
+`e2e/rcd.py` calls `SkeletonDiscovery.local_skeleton_discovery` on its
+default path (`localized=True`) and passes a `labels=` keyword to
+`SkeletonDiscovery.skeleton_discovery` on the alternative path. Neither
+exists in causal-learn. Checked at versions 0.1.3.3, 0.1.3.6, 0.1.3.8 and
+0.1.4.8; `local_skeleton_discovery` is absent from all four and
+`skeleton_discovery` accepts no `labels` argument in any of them. Both are
+present only in the RCD authors' fork of causal-learn, which RCAEval does
+not pin (it requires `causal-learn>=0.1.3.3` with no upper bound).
+
+RCD is therefore reported as NOT RUNNABLE with the reason stated. RCAEval's
+internals were not patched to manufacture a baseline number. [Strong.]
+
 ---
 
 ## 17. FREEZE RECORD
