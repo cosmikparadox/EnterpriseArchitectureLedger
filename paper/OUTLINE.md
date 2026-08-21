@@ -45,12 +45,16 @@ One paragraph, in this order:
    ratio of mean post-injection to mean pre-injection `latency-90`.
 3. The control reaches 78.9 percent top-1 and 91.7 percent top-3 over 180
    cases and outperforms every RCAEval baseline we were able to run.
-4. Of five baselines attempted, one produced no output on any case, one
+4. On the 38 cases where the control fails, nsigma reaches 55.3 percent
+   and BARO 50.0 percent top-1. The benchmark is therefore not uniformly
+   easy: it is easy in a specific, characterisable way, and the residue
+   is where the published methods do their work.
+5. Of five baselines attempted, one produced no output on any case, one
    scored below a random floor at default settings, and one emits at most
    three ranked services.
-5. We document two structural properties of RE2 that complicate the
-   evaluation of structure-based methods.
-6. We frame this as corroboration of Fang et al. rather than as a novel
+6. We document three structural properties of RE2 that constrain what it
+   can evaluate, including one suite that ships no traces at all.
+7. We frame this as corroboration of Fang et al. rather than as a novel
    critique, and we state plainly that the control is not novel.
 
 ---
@@ -114,6 +118,14 @@ rank descending; ties take the worst rank in the block
 
 - BARO, nsigma, epsilon-Diagnosis, CIRCA, RCD, all from RCAEval 1.6.0.
 - A uniform-random permutation floor, seeded per case.
+- One further entry, listed neutrally throughout as **"MC graph
+  propagation"**: a Monte Carlo graph-propagation ranking method that
+  mines a service graph from trace parent/child span pairs, propagates a
+  seeded disruption with a per-edge conditional probability under a
+  shared environmental factor, and ranks candidates by rank correlation
+  between predicted and observed degradation. It is included as one more
+  comparison point. **No provenance, motivation or claim is attached to
+  it, and the paper makes no argument that depends on it.**
 - Metric-to-service mapping by longest matching service prefix, so
   `ts-order-other-service` is not absorbed by `ts-order-service`. This is
   RCAEval's own `accuracy_service` convention.
@@ -134,6 +146,7 @@ n = 180, complete data, no exclusions beyond section 3.1.**
 | CONTROL            | 142/180   |  78.9%  | [72.4%, 84.2%]   | 180/180   |
 | nsigma             | 130/180   |  72.2%  | [65.3%, 78.2%]   | 180/180   |
 | BARO               | 127/180   |  70.6%  | [63.5%, 76.7%]   | 180/180   |
+| MC graph propag.   | 101/180   |  56.1%  | [48.8%, 63.2%]   | 180/180   |
 | epsilon-Diagnosis  |  11/180   |   6.1%  | [3.4%, 10.6%]    |  27/180   |
 | Random floor       |  11/180   |   6.1%  | [3.4%, 10.6%]    | 180/180   |
 | CIRCA              |   6/180   |   3.3%  | [1.5%, 7.1%]     | 180/180   |
@@ -148,6 +161,7 @@ n = 180, complete data, no exclusions beyond section 3.1.**
 | CONTROL            | 165/180   |  91.7%  | [86.7%, 94.9%]   |
 | BARO               | 163/180   |  90.6%  | [85.4%, 94.0%]   |
 | nsigma             | 162/180   |  90.0%  | [84.7%, 93.6%]   |
+| MC graph propag.   | 124/180   |  68.9%  | [61.8%, 75.2%]   |
 | Random floor       |  30/180   |  16.7%  | [11.9%, 22.8%]   |
 | CIRCA              |  30/180   |  16.7%  | [11.9%, 22.8%]   |
 | epsilon-Diagnosis  |  27/180   |  15.0%  | [10.5%, 20.9%]   |
@@ -160,14 +174,15 @@ overlaps BARO's and nsigma's substantially. The top-3 result should be
 reported as "the control is not distinguishable from the two working
 baselines at top-3", not as a win.
 
-### 4.1 Post hoc: the subset where the control fails
+### 4.1 The benchmark is easy in a characterisable way, not uniformly easy
 
-Label EXPLORATORY, POST HOC. No p-values.
+**This is the paper's second-strongest claim and the one that keeps it
+from being a cheap shot.** Label EXPLORATORY, POST HOC. No p-values.
 
 Define hard as the 38 of 180 cases where some service other than the
 annotated root cause degrades more, that is, exactly the cases the control
-gets wrong. State explicitly that the control scores 0 of 38 here **by
-definition, as a tautology and not a finding.**
+gets wrong. The control scores 0 of 38 here **by definition, as a
+tautology and not a finding**, since hard is defined as where it fails.
 
 ```
 +--------------------+-----------+---------+------------------+
@@ -175,6 +190,7 @@ definition, as a tautology and not a finding.**
 +--------------------+-----------+---------+------------------+
 | nsigma             |   21/38   |  55.3%  | [39.7%, 69.9%]   |
 | BARO               |   19/38   |  50.0%  | [34.8%, 65.2%]   |
+| MC graph propag.   |   12/38   |  31.6%  | [19.1%, 47.5%]   |
 | CIRCA              |    2/38   |   5.3%  | [1.5%, 17.3%]    |
 | Random floor       |    2/38   |   5.3%  | [1.5%, 17.3%]    |
 | epsilon-Diagnosis  |    0/38   |   0.0%  | [0.0%, 9.2%]     |
@@ -183,12 +199,44 @@ definition, as a tautology and not a finding.**
 +--------------------+-----------+---------+------------------+
 ```
 
-This is the section that keeps the paper honest: **the working baselines
-recover roughly half the cases the control misses.** The control is not
-uniformly better; it is better in aggregate and complementary in failure
-mode. Say so.
+```
++--------------------+-----------+---------+------------------+
+| TOP-3 ON THE SAME 38 CASES                                  |
++--------------------+-----------+---------+------------------+
+| BARO               |   31/38   |  81.6%  | [66.6%, 90.8%]   |
+| nsigma             |   30/38   |  78.9%  | [63.7%, 88.9%]   |
+| MC graph propag.   |   17/38   |  44.7%  | [30.1%, 60.3%]   |
+| CIRCA              |   11/38   |  28.9%  | [17.0%, 44.8%]   |
+| Random floor       |   10/38   |  26.3%  | [15.0%, 42.0%]   |
+| epsilon-Diagnosis  |    6/38   |  15.8%  | [7.4%, 30.4%]    |
++--------------------+-----------+---------+------------------+
+```
 
----
+Composition of the 38: 20 Train Ticket, 18 Online Boutique; by fault type
+9 loss, 8 disk, 6 cpu, 6 delay, 5 mem, 4 socket.
+
+**The framing, and it must not slip.** This STRENGTHENS the critique; it
+does not rehabilitate the benchmark. The argument to make:
+
+1. RE2 decomposes into a large majority (142 of 180, 78.9 percent) that a
+   one-line rule solves, and a minority (38) that it cannot touch.
+2. The published methods do real work on that minority: nsigma and BARO
+   recover roughly half of it.
+3. **So the aggregate leaderboard number is dominated by the easy
+   majority, and it is not measuring what the methods are for.** A method
+   that is genuinely better on the hard residue can still lose on the
+   aggregate to a rule that has no model of anything.
+4. The problem is therefore not that the methods are bad. It is that
+   **the benchmark's aggregate metric cannot distinguish a method that
+   works from a rule that exploits how the cases were constructed.**
+5. The recommendation follows directly and should be stated as the
+   paper's constructive contribution: **report the hard-subset score
+   alongside the aggregate, and publish the control's score as a floor
+   any method must clear.**
+
+Do NOT write this as "the baselines are fine after all". They are fine on
+the residue and are beaten in aggregate by a rule with no model. Both
+halves are the finding.
 
 ## 5. Result 2: three reproducibility findings
 
@@ -226,7 +274,7 @@ that the published methods are wrong. See section 7.
 
 ---
 
-## 6. Result 3: two structural properties of RE2
+## 6. Result 3: three structural properties of RE2
 
 ### 6.1 RE2-OB mines an identical graph in all 90 cases
 
@@ -248,9 +296,22 @@ that the published methods are wrong. See section 7.
 - Consequently it is absent from the mined graph in 90 of 90 cases, while
   being the annotated root cause in 18 of them.
 - Any method that ranks only graph nodes scores zero on those 18 by
-  construction. Metric-based methods are unaffected.
+  construction. **A trace-mined method cannot reach 20 percent of
+  RE2-TT root causes**, whatever its ranking quality. Metric-based
+  methods are unaffected.
 
-### 6.3 A data trap worth documenting
+### 6.3 RE2-SS ships no traces at all
+
+- 90 case directories, **zero `traces.csv` and zero `tracets_*.csv`**.
+  Verified by file count, not inferred from documentation.
+- One third of the RE2 suite is therefore unavailable to any trace-based
+  method, and a paper reporting "RE2, 270 cases" for such a method is
+  reporting a number it cannot have measured.
+- State the consequence neutrally: RE2-SS remains valid for metric-only
+  methods. The problem is the suite-level case count being cited without
+  the qualification.
+
+### 6.4 A data trap worth documenting
 
 `traces.csv` has a column named `time` holding an `HH:MM` string, not a
 Unix timestamp. Comparing it against `inject_time` silently yields nothing
@@ -286,6 +347,14 @@ answers.
    documented; a different mapping could shift baseline scores.
 7. **The hard-subset analysis is post hoc** and is labelled as such
    wherever it appears.
+8. **The Monte Carlo graph-propagation entry carries roughly plus or
+   minus 3 percentage points of top-1 seed jitter**, measured by running
+   one parameter cell under two independent seeds (101 and 96 of 180).
+   This limitation attaches to THAT row only. The control and the
+   RCAEval baselines are deterministic given the data and carry no such
+   jitter, so the headline comparison in section 4 is unaffected. Stated
+   because a stochastic entry reported without its variability would be
+   the same defect this paper documents elsewhere.
 
 ---
 

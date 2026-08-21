@@ -564,6 +564,12 @@ without its variability is exactly what the framework's distribution rule
 forbids, and because it was not anticipated in the pre-registration.
 [Strong.]
 
+**This variability was found by accident, not by design, and that is
+itself a process failure: it is logged as tension T-V in
+`docs/CORRECTION_LOG.md`, which records that no seed-replication cell was
+preregistered and requires that every future experiment preregister
+one.** [Strong.]
+
 ---
 
 ## 9. Every failure, with a cause
