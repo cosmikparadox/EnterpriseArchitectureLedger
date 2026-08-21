@@ -8,7 +8,7 @@ PRIMARY   score(s) = p90(duration | abnormal) / p90(duration | normal)
 SECONDARY score(s) = mean(...) / mean(...)
 Worst-rank tie-breaking, identical to the RE2 control.
 """
-import io, json, re, sys, tarfile, time, urllib.request
+import io, json, os, re, sys, tarfile, time, urllib.request
 import numpy as np, pandas as pd
 
 URL = ("https://zenodo.org/api/records/17105974/files/"
@@ -113,9 +113,12 @@ def score_pack(name, files):
 
 def main():
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    req = urllib.request.Request(URL, headers={"User-Agent": "research-script"})
+    local = os.environ.get("FANG_TARBALL")     # local file beats the network
     rows, cur, files, n, t0 = [], None, {}, 0, time.time()
-    with urllib.request.urlopen(req) as resp:
+    src = (open(local, "rb") if local
+           else urllib.request.urlopen(
+               urllib.request.Request(URL, headers={"User-Agent": "research-script"})))
+    with src as resp:
         with tarfile.open(fileobj=resp, mode="r|gz") as tar:
             for m in tar:
                 if not m.isfile():
