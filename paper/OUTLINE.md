@@ -3,6 +3,9 @@
 **Working title:** A trivial baseline outperforms published RCA methods on
 RCAEval RE2
 
+**Retitle under consideration**, see section 4.2: the current title reads as
+a general claim, and the gating check shows the result is RE2-specific.
+
 **Status:** outline only. No prose drafted. Every number below is already
 measured; nothing new is to be run to write this paper.
 
@@ -54,8 +57,11 @@ One paragraph, in this order:
    three ranked services.
 6. We document three structural properties of RE2 that constrain what it
    can evaluate, including one suite that ships no traces at all.
-7. We frame this as corroboration of Fang et al. rather than as a novel
-   critique, and we state plainly that the control is not novel.
+7. On the harder benchmark of Fang et al. the same control scores 25.6
+   percent, a fall of 53 points. The result is therefore a fact about
+   RE2 and not a general property of RCA benchmarks, and it corroborates
+   Fang et al. rather than contradicting them.
+8. We state plainly that the control is not novel.
 
 ---
 
@@ -238,6 +244,112 @@ Do NOT write this as "the baselines are fine after all". They are fine on
 the residue and are beaten in aggregate by a rule with no model. Both
 halves are the finding.
 
+## 4.2 GATING CHECK: the control does NOT generalise to a harder benchmark
+
+**Preregistered before the run in `paper/FANG_CHECK_PREREG.md`. Scoring
+code frozen at `d5283270`. This check was designed to be able to kill the
+paper. It did not kill it, and it came within 0.6 percentage points of
+doing so.**
+
+```
++-----------------------------+-----------+---------+------------------+
+| CONTROL, TOP-1              |  COUNT    |   RATE  | WILSON 95% CI    |
++-----------------------------+-----------+---------+------------------+
+| RCAEval RE2                 | 142/180   |  78.9%  | [72.4%, 84.2%]   |
+| Fang et al. (p90, PRIMARY)  | 364/1422  |  25.6%  | [23.4%, 27.9%]   |
+| Fang et al. (mean, SECOND.) | 343/1422  |  24.1%  | [22.0%, 26.4%]   |
++-----------------------------+-----------+---------+------------------+
+| top-3: RE2 91.7%  |  Fang p90 39.0% [36.5%, 41.6%]                   |
++---------------------------------------------------------------------+
+```
+
+**The verdict, stated against the number written down in advance.**
+
+```
+Preregistered bands:  >= 50%      STRONGER
+                      25 to 50%   INTACT BUT NARROWED
+                      < 25%       WEAKER, POSSIBLY DEAD
+
+Result: 25.6% -> INTACT BUT NARROWED, by 0.6 percentage points.
+
+BUT, and this must travel with the number:
+  - the 95% interval [23.4%, 27.9%] SPANS the 25% kill line
+  - the preregistered SECONDARY statistic (mean) is 24.1%,
+    which is BELOW the kill line
+```
+
+**The honest description is "on the kill line", not "survived".** Had the
+mean variant been nominated as primary rather than p90, this check would
+have killed the paper. Both variants were preregistered precisely so that
+choice could not be made after seeing the numbers, and the outline reports
+both with equal prominence.
+
+### What this does to the paper's claims
+
+**Claim 1 is now explicitly scoped to RE2.** The control's 78.9 percent is
+a fact about RE2, not a general property of RCA benchmarks. On a benchmark
+built to be hard it scores 25.6 percent, a fall of 53 points.
+
+**This is the expected direction and it corroborates Fang et al. rather
+than undermining them.** A benchmark constructed to defeat trivial rules
+defeats this trivial rule. That is the benchmark working. The paper must
+say so in the introduction, not concede it late.
+
+**The contribution narrows accordingly:**
+
+```
++------------------------------------+--------------------------------+
+| BEFORE THIS CHECK                  | AFTER                          |
++------------------------------------+--------------------------------+
+| "A trivial baseline outperforms    | "A trivial baseline outperforms|
+|  published RCA methods"            |  published RCA methods ON      |
+|  (implicitly general)              |  RCAEval RE2, and fails to do  |
+|                                    |  so on a benchmark built to be |
+|                                    |  hard."                        |
++------------------------------------+--------------------------------+
+```
+
+**Consider retitling.** The current working title reads as a general
+claim. Something naming RE2 explicitly is more defensible, for example
+"How easy is RCAEval RE2? A trivial baseline, five published methods, and
+three reproducibility failures".
+
+### One comparison NOT made
+
+The control's 25.6 percent sits above the 21 percent top-1 that Fang et
+al. report as state of the art on this benchmark. **That comparison is not
+made in this paper.** Their 21 percent comes from their own evaluation
+protocol, and ours from a service-level ranking on trace span duration
+with our own exclusion rules. Two numbers measured by different procedures
+on the same data are not a like-for-like comparison. This is the same
+category error the project already withdrew once, and it is not committed
+again here.
+
+### Method and integrity notes
+
+```
+Datapacks processed                        1422
+True exclusions (missing files, <2 svcs)      0   (0.0%)
+Root cause absent from traced services       95   scored as MISSES,
+                                                  never dropped, per
+                                                  prereg section 6
+Ground truth source                        injection.json ground_truth
+                                           .service in 1422 of 1422
+```
+
+The 95 are database faults (73 are `mysql`) and pod-kill faults where the
+root cause emits no spans at all. **Scoring them as misses rather than
+dropping them costs the control 1.8 points** (25.6 against 27.4 on the
+reduced denominator) and is what the preregistration requires. The larger
+denominator is the honest one: a method that cannot see the root cause has
+failed to find it.
+
+The archive is 1,422 datapacks against the 1,430 validated cases the paper
+reports. The 8-case difference is unexplained and is noted rather than
+smoothed over.
+
+---
+
 ## 5. Result 2: three reproducibility findings
 
 Framed throughout as findings about **released packages**, never as claims
@@ -375,7 +487,9 @@ answers.
    a close relative. The contribution is the systematic comparison and the
    reproducibility findings, not the rule.
 3. **Single benchmark, two systems, 180 cases.** No claim is made about RE1,
-   RE3, other benchmarks, or production systems.
+   RE3, other benchmarks, or production systems. The control was tested on
+   one further benchmark (Fang et al., 1422 datapacks) and scored 25.6
+   percent, so the RE2 result explicitly does NOT generalise. See 4.2.
 4. **Default settings only.** Every baseline ran at RCAEval defaults. Tuned
    configurations may score materially higher, particularly CIRCA. This
    cuts against the paper's own findings and must be stated as such.

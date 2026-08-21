@@ -7,4 +7,4 @@ scratch/
 
 # In-flight streaming output. Committed as a completed artefact once the
 # run finishes; partial snapshots are noise.
-results/fang_control.csv
+
