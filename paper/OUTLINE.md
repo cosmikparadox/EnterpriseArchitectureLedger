@@ -82,10 +82,12 @@ One paragraph, in this order:
    three ranked services.
 6. We document three structural properties of RE2 that constrain what it
    can evaluate, including one suite that ships no traces at all.
-7. On the harder benchmark of Fang et al. the same control scores 25.6
-   percent, a fall of 53 points. The result is therefore a fact about
-   RE2 and not a general property of RCA benchmarks, and it corroborates
-   Fang et al. rather than contradicting them.
+7. On the harder benchmark of Fang et al. the same control scores 24 to
+   26 percent depending on a statistic choice the data cannot resolve,
+   a fall of more than 50 points, with both intervals spanning our
+   preregistered kill line. The RE2 result is therefore a fact about RE2
+   and NOT a general property of RCA benchmarks. This corroborates Fang
+   et al. rather than contradicting them.
 8. We state plainly that the control is not novel.
 
 ---
@@ -573,7 +575,7 @@ answers.
    reproducibility findings, not the rule.
 3. **Single benchmark, two systems, 180 cases.** No claim is made about RE1,
    RE3, other benchmarks, or production systems. The control was tested on
-   one further benchmark (Fang et al., 1422 datapacks) and scored 25.6
+   one further benchmark (Fang et al., 1422 datapacks) and scored 24 to 26
    percent, so the RE2 result explicitly does NOT generalise. See 4.2.
 4. **Default settings only.** Every baseline ran at RCAEval defaults. Tuned
    configurations may score materially higher, particularly CIRCA. This
@@ -668,24 +670,45 @@ CAUSAL-LEARN CLAIM LAST VERIFIED   2026-08-21
 
 ---
 
-## 11. Open items before drafting
+## 11. Open items
 
 ```
 +---+-----------------------------------------------------------------+
-| 1 | Contact the three author groups. Right of reply precedes         |
-|   | submission, not follows it.                                      |
+| 1 | Contact the RCD, CIRCA and epsilon-Diagnosis author groups.      |
+|   | OPEN, and deliberately not yet done: right of reply follows      |
+|   | final findings, and two findings changed after audit.            |
 +---+-----------------------------------------------------------------+
 | 2 | CLOSED 2026-08-21. Tuned CIRCA run. Finding 5.2 withdrawn and   |
-|   | replaced; see paper/CORRECTIONS.md C-1.                          |
+|   | replaced; paper/CORRECTIONS.md C-1.                              |
 +---+-----------------------------------------------------------------+
-| 3 | Confirm whether Fang et al.'s dataset is released. If so, the    |
-|   | control should be run on it, which would strengthen the paper    |
-|   | considerably or kill it. Also a new measurement.                 |
+| 3 | CLOSED 2026-08-21. Fang et al. dataset released                  |
+|   | (10.5281/zenodo.17105974) and the control run on 1,422           |
+|   | datapacks. See 4.2. It narrowed the paper rather than killing    |
+|   | it, and only just.                                               |
 +---+-----------------------------------------------------------------+
 | 4 | CLOSED 2026-08-21, and STANDING. No causal-learn release after   |
 |   | 2026-08-20; 11 versions checked. Must be repeated immediately    |
 |   | before submission, per section 9.                                |
 +---+-----------------------------------------------------------------+
-| 5 | Decide licence and data deposit for the released CSVs.           |
+| 5 | Decide licence and data deposit for the released CSVs. OPEN.     |
++---+-----------------------------------------------------------------+
+| 6 | CLOSED 2026-08-21. Retitled; see the head of this document.      |
++---+-----------------------------------------------------------------+
+| 7 | 1,422 datapacks processed against the 1,430 validated cases the |
+|   | authors report. UNEXPLAINED.                                     |
+|   | Checked: all 1,422 names unique, so no duplicate-merge; all     |
+|   | carry a .finished marker; ten systems ts0 to ts9 present.       |
+|   | The reader skips a datapack only if it contains none of the     |
+|   | files it looks for, which would be an unusual datapack, and     |
+|   | that cannot be distinguished from the archive genuinely         |
+|   | holding 1,422 without re-fetching 13.4 GB. The archive is       |
+|   | named "absolute_anomaly" and may be a filtered subset.          |
+|   | The paper reports the count it processed and does NOT cite      |
+|   | 1,430 as its own denominator.                                    |
++---+-----------------------------------------------------------------+
+| 8 | OPEN. epsilon-Diagnosis alpha. RCAEval sets 0.01 against        |
+|   | pyrca's default 0.05, five times stricter. Left unchanged in    |
+|   | the Gate 7 check by design (one variable at a time). A          |
+|   | separate preregistered check could test it.                     |
 +---+-----------------------------------------------------------------+
 ```
