@@ -197,5 +197,9 @@ Code               committed and hashed BEFORE the run, hash recorded
 
 ```
 Pre-registration commit   recorded on commit, see git log for this file
-Scoring code commit       PENDING, recorded before the run
+Scoring code commit       d52832706cac93048f9d77149945f563eac9918e
+                          src/run_fang_control.py, committed BEFORE the
+                          full run. A three-datapack smoke test was run
+                          to verify the reader; no scoring result from
+                          it is used.
 ```
