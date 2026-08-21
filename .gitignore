@@ -8,3 +8,6 @@ scratch/
 # In-flight streaming output. Committed as a completed artefact once the
 # run finishes; partial snapshots are noise.
 
+
+# In-flight run output; committed when the run completes.
+results/ediag_uncapped.csv
