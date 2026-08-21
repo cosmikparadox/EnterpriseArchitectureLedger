@@ -325,6 +325,52 @@ patent error nobody read the claims. In M-01 nobody compared the byte
 count. Here nobody ran the same cell twice. The failure is never a
 miscalculation; it is an omitted verification that would have been cheap.
 
+### T-W  A monitoring check that can match itself is not a monitoring check
+
+**Logged 2026-08-21.** [Strong.]
+
+```
+Verify process state against an INDEPENDENT signal: file mtime,
+output size, exit code, or a written marker. Never against a
+pattern that the checking command itself satisfies.
+```
+
+**What happened.** Process liveness was checked with
+`pgrep -f run_fang_control` and `pgrep -f "curl -sL -C -"`. Both patterns
+appear inside the command line of the shell that runs the check, so `pgrep`
+matched its own wrapper and reported a running process when none existed.
+
+Two consequences, one worse than the other.
+
+**The wasted hour.** A waiter loop of the form
+`while pgrep -f "curl ..."; do sleep 30; done` waited on itself and never
+terminated, so the scoring stage it was gating never launched. The download
+completed at 11:57 and the scoring had still not started when it was checked
+at 12:50. Running it directly took 90 seconds.
+
+**The false reports.** Two status statements to the user asserted that runs
+were in progress. Both were wrong. The error was caught only by comparing the
+output file's mtime against the wall clock, which is exactly the independent
+signal the rule now requires.
+
+**Why this belongs with T-U rather than in a run log.** T-U recorded that the
+ranking statistic contained the naive control it was being compared against.
+This is the same shape one level up: **an instrument that contains the thing
+it is measuring.** In T-U the metric included its own control; here the
+detector matched its own detector. Both return a confident answer that is
+about the instrument rather than about the world.
+
+**The general form.** Before trusting any check, ask what it would report if
+the condition were false. `pgrep -f X` run from a shell whose command line
+contains X answers "present" unconditionally, so it cannot report absence and
+is not a test. A check that cannot fail is not evidence.
+
+**Cheap fixes, any of which suffices.** Match on the interpreter and script
+path together and exclude wrapper shells; compare output mtime or byte count
+against a previous reading; write a sentinel on completion and test for the
+sentinel; or use the job-control exit code rather than inspecting the process
+table at all.
+
 ---
 
 ## STANDING METHOD RULES
