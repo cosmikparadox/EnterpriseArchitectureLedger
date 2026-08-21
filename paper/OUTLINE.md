@@ -256,14 +256,39 @@ that the published methods are wrong. See section 7.
   `KBinsDiscretizer` NaN error. **Zero ranked output on zero cases.**
 - We did not patch RCAEval internals to obtain a number.
 
-### 5.2 CIRCA scores below the random floor at default settings
+### 5.2 CIRCA's DEFAULT configuration scores below a random floor; a documented flag fixes it
 
-- 6/180 = 3.3 percent top-1 against the random floor's 11/180 = 6.1
-  percent. Intervals overlap.
-- Ran on all 180 cases and emitted a full ranking (median 16 services).
-- Reported exactly as measured. **No tuning attempted**, and the paper must
-  say why: tuning a baseline after seeing its score is the failure mode the
-  paper is about.
+**REVISED after a preregistered good-faith check. See
+`paper/CORRECTIONS.md` C-1.** The original claim, that CIRCA scores below
+random, is withdrawn as written.
+
+```
++--------------------+-----------+---------+------------------+
+| CONFIGURATION      |  TOP-1    |   RATE  | WILSON 95% CI    |
++--------------------+-----------+---------+------------------+
+| CIRCA default      |   6/180   |   3.3%  | [1.5%, 7.1%]     |
+| Random floor       |  11/180   |   6.1%  | [3.4%, 10.6%]    |
+| CIRCA dk_select    |  76/180   |  42.2%  | [35.2%, 49.5%]   |
++--------------------+-----------+---------+------------------+
+```
+
+- `dk_select_useful=True` is a documented RCAEval flag that is **off by
+  default**. Turning it on raises CIRCA twelve-fold and clears the random
+  floor with non-overlapping intervals.
+- The configuration was preregistered before the run
+  (`paper/CIRCA_TUNING_PREREG.md`). One configuration, no sweep, no
+  selection by ground-truth score.
+- **The claim to make is about packaging, not correctness**: the default
+  configuration is not the working one. It is NOT evidence that the method
+  is wrong.
+- CIRCA at 42.2 percent remains below the control (78.9), nsigma (72.2)
+  and BARO (70.6), so claim 2 survives with the tuned figure in the table.
+- Two things checked in source and found NOT to be the explanation: the
+  hardcoded `dataset="ob"` in `circa.py` is inert because `pc_default`
+  never reads it; and `select_useful_cols` matches the substring `lat50`
+  while the canonical columns are `latency-50`/`latency-90`, so it discards
+  every latency column (median 9 columns retained, maximum 339) and the
+  score improves anyway.
 
 ### 5.3 epsilon-Diagnosis emits at most three services
 
@@ -305,11 +330,26 @@ that the published methods are wrong. See section 7.
 - 90 case directories, **zero `traces.csv` and zero `tracets_*.csv`**.
   Verified by file count, not inferred from documentation.
 - One third of the RE2 suite is therefore unavailable to any trace-based
-  method, and a paper reporting "RE2, 270 cases" for such a method is
-  reporting a number it cannot have measured.
-- State the consequence neutrally: RE2-SS remains valid for metric-only
-  methods. The problem is the suite-level case count being cited without
-  the qualification.
+  method.
+- **Frame this as a caution about a citation convention, NOT as an
+  accusation about any paper.** A search for published work evaluating a
+  trace-based method on RE2 while citing the full suite count did not find
+  a specific instance, so no such claim is made. What can be said is
+  precise and checkable: **the suite-level count of 270 is not a valid
+  denominator for trace-based evaluation on RE2, and work reporting it
+  should state the qualification.**
+- One verifiable observation about the benchmark's own description, stated
+  neutrally and without inferring intent. The RCAEval paper (arXiv
+  2412.17015) writes: "RE2 provides multi-source telemetry data, including
+  metrics, logs, and traces... Each system generates a substantial volume
+  of logs (8.6 to 26.9 million lines), and traces (39.6 to 76.7 million
+  traces)", alongside "270 failure cases (90 cases per system)". It does
+  not break trace counts down by system. The released `RE2-SS.zip` contains
+  no trace files. Whether Sock Shop was intended to be excluded from the
+  trace description cannot be determined from the paper, and the paper
+  should be given the benefit of that ambiguity. The practical point for
+  users stands either way: check the artifact, not the summary.
+- RE2-SS remains fully valid for metric-only methods.
 
 ### 6.4 A data trap worth documenting
 
@@ -398,7 +438,22 @@ Note                    RCAEval 1.6.0 hard-imports rcd and torai on
                         gracefully. 3.12 used throughout.
 
 Released artefacts      baselines.csv (180), full_default.csv (180),
-                        hard_subset.csv (38)
+                        hard_subset.csv (38), circa_tuned.csv (180),
+                        fang_control.csv
+
+CAUSAL-LEARN CLAIM LAST VERIFIED   2026-08-21
+  Section 5.1 is a claim about released package versions and has a shelf
+  life. On 2026-08-21 the latest causal-learn on PyPI was 0.1.4.8
+  (uploaded 2026-07-11); no release exists after 2026-08-20. Eleven
+  versions were checked by extracting each distribution and reading
+  PCUtils/SkeletonDiscovery.py directly: 0.1.3.3, 0.1.3.6, 0.1.3.8,
+  0.1.3.9, 0.1.4.0, 0.1.4.2, 0.1.4.4, 0.1.4.5, 0.1.4.6, 0.1.4.7, 0.1.4.8.
+  None defines local_skeleton_discovery and none accepts a labels
+  argument on skeleton_discovery.
+
+  **REQUIRED BEFORE SUBMISSION: repeat this check and update the date.**
+  If a compatible release has appeared, section 5.1 must be rerun and
+  rewritten, not merely re-dated.
 ```
 
 ---
@@ -421,16 +476,16 @@ Released artefacts      baselines.csv (180), full_default.csv (180),
 | 1 | Contact the three author groups. Right of reply precedes         |
 |   | submission, not follows it.                                      |
 +---+-----------------------------------------------------------------+
-| 2 | Decide whether to run the tuned-CIRCA check. It cuts against     |
-|   | finding 5.2 and should probably be run for that reason, but it   |
-|   | is a NEW measurement and is out of scope for this outline.       |
+| 2 | CLOSED 2026-08-21. Tuned CIRCA run. Finding 5.2 withdrawn and   |
+|   | replaced; see paper/CORRECTIONS.md C-1.                          |
 +---+-----------------------------------------------------------------+
 | 3 | Confirm whether Fang et al.'s dataset is released. If so, the    |
 |   | control should be run on it, which would strengthen the paper    |
 |   | considerably or kill it. Also a new measurement.                 |
 +---+-----------------------------------------------------------------+
-| 4 | Check whether a causal-learn release compatible with RCAEval's   |
-|   | RCD has appeared since 2026-08-20 before asserting 5.1.          |
+| 4 | CLOSED 2026-08-21, and STANDING. No causal-learn release after   |
+|   | 2026-08-20; 11 versions checked. Must be repeated immediately    |
+|   | before submission, per section 9.                                |
 +---+-----------------------------------------------------------------+
 | 5 | Decide licence and data deposit for the released CSVs.           |
 +---+-----------------------------------------------------------------+
