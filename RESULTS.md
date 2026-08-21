@@ -259,10 +259,7 @@ the explanation for the null. [Strong.]
 
 ## 5. Hard versus easy
 
-Classified before scoring, per Appendix A.4, on `latency-90`. Under this
-definition the naive control is correct on exactly the easy cases and
-wrong on exactly the hard ones, so naive top-1 and the easy rate are the
-same number by construction.
+Classified before scoring, per Appendix A.4, on `latency-90`.
 
 ```
 +-----------+-----+---------------+---------------+
@@ -285,24 +282,131 @@ same number by construction.
 +-----------+-----+----------------+----------------+------------------+
 ```
 
-Two things must be said about this table together, because either alone
-misleads.
+### 5.1 "Hard" is defined by the control, so the control scores zero on it by arithmetic
 
-**First, the method does something on hard cases that the naive control
-by construction cannot.** 31.6 percent top-1 on hard cases, where naive
-scores 0 percent by definition. The point estimate exceeds the 21 percent
-that Fang et al. report as state of the art on a hard benchmark, though
-the confidence interval [19.1%, 47.5%] contains 21 percent, so this is
-**[Indicative]**, not Strong.
+**[Strong.]** Appendix A.4 defines a case as hard when some service other
+than the annotated root cause degrades more, and the naive control ranks
+by exactly that degradation. The two definitions are the same definition.
+So:
 
-**Second, it destroys easy cases to get there.** On the 142 easy cases the
-method scores 62.7 percent where naive scores 100 percent by definition.
-It converts 53 naive wins into losses to gain 12 hard wins. The trade is
-strongly negative. [Strong.]
+```
+naive top-1 on the hard subset = 0 / 38 = 0.0%
+```
+
+**This is a tautology, not a measurement.** It is what "hard" was defined
+to mean. It carries no information about the naive control, and it carries
+no information about any method compared against it on that subset.
+
+It follows that **any** method whose ranking differs from the naive
+control at all will win some hard cases, purely by differing. Scoring
+above zero on the hard subset is the arithmetic consequence of not being
+the naive control. It is not evidence of anything.
+
+**A previous version of this section stated that "the method does
+something on hard cases that the naive control by construction cannot".
+That sentence is true and empty, and it is withdrawn.** The words "by
+construction" were doing the work of an excuse rather than a
+qualification. Logged as D-05.
+
+### 5.2 The comparison to published state of the art is withdrawn
+
+**[Strong.]** A previous version compared the method's 31.6 percent on
+the hard subset against the 21 percent top-1 that Fang et al. (arXiv
+2510.04711) report as state of the art, and graded the comparison
+[Indicative].
+
+The grade did not fix the problem, because the problem is a category
+error rather than an uncertainty. Fang et al. measure 21 percent across a
+whole benchmark constructed to be hard. The 31.6 percent here is measured
+on "the subset of RE2 where one particular rule happens to fail". Those
+are different populations selected by different procedures. A rate on one
+cannot be transplanted onto the other, in either direction.
+
+**The comparison is withdrawn, not caveated. No claim in this document
+rests on it.**
+
+### 5.3 EXPLORATORY, POST HOC: the baselines on the same 38 cases
+
+**This subsection is POST HOC.** Stratifying the baselines to the hard
+subset was NOT preregistered. It uses only data already collected under
+the frozen analysis code, with no rerun, no retune and no new
+measurement, so it is a re-cut of the existing result rather than a new
+experiment. It sits after the preregistered result, and **no p-values or
+significance claims are attached to anything in it.** Logged as D-05.
+
+The comparison that section 5 previously lacked is the obvious one: how
+do the other methods score on the same 38 cases?
+
+```
++--------------------+-----------+---------+------------------+
+| TOP-1 ON THE 38 HARD CASES                                  |
++--------------------+-----------+---------+------------------+
+| METHOD             |   COUNT   |   RATE  | WILSON 95% CI    |
++--------------------+-----------+---------+------------------+
+| nsigma             |   21/38   |  55.3%  | [39.7%, 69.9%]   |
+| BARO               |   19/38   |  50.0%  | [34.8%, 65.2%]   |
+| METHOD S_graph     |   12/38   |  31.6%  | [19.1%, 47.5%]   |
+| CIRCA              |    2/38   |   5.3%  | [1.5%, 17.3%]    |
+| RANDOM FLOOR       |    2/38   |   5.3%  | [1.5%, 17.3%]    |
+| epsilon-Diagnosis  |    0/38   |   0.0%  | [0.0%, 9.2%]     |
+| RCD (did not run)  |    0/38   |   0.0%  | [0.0%, 9.2%]     |
+| NAIVE CONTROL      |    0/38   |   0.0%  | [0.0%, 9.2%]     |
+|   (zero by definition, see 5.1)                             |
++--------------------+-----------+---------+------------------+
+```
+
+```
++--------------------+-----------+---------+------------------+
+| TOP-3 ON THE 38 HARD CASES                                  |
++--------------------+-----------+---------+------------------+
+| BARO               |   31/38   |  81.6%  | [66.6%, 90.8%]   |
+| nsigma             |   30/38   |  78.9%  | [63.7%, 88.9%]   |
+| METHOD S_graph     |   17/38   |  44.7%  | [30.1%, 60.3%]   |
+| CIRCA              |   11/38   |  28.9%  | [17.0%, 44.8%]   |
+| RANDOM FLOOR       |   10/38   |  26.3%  | [15.0%, 42.0%]   |
+| epsilon-Diagnosis  |    6/38   |  15.8%  | [7.4%, 30.4%]    |
++--------------------+-----------+---------+------------------+
+```
+
+Hard subset composition, for context: 20 Train Ticket and 18 Online
+Boutique; by fault type, 9 loss, 8 disk, 6 cpu, 6 delay, 5 mem, 4 socket.
+
+**Against the random floor.** The method scores 12 of 38 where shuffling
+scores 2 of 38. The two Wilson intervals do NOT overlap: the method's
+lower bound is 19.1 percent and the random floor's upper bound is 17.3
+percent. The margin is 1.8 percentage points, which is narrow, and this
+is a post hoc cut on 38 cases, so the separation should be treated as
+fragile rather than established.
+
+**Against the methods that actually ran.** On the same 38 cases, nsigma
+scores 55.3 percent and BARO 50.0 percent against the method's 31.6
+percent. At top-3 the gap widens: 81.6 and 78.9 percent against 44.7
+percent. **On the hard subset, the subset previously used to present the
+method favourably, the method is beaten by both baselines that ran
+cleanly on all 180 cases.**
+
+### 5.4 What section 5 licences
+
+```
++---------------------------------------------------------------+
+| The method beat the naive control on 12 of 38 hard cases.     |
+| That is the arithmetic consequence of differing from the      |
+| control on a subset defined as where the control fails.       |
+|                                                               |
+| It is above the random floor by a narrow, post hoc margin.    |
+|                                                               |
+| It is well below nsigma and BARO on the same 38 cases.        |
+|                                                               |
+| It is well below the naive control on the full 180.           |
++---------------------------------------------------------------+
+```
+
+**Nothing in section 5 shows the method outperforming anything.** [Strong.]
 
 A method that only works on easy cases has shown nothing. A method that
-wins some hard cases by losing four times as many easy ones has also shown
-nothing about the ranking clause. [Asserted, this is a judgement.]
+scores below both working baselines on the hard cases, and below a
+one-line rule overall, has also shown nothing about the ranking clause.
+[Asserted, this is a judgement.]
 
 ---
 
@@ -598,6 +702,10 @@ measurement of it.
   spread 3.9 points, and is not a parameter artefact. [Strong.]
 - On this benchmark a trivial rule-based control beats every RCAEval
   baseline tested. [Strong.]
+- On the 38 hard cases, post hoc, the method scores below both baselines
+  that ran cleanly (31.6 percent against nsigma 55.3 and BARO 50.0), and
+  above the random floor by a narrow margin. See section 5.3. [Strong,
+  as a measurement; the stratification is post hoc.]
 
 ### 11.2 NOT licensed
 
@@ -653,6 +761,16 @@ Recorded in full in PREREGISTRATION.md section 16. Summary:
 +-------+-----------------------------------------------------------+
 | D-04  | RCD is not runnable against any released causal-learn.    |
 |       | Reported as such rather than patched around.              |
++-------+-----------------------------------------------------------+
+| D-05  | Section 5's hard-case claim WITHDRAWN as a category       |
+|       | error. "Naive scores 0% on hard cases" is a tautology,    |
+|       | since hard is DEFINED as where naive fails, and the       |
+|       | transplant of Fang et al.'s 21% onto this subset          |
+|       | compared two different populations. Baselines             |
+|       | stratified POST HOC to the same 38 cases to supply the    |
+|       | missing comparison. No rerun, no retune, no new           |
+|       | measurement, no p-values attached. Section 5.3 carries    |
+|       | the EXPLORATORY, POST HOC heading.                        |
 +-------+-----------------------------------------------------------+
 ```
 

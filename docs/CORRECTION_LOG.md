@@ -277,6 +277,54 @@ mining returns the same fixed topology 90 times. Whatever the method
 achieves on OB, per-case mining contributes nothing beyond a constant
 topology that could have been written down once.
 
+### T-V  Monte Carlo seed sensitivity was discovered by accident, not by design
+
+**Logged 2026-08-20.** [Strong.]
+
+The Experiment 1 result carries roughly plus or minus 3 percentage points
+of top-1 jitter from Monte Carlo noise alone. The same parameter cell, run
+under two different derived seeds, returned 101 and 96 correct of 180, with
+15 of 180 node ranks differing by exactly one place.
+
+**That number exists only because two code paths disagreed about a
+string.** One runner built its cell identifier as "a2.0_b5.0_pb0.55_ps0.4"
+and the other as "a2_b5_pb0.55_ps0.4". Since the per-case seed is derived
+by hashing that identifier, the two runs drew different random numbers.
+Nothing about this was designed. No replication cell was preregistered, no
+seed sweep was specified, and the pre-registration's section 15.1 treats
+seeds purely as a reproducibility record rather than as a source of
+variance to be measured.
+
+Had the two runners agreed on the string, as they were meant to, the
+experiment would have reported 101 of 180 as a point estimate with no
+indication that 96 was equally available.
+
+**This is the framework's own failure mode, in the framework's own
+experiment.** The Architecture Ledger's central methodological commitment
+is distributional discipline: Part IX states that nothing is reported
+without its range, its method and its seed, and Appendix B of the
+experiment brief restates it as "everything is a distribution, never
+report a point estimate without its range". The experiment testing that
+framework ran a point-estimate design and recovered its own variance by
+luck.
+
+The check that would have caught it is trivial and was not run: execute
+one parameter cell under k independent seeds and report the spread. It
+costs one extra cell.
+
+**Requirement, binding on future experiments.** Any experiment using Monte
+Carlo estimation must preregister a seed-replication cell: the same
+parameters under at least three independent seeds, with the spread
+reported alongside the point estimate. A result whose seed variance was
+never measured is a point estimate presented as if it were stable.
+
+**Family.** This belongs with R18, with the patent citation error, and with
+M-01. All four have the same shape: **the check that would have caught it
+was not run.** In R18 nobody opened the file the number came from. In the
+patent error nobody read the claims. In M-01 nobody compared the byte
+count. Here nobody ran the same cell twice. The failure is never a
+miscalculation; it is an omitted verification that would have been cheap.
+
 ---
 
 ## STANDING METHOD RULES
