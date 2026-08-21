@@ -9,5 +9,3 @@ scratch/
 # run finishes; partial snapshots are noise.
 
 
-# In-flight run output; committed when the run completes.
-results/ediag_uncapped.csv

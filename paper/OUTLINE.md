@@ -489,12 +489,41 @@ random, is withdrawn as written.
   every latency column (median 9 columns retained, maximum 339) and the
   score improves anyway.
 
-### 5.3 epsilon-Diagnosis emits at most three services
+### 5.3 epsilon-Diagnosis is level with a random floor, and the output cap is a library default
 
-- Ranked-service count: median 3, maximum 3, zero in 7 of 180 cases.
-- The true root cause appears anywhere in its output in only 27 of 180.
-- Its top-1 rate therefore measures coverage as much as accuracy, and
-  should not be read as a like-for-like accuracy comparison.
+**REVISED after a preregistered audit and run. See `paper/CORRECTIONS.md`
+C-2.** The score stands. The "emits at most three services" framing is
+withdrawn.
+
+```
++--------------------+-----------+---------+------------------+---------+
+| CONFIGURATION      |  TOP-1    |   RATE  | WILSON 95% CI    |  TOP-3  |
++--------------------+-----------+---------+------------------+---------+
+| e-Diag default     |  11/180   |   6.1%  | [3.4%, 10.6%]    |  15.0%  |
+| e-Diag UNCAPPED    |  11/180   |   6.1%  | [3.4%, 10.6%]    |  17.8%  |
+| Random floor       |  11/180   |   6.1%  | [3.4%, 10.6%]    |  16.7%  |
++--------------------+-----------+---------+------------------+---------+
+```
+
+- **`root_cause_top_k = 3` is a pyrca library default**, documented as "the
+  maximum number of root causes in the results", and **RCAEval never sets
+  it**. The cap is a reporting limit, not a property of the method.
+- Removing it changes **top-1 on zero of 180 cases** (paired b=0, c=0), which
+  is expected: truncating at 3 cannot alter which candidate ranks first.
+- It does change coverage substantially: services ranked median 3 to 16,
+  columns 3 to 104, root cause found somewhere in the ranking 27/180 to
+  178/180, cases yielding no rankable service 7 to 0.
+- **The claim to make is that the method's top-1 ranking is close to
+  uninformative on this benchmark, and that this is NOT an artefact of a
+  truncated output.** That is narrower and more defensible than the original.
+- Also audited and found clean: no hardcoded dataset (unlike `circa.py`), no
+  column-name matching defect in the wrapper. One further finding not acted
+  on: RCAEval sets `alpha=0.01` against pyrca's `0.05`, five times stricter.
+  Left unchanged deliberately, one variable at a time. Open item 8.
+
+**Report the audit even though the number did not move.** "We read the
+source and the score is unchanged" is a result, and the audit still removed
+a false clause.
 
 ---
 
