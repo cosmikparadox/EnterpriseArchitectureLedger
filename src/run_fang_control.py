@@ -19,25 +19,40 @@ NEED = {"injection.json", "normal_traces.parquet", "abnormal_traces.parquet",
 
 
 def rc_from_injection(blob):
-    """Root cause service from injection.json, or None."""
+    """Root cause SERVICE from injection.json.
+
+    Authoritative source, in order:
+      1. ground_truth["service"][0]
+      2. display_config (a stringified JSON) -> injection_point.app_name
+    Returns (service, source) or (None, None).
+    """
     try:
         d = json.loads(blob.decode("utf-8", "replace"))
     except Exception:
-        return None
-    stack = [d]
-    keys = ("service", "service_name", "target_service", "injection_point",
-            "target", "app", "app_label")
-    while stack:
-        cur = stack.pop()
-        if isinstance(cur, dict):
-            for k, v in cur.items():
-                if k in keys and isinstance(v, str) and v.strip():
-                    return v.strip()
-                if isinstance(v, (dict, list)):
-                    stack.append(v)
-        elif isinstance(cur, list):
-            stack.extend(x for x in cur if isinstance(x, (dict, list)))
-    return None
+        return None, None
+    gt = d.get("ground_truth")
+    if isinstance(gt, str):
+        try:
+            gt = json.loads(gt)
+        except Exception:
+            gt = None
+    if isinstance(gt, dict):
+        svc = gt.get("service")
+        if isinstance(svc, list) and svc and isinstance(svc[0], str):
+            return svc[0].strip(), "ground_truth.service"
+        if isinstance(svc, str) and svc.strip():
+            return svc.strip(), "ground_truth.service"
+    dc = d.get("display_config")
+    if isinstance(dc, str):
+        try:
+            dc = json.loads(dc)
+        except Exception:
+            dc = None
+    if isinstance(dc, dict):
+        ip = dc.get("injection_point")
+        if isinstance(ip, dict) and isinstance(ip.get("app_name"), str):
+            return ip["app_name"].strip(), "display_config.injection_point.app_name"
+    return None, None
 
 
 def rc_from_name(name):
@@ -66,11 +81,13 @@ def per_service(buf, stat):
 
 def score_pack(name, files):
     rec = {"datapack": name}
-    rc = rc_from_injection(files.get("injection.json", b"")) or rc_from_name(name)
+    rc_inj, src = rc_from_injection(files.get("injection.json", b""))
+    rc_name = rc_from_name(name)
+    rc = rc_inj or rc_name                    # injection.json wins, per prereg
     rec["rc_service"] = rc
-    rec["rc_source"] = ("injection.json"
-                        if rc_from_injection(files.get("injection.json", b"")) else "dirname")
-    rec["rc_from_name"] = rc_from_name(name)
+    rec["rc_source"] = src or ("dirname" if rc_name else None)
+    rec["rc_from_name"] = rc_name
+    rec["label_disagreement"] = bool(rc_inj and rc_name and rc_inj != rc_name)
     rec["finished"] = ".finished" in files
     if not rec["finished"]:
         rec["excluded"] = "no .finished marker"; return rec
