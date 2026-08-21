@@ -1,10 +1,35 @@
 # OUTLINE
 
-**Working title:** A trivial baseline outperforms published RCA methods on
-RCAEval RE2
+**Title:** How easy is RCAEval RE2? A symptom-ranking control, five
+published baselines, and three reproducibility findings
 
-**Retitle under consideration**, see section 4.2: the current title reads as
-a general claim, and the gating check shows the result is RE2-specific.
+**Chosen 2026-08-21, replacing "A trivial baseline outperforms published RCA
+methods on RCAEval RE2".** The former title made a general claim. The gating
+check in section 4.2 shows the result is specific to RE2, so a title implying
+otherwise is not supportable. The replacement:
+
+```
++---------------------------------+----------------------------------------+
+| REQUIREMENT                     | HOW THE TITLE MEETS IT                 |
++---------------------------------+----------------------------------------+
+| Names RE2 explicitly            | "RCAEval RE2" is the subject, not a    |
+|                                 | qualifier appended to a general claim  |
+| Does not imply generalisation   | It asks a question about ONE benchmark |
+|                                 | rather than asserting a result about   |
+|                                 | RCA methods                            |
+| Does not overclaim novelty      | It promises a measurement and an       |
+|                                 | inventory, not a discovery. It reads   |
+|                                 | as downstream of Fang et al., which is |
+|                                 | what it is.                            |
++---------------------------------+----------------------------------------+
+```
+
+Rejected: "A one-line baseline outperforms published RCA methods on RCAEval
+RE2" still leads with the outperformance claim, which the paper can support
+only at top-1 and only on this benchmark. "Benchmark-specific: a
+symptom-ranking control on RCAEval RE2" is accurate but buries the
+reproducibility findings, which after the CIRCA and epsilon-Diagnosis audits
+are a larger part of the contribution than the control is.
 
 **Status:** outline only. No prose drafted. Every number below is already
 measured; nothing new is to be run to write this paper.
@@ -283,6 +308,66 @@ mean variant been nominated as primary rather than p90, this check would
 have killed the paper. Both variants were preregistered precisely so that
 choice could not be made after seeing the numbers, and the outline reports
 both with equal prominence.
+
+### The statistic choice, and why the claim shrinks: ROUTE (b)
+
+**The generalisation claim is NOT SUPPORTED. It is not "narrowly supported".**
+
+The preregistration nominated p90 primary and mean secondary, and it did give
+a reason in advance rather than after the fact: RE2's canonical column is
+`latency-90`, a 90th percentile, so p90 on span duration is the closer
+analogue. **That rationale was stated in `paper/FANG_CHECK_PREREG.md` before
+the run, and it is genuine.** Route (a) was therefore honestly available.
+
+It is not taken, because the two statistics cannot be told apart:
+
+```
++------------------------------------------+---------------------------+
+| p90  top-1                               | 364/1422 = 25.6%          |
+| mean top-1                               | 343/1422 = 24.1%          |
+| difference                               | 1.5 points                |
+| width of a single 95% interval           | 4.5 points                |
+| cases where the two agree                | 90.1%                     |
+| paired McNemar, two-sided                | p = 0.092                 |
++------------------------------------------+---------------------------+
+| p90  CI [23.4%, 27.9%]   SPANS the 25% kill line                     |
+| mean CI [22.0%, 26.4%]   SPANS the 25% kill line                     |
++----------------------------------------------------------------------+
+```
+
+The gap between the statistics is a third of the width of either interval,
+and the two rank the same case identically nine times out of ten. **Nominating
+either as "the" answer asserts a precision the data does not contain.**
+
+The honest statement, and the one the paper makes:
+
+> On the benchmark of Fang et al. the control scores **24 to 26 percent
+> top-1**, depending on a statistic choice the data cannot resolve. **Both
+> confidence intervals span the preregistered 25 percent kill line.** The
+> result does not cleanly clear that line, so the claim that the RE2 finding
+> extends to a harder benchmark is **not supported.** The RE2 result stands
+> as a result about RE2.
+
+### DISCLOSURE: this paper came within one arbitrary choice of being withdrawn
+
+**Stated here because it is the strongest available evidence that the
+preregistration was real rather than decorative.**
+
+```
+The preregistered kill condition was: control top-1 below 25 percent
+on the Fang et al. benchmark means the paper is weakened or dead and
+the contribution shrinks to a reproducibility note.
+
+  PRIMARY   statistic (p90)  = 25.6%   clears the line by 0.6 points
+  SECONDARY statistic (mean) = 24.1%   FALLS BELOW the line
+
+Had mean been nominated primary instead of p90, this check would have
+killed the paper. Both were registered in advance precisely so that
+choice could not be made after the numbers were known.
+```
+
+The kill line is not moved, softened or reinterpreted in hindsight. The claim
+is reduced instead.
 
 ### What this does to the paper's claims
 
