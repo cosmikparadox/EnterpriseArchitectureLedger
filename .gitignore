@@ -9,3 +9,9 @@ scratch/
 # run finishes; partial snapshots are noise.
 
 
+
+# Canonical source documents fetched from the author's Drive for this session.
+# NEVER COMMITTED: this repository is PUBLIC and these are unpublished
+# framework documents. sim/README.md records the file ids and byte counts
+# so the retrieval is reproducible without redistributing the sources.
+sim/sources/
