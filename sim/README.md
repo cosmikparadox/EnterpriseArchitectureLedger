@@ -23,8 +23,8 @@ copies; do not use it.
 
 ```
 +---------------------------------------+----------------------------+
-| Estate generator                      | in progress                |
-| Experiment 1  decomposition (H11)     | not started                |
+| Estate generator                      | done                       |
+| Experiment 1  decomposition (H11)     | done. K1 fired, K2 did not |
 | Experiment 2  non-additivity          | not started                |
 | Experiment 3  logged corrections      | not started                |
 | Experiment 4  option generation       | BLOCKED, derivation absent |
