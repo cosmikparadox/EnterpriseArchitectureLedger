@@ -89,12 +89,22 @@ function convertFolder() {
 
 /** Convert a single Markdown file, replacing any existing PDF of the same name. */
 function convertOne_(file, dest, baseName, pdfName, replaceExisting) {
-  // Copying with a Google Docs target mime type makes Drive do the conversion.
-  var tempDoc = Drive.Files.copy(
-    { name: '__md2pdf_tmp_' + baseName, mimeType: MimeType.GOOGLE_DOCS },
-    file.getId(),
-    { supportsAllDrives: true }
-  );
+  // Drive converts Markdown to a Google Doc on upload; copying with a Google Docs
+  // target mime type is the fallback if this deployment does not allow that.
+  var tempName = '__md2pdf_tmp_' + baseName;
+  var tempDoc;
+  try {
+    tempDoc = Drive.Files.create(
+      { name: tempName, mimeType: MimeType.GOOGLE_DOCS },
+      file.getBlob().setContentType('text/markdown')
+    );
+  } catch (uploadErr) {
+    tempDoc = Drive.Files.copy(
+      { name: tempName, mimeType: MimeType.GOOGLE_DOCS },
+      file.getId(),
+      { supportsAllDrives: true }
+    );
+  }
 
   try {
     var pdf = DriveApp.getFileById(tempDoc.id).getAs(MimeType.PDF).setName(pdfName);
