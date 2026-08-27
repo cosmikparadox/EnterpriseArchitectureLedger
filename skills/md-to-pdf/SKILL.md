@@ -74,13 +74,16 @@ Two routes, depending on where the work should happen.
 
 **Convert inside Drive (no download).** `scripts/drive_md2pdf.gs` is a Google Apps
 Script that converts every `.md` in one Drive folder and writes the PDFs to another,
-entirely server-side. Setup instructions are in the file header. It is idempotent and
-resumable, so re-running it after the six-minute execution limit picks up where it
-stopped. Use this for bulk conversion — no file-size ceiling.
+entirely server-side. Paste it into a new script.google.com project and press Run —
+no API services to enable. It is idempotent and resumable, so re-running it after the
+six-minute execution limit picks up where it stopped. Use this for bulk conversion —
+no file-size ceiling.
 
 **Convert locally (higher fidelity).** Download the Markdown, run `md2pdf.py`, upload
 the PDFs. This is the route that renders LaTeX math and syntax highlighting properly.
 
-Note for agents working through a Drive connector: PDFs must be uploaded as base64 in
-a tool argument, which is impractical beyond very small files. Prefer the Apps Script
-for bulk work rather than attempting to shuttle PDF bytes through tool calls.
+Note for agents working through a Drive connector: `create_file` is the only content
+path and takes base64 in a tool argument. That works (verified byte-exact for small
+files) but a typeset PDF is 87 KB to 375 KB, i.e. 117,000 to 500,000 base64 characters
+per file — beyond a single tool call. Text uploads are fine. For PDFs, use the Apps
+Script rather than trying to shuttle bytes through tool calls.

@@ -46,8 +46,9 @@ you ask for a Markdown file to be turned into a PDF.
 [`skills/md-to-pdf/scripts/drive_md2pdf.gs`](skills/md-to-pdf/scripts/drive_md2pdf.gs)
 is a Google Apps Script that converts every `.md` in one Drive folder into PDFs in
 another, entirely inside Google — nothing is downloaded or re-uploaded, so there is no
-file-size ceiling. Setup instructions are in the file header. It is idempotent and
-resumable: re-run it and it skips what already exists.
+file-size ceiling. Paste it into a new script.google.com project and press Run; there
+are no API services to enable. It is idempotent and resumable: re-run it and it skips
+what already exists.
 
 For the highest fidelity — real KaTeX math and syntax highlighting — convert locally
 with `md2pdf.py` instead and upload the PDFs.

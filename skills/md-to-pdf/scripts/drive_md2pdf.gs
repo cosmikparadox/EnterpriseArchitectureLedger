@@ -2,20 +2,20 @@
  * drive_md2pdf.gs - convert every Markdown file in a Google Drive folder to PDF,
  * writing the results into a destination folder.
  *
- * The conversion happens entirely inside Google's infrastructure: Drive converts
- * each .md to a temporary Google Doc, exports that Doc as PDF, then the temp Doc
- * is trashed. Nothing is downloaded or re-uploaded, so file size is not a concern.
+ * The conversion happens entirely inside Google: Drive converts each .md into a
+ * temporary Google Doc, exports that Doc as PDF, and the temp Doc is trashed.
+ * Nothing is downloaded or re-uploaded, so there is no file-size ceiling.
  *
- * SETUP
- *   1. Go to https://script.google.com and create a new project.
- *   2. Paste this file in, replacing the default Code.gs contents.
- *   3. In the left sidebar click Services (+), choose "Drive API", pick v3, Add.
- *   4. Set SOURCE_FOLDER_ID and DEST_FOLDER_ID below.
- *   5. Select convertFolder() from the function dropdown and press Run.
- *      Authorise the script when prompted (it only touches your own Drive).
+ * SETUP - two steps, no API services to enable.
+ *   1. Go to https://script.google.com and start a new project.
+ *   2. Paste this file over the default Code.gs, press Run, and authorise it.
+ *      (It asks for Drive access because it reads and writes your own Drive,
+ *      and for external requests because Drive's Markdown import is a REST call.)
  *
- * The script is idempotent and resumable: PDFs that already exist are skipped, so
- * if it stops at the six-minute execution limit just run it again.
+ * Idempotent and resumable: PDFs that already exist are skipped, so if the run
+ * stops at Apps Script's six-minute limit, just press Run again.
+ *
+ * Run dryRun() first if you want to see what it would convert.
  */
 
 // ---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ var DEST_FOLDER_ID   = '1orckg9XS_PNfLV_34Smk0_tTGgg7oQni';
 /** Set true to regenerate PDFs that already exist in the destination folder. */
 var OVERWRITE_EXISTING = false;
 
-/** Stop this many milliseconds in, to stay under the 6-minute quota. */
+/** Stop this many milliseconds in, to stay inside the 6-minute quota. */
 var TIME_BUDGET_MS = 5 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
@@ -82,32 +82,16 @@ function convertFolder() {
 
   var summary = 'converted ' + converted + ', skipped ' + skipped +
                 ', failed ' + failed +
-                (remaining ? ', ' + remaining + ' left (run again)' : '');
+                (remaining ? ', ' + remaining + ' left (press Run again)' : '');
   Logger.log(summary);
   return summary;
 }
 
-/** Convert a single Markdown file, replacing any existing PDF of the same name. */
+/** Convert one Markdown file, replacing any existing PDF of the same name. */
 function convertOne_(file, dest, baseName, pdfName, replaceExisting) {
-  // Drive converts Markdown to a Google Doc on upload; copying with a Google Docs
-  // target mime type is the fallback if this deployment does not allow that.
-  var tempName = '__md2pdf_tmp_' + baseName;
-  var tempDoc;
+  var docId = markdownToGoogleDoc_(file, '__md2pdf_tmp_' + baseName);
   try {
-    tempDoc = Drive.Files.create(
-      { name: tempName, mimeType: MimeType.GOOGLE_DOCS },
-      file.getBlob().setContentType('text/markdown')
-    );
-  } catch (uploadErr) {
-    tempDoc = Drive.Files.copy(
-      { name: tempName, mimeType: MimeType.GOOGLE_DOCS },
-      file.getId(),
-      { supportsAllDrives: true }
-    );
-  }
-
-  try {
-    var pdf = DriveApp.getFileById(tempDoc.id).getAs(MimeType.PDF).setName(pdfName);
+    var pdf = DriveApp.getFileById(docId).getAs(MimeType.PDF).setName(pdfName);
 
     if (replaceExisting) {
       var stale = dest.getFilesByName(pdfName);
@@ -117,8 +101,45 @@ function convertOne_(file, dest, baseName, pdfName, replaceExisting) {
     }
     dest.createFile(pdf);
   } finally {
-    DriveApp.getFileById(tempDoc.id).setTrashed(true);
+    DriveApp.getFileById(docId).setTrashed(true);
   }
+}
+
+/**
+ * Upload the Markdown with a Google Docs target type so Drive converts it.
+ * Uses the REST endpoint directly, which avoids requiring the advanced Drive
+ * service to be switched on for the project.
+ */
+function markdownToGoogleDoc_(file, tempName) {
+  var boundary = 'md2pdf' + Utilities.getUuid();
+  var metadata = { name: tempName, mimeType: MimeType.GOOGLE_DOCS };
+
+  var head = Utilities.newBlob(
+    '--' + boundary + '\r\n' +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    JSON.stringify(metadata) + '\r\n' +
+    '--' + boundary + '\r\n' +
+    'Content-Type: text/markdown\r\n\r\n'
+  ).getBytes();
+  var tail = Utilities.newBlob('\r\n--' + boundary + '--\r\n').getBytes();
+  var payload = head.concat(file.getBlob().getBytes()).concat(tail);
+
+  var response = UrlFetchApp.fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true',
+    {
+      method: 'post',
+      contentType: 'multipart/related; boundary=' + boundary,
+      payload: payload,
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+      muteHttpExceptions: true
+    }
+  );
+
+  if (response.getResponseCode() >= 300) {
+    throw new Error('Markdown import failed (HTTP ' + response.getResponseCode() +
+                    '): ' + response.getContentText());
+  }
+  return JSON.parse(response.getContentText()).id;
 }
 
 /** Report what convertFolder() would do, without writing anything. */
