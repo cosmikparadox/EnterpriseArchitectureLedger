@@ -61,6 +61,7 @@ skills/md-to-pdf/
   SKILL.md                          skill definition and reference
   assets/default.css                print stylesheet
   scripts/md2pdf.py                 the converter
+  scripts/md2pdf_compact.py         small-output converter (base-14 fonts)
   scripts/drive_md2pdf.gs           in-Drive bulk conversion
   scripts/requirements.txt          Python dependencies
 ```

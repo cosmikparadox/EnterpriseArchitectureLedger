@@ -61,6 +61,22 @@ what was produced.
 the running header. Without front matter the title falls back to the first `#` heading,
 then to the filename.
 
+## Small output
+
+`scripts/md2pdf_compact.py` renders the same Markdown 4-10x smaller by laying text
+out directly in the PDF base-14 fonts (Times/Helvetica/Courier), which are never
+embedded. Chromium always embeds font subsets - a flat ~90 KB per document - and
+those subsets cannot be stripped afterwards because they are Identity-H CID fonts:
+removing the font program leaves the text unmappable.
+
+```bash
+python scripts/md2pdf_compact.py docs/ -r -o out/
+```
+
+Fenced code stays in Courier, so ASCII tables keep their alignment. It gives up
+syntax highlighting, KaTeX math, real tables, and the cover page. Reach for it when
+size is the binding constraint; otherwise use `md2pdf.py`.
+
 ## Styling
 
 `assets/default.css` is a print stylesheet tuned for long documents. Copy it and pass
