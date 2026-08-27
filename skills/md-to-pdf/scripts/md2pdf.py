@@ -280,6 +280,17 @@ def document_title(meta: dict, headings: list, path: Path) -> str:
 # HTML assembly
 # --------------------------------------------------------------------------
 
+_UNIT_MM = {"mm": 1.0, "cm": 10.0, "in": 25.4, "pt": 25.4 / 72, "px": 25.4 / 96}
+
+
+def to_mm(value, default: float = 0.0) -> float:
+    """Convert a CSS length such as '18mm' or '0.75in' to millimetres."""
+    match = re.match(r"^\s*([0-9.]+)\s*(mm|cm|in|pt|px)?\s*$", str(value))
+    if not match:
+        return default
+    return float(match.group(1)) * _UNIT_MM[match.group(2) or "mm"]
+
+
 PAGE_SIZES = {  # width x height in mm
     "A4": (210, 297),
     "A5": (148, 210),
@@ -328,6 +339,32 @@ window.addEventListener('load', function () {
 </script>"""
     elif has_math:
         script = "<script>window.__mathReady = true;</script>"
+
+    # Code blocks too wide for the page are shrunk to fit rather than wrapped:
+    # wrapping would destroy the column alignment of ASCII tables and diagrams.
+    script += """
+<script>
+window.__fitReady = false;
+window.addEventListener('load', function () {
+  var blocks = document.querySelectorAll('pre');
+  for (var i = 0; i < blocks.length; i++) {
+    var pre = blocks[i];
+    var code = pre.querySelector('code') || pre;
+    var size = parseFloat(window.getComputedStyle(code).fontSize);
+    var guard = 0;
+    while (pre.scrollWidth > pre.clientWidth + 1 && size > 6.5 && guard < 40) {
+      size -= 0.35;
+      code.style.fontSize = size + 'px';
+      guard++;
+    }
+    if (pre.scrollWidth > pre.clientWidth + 1) {
+      code.style.whiteSpace = 'pre-wrap';
+      code.style.wordBreak = 'break-all';
+    }
+  }
+  window.__fitReady = true;
+});
+</script>"""
 
     return (
         "<!doctype html>\n<html><head>"
@@ -438,14 +475,22 @@ def convert(page, source: Path, dest: Path, opts, md: MarkdownIt,
         tmp_html = Path(handle.name)
 
     try:
+        # Measure at the paper width, not the default viewport: the in-page fitter
+        # sizes code blocks against the layout width Chromium will use for the PDF.
+        px = lambda mm: max(1, round(mm / 25.4 * 96))
+        content_w = width - 2 * to_mm(opts.margin_x)
+        content_h = height - to_mm(opts.margin_top) - to_mm(opts.margin_bottom)
+        page.set_viewport_size({"width": px(content_w), "height": px(content_h)})
+        page.emulate_media(media="print")
         page.goto(tmp_html.as_uri(), wait_until="load")
+        waits = ["window.__fitReady === true"]
         if has_math and katex_root:
+            waits.insert(0, "window.__mathReady === true")
+        for condition in waits:
             try:
-                page.wait_for_function("window.__mathReady === true", timeout=30000)
+                page.wait_for_function(condition, timeout=30000)
             except Exception:  # noqa: BLE001 - render anyway rather than lose the document
                 pass
-        page.emulate_media(media="print")
-
         header = '<div></div>'
         footer = '<div></div>'
         if not opts.no_page_numbers:
