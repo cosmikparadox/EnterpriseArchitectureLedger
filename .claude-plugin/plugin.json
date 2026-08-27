@@ -1,0 +1,6 @@
+{
+  "name": "md-to-pdf",
+  "version": "1.0.0",
+  "description": "Convert Markdown files into typeset PDFs, singly or in bulk, including Markdown stored in Google Drive.",
+  "keywords": ["markdown", "pdf", "convert", "export", "documents", "google-drive"]
+}
