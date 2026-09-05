@@ -1,0 +1,7 @@
+# Canon, read-only working copy. Not committed by instruction.
+# Referenced by section number only.
+Part_IX_Mathematics_v3_1d.md
+
+node_modules/
+.DS_Store
+*.local
