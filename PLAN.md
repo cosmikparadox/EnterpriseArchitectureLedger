@@ -1,8 +1,9 @@
 # LEDGER EXPLORER, build plan v1
 
-Sources: spec v0.1 (committed), Part IX v3.1d (on disk, gitignored, cited by
-section number only). Canon wins on every formula conflict; each one is logged
-in README under "Deviations from spec".
+Sources: spec v0.1 (committed, 28,156 bytes, verified), Part IX v3.1d (on disk,
+gitignored, cited by section number only, 133,110 bytes, verified against the
+Drive figure before any code was written). Canon wins on every formula conflict;
+each one is logged in README under "Deviations from spec".
 
 ## Stack, pinned
 Node 20 LTS. Vite 5 + React 18 + TypeScript strict. 3d-force-graph 1.73 over
@@ -16,8 +17,10 @@ Monte Carlo in a Web Worker, seeded xoshiro128**, no closed form.
    nu = 4, declared on screen. rho slider unchanged.
 2. 9.2.8 (R23) permits equal split and driver-proportional only, and prohibits
    any two-stage basis. Spec's "by headcount" is two-stage, so it ships as a
-   labelled counter-example, which is what View 6 exists to show. Adding
-   driver-proportional as the fourth rule so the permitted set is representable.
+   labelled counter-example, which is what View 6 exists to show. Its on-screen
+   label in View 6 reads "prohibited by 9.2.8, shown as a counter-example", not
+   only in the README. Adding driver-proportional as the fourth rule so the
+   permitted set is representable.
 3. 9.5.5 Datar-Mathews two-rate replaces spec section 6's tenure x fan-in
    multiplier. W(K) curve per 9.5.4. Option component never renders outside the
    element carrying the 9.5.7 refusal text. View 4 ratification sentence quotes
@@ -30,7 +33,9 @@ Monte Carlo in a Web Worker, seeded xoshiro128**, no closed form.
 ## C1
 9.2.6 makes a defensibility claim, not a directional one. It does not settle the
 direction, so per your instruction the spec formula ships and view2_hint stays
-"its number moved anyway", no direction claimed. One paragraph in README.
+"its number moved anyway", no direction claimed. One paragraph in README, which
+quotes 9.2.6 verbatim under its section heading so the reader can check the
+reading without opening the canon.
 
 ## Order, commit after each
 a  scripts/generate.ts, seeded, realism report, failing checks. Run it, show you
