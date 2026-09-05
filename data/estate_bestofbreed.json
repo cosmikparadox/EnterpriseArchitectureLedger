@@ -1,0 +1,1681 @@
+{
+  "label": "Harbourline Insurance, best of breed",
+  "provenance": {
+    "graph_version": "2026-09-05-b",
+    "graph_as_at": "2026-09-05",
+    "decomposition_owner": "Harbourline domain architecture function (synthetic)",
+    "decomposition_revised": "2026-02",
+    "seed": 20260905,
+    "synthetic": true
+  },
+  "option_model": {
+    "horizon_years": 4,
+    "mu_risk_adjusted": 0.11,
+    "r_risk_free": 0.035,
+    "paths": 40000
+  },
+  "outage_fraction_beta": {
+    "alpha": 2,
+    "beta": 14
+  },
+  "subdomains": [
+    {
+      "id": "sales",
+      "name": "Sales and Distribution",
+      "scope": "quote, bind, broker portal, renewal",
+      "headcount": 780,
+      "margin_per_unit_gbp": 18
+    },
+    {
+      "id": "claims",
+      "name": "Claims",
+      "scope": "FNOL, triage, settlement, fraud referral",
+      "headcount": 1150,
+      "margin_per_unit_gbp": 26
+    },
+    {
+      "id": "finance",
+      "name": "Finance",
+      "scope": "GL close, reinsurance settlement, IFRS 17",
+      "headcount": 340,
+      "margin_per_unit_gbp": 140
+    },
+    {
+      "id": "service",
+      "name": "Customer Service",
+      "scope": "contact centre, self-service, complaints",
+      "headcount": 900,
+      "margin_per_unit_gbp": 6
+    },
+    {
+      "id": "people",
+      "name": "People",
+      "scope": "onboarding, payroll, learning",
+      "headcount": 210,
+      "margin_per_unit_gbp": 4
+    },
+    {
+      "id": "data",
+      "name": "Data and Analytics",
+      "scope": "pricing model refresh, regulatory reports",
+      "headcount": 220,
+      "margin_per_unit_gbp": 95
+    }
+  ],
+  "platforms": [
+    {
+      "id": "policy_pl",
+      "name": "Personal lines policy",
+      "category": "Policy administration",
+      "type": "platform",
+      "fixed_pool_gbp_month": 38000,
+      "driver_name": "policy transactions",
+      "driver_unit_cost_gbp": 0.5,
+      "capacity_note": "Sized to personal lines renewal peak.",
+      "failure_lef": 0.24,
+      "failure_loss_lognormal": {
+        "mu": 12.388394202324129,
+        "sigma": 1.15
+      },
+      "adopted_month": 2,
+      "exit_base_execution_gbp": 610000,
+      "exit_k_reversible_gbp": 250000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A rating engine kept separable from policy records.",
+      "delta_v_median_gbp": 700000,
+      "delta_v_log_sd": 0.6
+    },
+    {
+      "id": "policy_cl",
+      "name": "Commercial lines policy",
+      "category": "Policy administration",
+      "type": "platform",
+      "fixed_pool_gbp_month": 34000,
+      "driver_name": "policy transactions",
+      "driver_unit_cost_gbp": 0.62,
+      "capacity_note": "Sized to broker submission peaks.",
+      "failure_lef": 0.23,
+      "failure_loss_lognormal": {
+        "mu": 12.2783933071098,
+        "sigma": 1.15
+      },
+      "adopted_month": 10,
+      "exit_base_execution_gbp": 540000,
+      "exit_k_reversible_gbp": 225000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A submission service behind a portable contract.",
+      "delta_v_median_gbp": 620000,
+      "delta_v_log_sd": 0.6
+    },
+    {
+      "id": "crm_core",
+      "name": "CRM core",
+      "category": "CRM",
+      "type": "platform",
+      "fixed_pool_gbp_month": 24000,
+      "driver_name": "API calls",
+      "driver_unit_cost_gbp": 0.018,
+      "capacity_note": "Licensed seats plus metered calls.",
+      "failure_lef": 0.38,
+      "failure_loss_lognormal": {
+        "mu": 11.608235644774552,
+        "sigma": 1
+      },
+      "adopted_month": 4,
+      "exit_base_execution_gbp": 290000,
+      "exit_k_reversible_gbp": 120000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A contact store behind a standard interface.",
+      "delta_v_median_gbp": 430000,
+      "delta_v_log_sd": 0.52
+    },
+    {
+      "id": "portal_cx",
+      "name": "Customer portal",
+      "category": "Digital channel",
+      "type": "platform",
+      "fixed_pool_gbp_month": 21000,
+      "driver_name": "sessions",
+      "driver_unit_cost_gbp": 0.012,
+      "capacity_note": "Front-end hosting with metered sessions.",
+      "failure_lef": 0.36,
+      "failure_loss_lognormal": {
+        "mu": 11.461632170582678,
+        "sigma": 0.95
+      },
+      "adopted_month": 20,
+      "exit_base_execution_gbp": 210000,
+      "exit_k_reversible_gbp": 90000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A rendered front end over portable APIs.",
+      "delta_v_median_gbp": 300000,
+      "delta_v_log_sd": 0.5
+    },
+    {
+      "id": "claims_core",
+      "name": "Claims core",
+      "category": "Claims",
+      "type": "platform",
+      "fixed_pool_gbp_month": 44000,
+      "driver_name": "claim transactions",
+      "driver_unit_cost_gbp": 0.85,
+      "capacity_note": "Sized to surge events.",
+      "failure_lef": 0.26,
+      "failure_loss_lognormal": {
+        "mu": 12.468436909997665,
+        "sigma": 1.15
+      },
+      "adopted_month": 6,
+      "exit_base_execution_gbp": 620000,
+      "exit_k_reversible_gbp": 260000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A claims core with the document path external.",
+      "delta_v_median_gbp": 700000,
+      "delta_v_log_sd": 0.58
+    },
+    {
+      "id": "workflow_svc",
+      "name": "Workflow service",
+      "category": "ITSM",
+      "type": "platform",
+      "fixed_pool_gbp_month": 16000,
+      "driver_name": "tickets",
+      "driver_unit_cost_gbp": 1,
+      "capacity_note": "Subscription floor plus per-ticket processing.",
+      "failure_lef": 0.28,
+      "failure_loss_lognormal": {
+        "mu": 10.968198289528557,
+        "sigma": 0.9
+      },
+      "adopted_month": 9,
+      "exit_base_execution_gbp": 160000,
+      "exit_k_reversible_gbp": 68000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A workflow engine behind a service abstraction.",
+      "delta_v_median_gbp": 220000,
+      "delta_v_log_sd": 0.48
+    },
+    {
+      "id": "doc_store",
+      "name": "Document store",
+      "category": "Document management",
+      "type": "platform",
+      "fixed_pool_gbp_month": 17000,
+      "driver_name": "documents",
+      "driver_unit_cost_gbp": 0.038,
+      "capacity_note": "Retention storage plus per-document handling.",
+      "failure_lef": 0.18,
+      "failure_loss_lognormal": {
+        "mu": 11.03488966402723,
+        "sigma": 0.95
+      },
+      "adopted_month": 3,
+      "exit_base_execution_gbp": 230000,
+      "exit_k_reversible_gbp": 96000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A content store behind a document interface.",
+      "delta_v_median_gbp": 260000,
+      "delta_v_log_sd": 0.48
+    },
+    {
+      "id": "billing_core",
+      "name": "Billing core",
+      "category": "Billing",
+      "type": "platform",
+      "fixed_pool_gbp_month": 26000,
+      "driver_name": "billing transactions",
+      "driver_unit_cost_gbp": 0.26,
+      "capacity_note": "Baseline capacity for collection runs.",
+      "failure_lef": 0.22,
+      "failure_loss_lognormal": {
+        "mu": 11.84939770159144,
+        "sigma": 1
+      },
+      "adopted_month": 6,
+      "exit_base_execution_gbp": 380000,
+      "exit_k_reversible_gbp": 160000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A collections service over a payments abstraction.",
+      "delta_v_median_gbp": 400000,
+      "delta_v_log_sd": 0.52
+    },
+    {
+      "id": "pay_orch",
+      "name": "Payment orchestration",
+      "category": "Payments",
+      "type": "platform",
+      "fixed_pool_gbp_month": 8000,
+      "driver_name": "payment transactions",
+      "driver_unit_cost_gbp": 0.13,
+      "capacity_note": "Orchestration across two acquirers.",
+      "failure_lef": 0.15,
+      "failure_loss_lognormal": {
+        "mu": 11.385092093460344,
+        "sigma": 1
+      },
+      "adopted_month": 11,
+      "exit_base_execution_gbp": 120000,
+      "exit_k_reversible_gbp": 52000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "Two acquirers behind one routing contract.",
+      "delta_v_median_gbp": 190000,
+      "delta_v_log_sd": 0.55
+    },
+    {
+      "id": "ledger_fin",
+      "name": "Finance ledger",
+      "category": "ERP and general ledger",
+      "type": "platform",
+      "fixed_pool_gbp_month": 36000,
+      "driver_name": "postings",
+      "driver_unit_cost_gbp": 0.32,
+      "capacity_note": "Reserved capacity sized to period close.",
+      "failure_lef": 0.17,
+      "failure_loss_lognormal": {
+        "mu": 12.230765258120545,
+        "sigma": 1.2
+      },
+      "adopted_month": 0,
+      "exit_base_execution_gbp": 700000,
+      "exit_k_reversible_gbp": 300000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A ledger kept behind a posting interface.",
+      "delta_v_median_gbp": 760000,
+      "delta_v_log_sd": 0.6
+    },
+    {
+      "id": "people_core",
+      "name": "People core",
+      "category": "HCM",
+      "type": "platform",
+      "fixed_pool_gbp_month": 13000,
+      "driver_name": "seats",
+      "driver_unit_cost_gbp": 6,
+      "capacity_note": "Per-seat subscription.",
+      "failure_lef": 0.2,
+      "failure_loss_lognormal": {
+        "mu": 10.545341438708522,
+        "sigma": 0.85
+      },
+      "adopted_month": 13,
+      "exit_base_execution_gbp": 170000,
+      "exit_k_reversible_gbp": 72000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "A payroll and records split evaluated at selection.",
+      "delta_v_median_gbp": 165000,
+      "delta_v_log_sd": 0.46
+    },
+    {
+      "id": "lakehouse",
+      "name": "Lakehouse",
+      "category": "Cloud data platform",
+      "type": "platform",
+      "fixed_pool_gbp_month": 33000,
+      "driver_name": "credits",
+      "driver_unit_cost_gbp": 0.8,
+      "capacity_note": "Committed tier plus metered compute.",
+      "failure_lef": 0.3,
+      "failure_loss_lognormal": {
+        "mu": 11.695247021764184,
+        "sigma": 1.1
+      },
+      "adopted_month": 17,
+      "exit_base_execution_gbp": 350000,
+      "exit_k_reversible_gbp": 130000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "An open table format on object storage.",
+      "delta_v_median_gbp": 520000,
+      "delta_v_log_sd": 0.66
+    },
+    {
+      "id": "conduit",
+      "name": "Conduit iPaaS",
+      "category": "Integration platform",
+      "type": "integration",
+      "fixed_pool_gbp_month": 31000,
+      "driver_name": "integration messages",
+      "driver_unit_cost_gbp": 0.004,
+      "capacity_note": "Runtime tier plus metered message throughput.",
+      "failure_lef": 0.38,
+      "failure_loss_lognormal": {
+        "mu": 12.013700752882718,
+        "sigma": 1.1
+      },
+      "adopted_month": 8,
+      "exit_base_execution_gbp": 590000,
+      "exit_k_reversible_gbp": 175000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "Point-to-point contracts kept in the owning services.",
+      "delta_v_median_gbp": 700000,
+      "delta_v_log_sd": 0.64
+    },
+    {
+      "id": "apigee",
+      "name": "Apigee",
+      "category": "API gateway",
+      "type": "integration",
+      "fixed_pool_gbp_month": 18000,
+      "driver_name": "API calls",
+      "driver_unit_cost_gbp": 0.0022,
+      "capacity_note": "Environment floor plus metered call volume.",
+      "failure_lef": 0.32,
+      "failure_loss_lognormal": {
+        "mu": 12.154779351142624,
+        "sigma": 1.15
+      },
+      "adopted_month": 7,
+      "exit_base_execution_gbp": 380000,
+      "exit_k_reversible_gbp": 120000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "Gateway policy expressed in a portable configuration.",
+      "delta_v_median_gbp": 480000,
+      "delta_v_log_sd": 0.6
+    },
+    {
+      "id": "okta",
+      "name": "Okta",
+      "category": "Identity",
+      "type": "integration",
+      "fixed_pool_gbp_month": 24000,
+      "driver_name": "authentications",
+      "driver_unit_cost_gbp": 0.009,
+      "capacity_note": "Per-identity subscription with metered authentication.",
+      "failure_lef": 0.29,
+      "failure_loss_lognormal": {
+        "mu": 12.676076274775909,
+        "sigma": 1.35
+      },
+      "adopted_month": 5,
+      "exit_base_execution_gbp": 640000,
+      "exit_k_reversible_gbp": 165000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "Standards-based federation with no proprietary claims.",
+      "delta_v_median_gbp": 780000,
+      "delta_v_log_sd": 0.68
+    },
+    {
+      "id": "kafka",
+      "name": "Confluent Kafka",
+      "category": "Event bus",
+      "type": "integration",
+      "fixed_pool_gbp_month": 21000,
+      "driver_name": "events",
+      "driver_unit_cost_gbp": 0.0016,
+      "capacity_note": "Cluster floor plus metered throughput and retention.",
+      "failure_lef": 0.27,
+      "failure_loss_lognormal": {
+        "mu": 11.77528972943772,
+        "sigma": 1.05
+      },
+      "adopted_month": 14,
+      "exit_base_execution_gbp": 460000,
+      "exit_k_reversible_gbp": 140000,
+      "counterfactual_evidenced": false,
+      "counterfactual_note": "An open protocol broker run on existing infrastructure.",
+      "delta_v_median_gbp": 560000,
+      "delta_v_log_sd": 0.62
+    }
+  ],
+  "use_cases": [
+    {
+      "id": "uc_quote_bind",
+      "name": "Quote and bind (direct)",
+      "subdomain": "sales",
+      "volume_per_month": 48000,
+      "adopted_month": 4,
+      "edges": [
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.325,
+          "conditional_failure_prob": 0.99
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 6.318,
+          "conditional_failure_prob": 0.504
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.584,
+          "conditional_failure_prob": 0.306
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 9.636,
+          "conditional_failure_prob": 0.591
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 13.448,
+          "conditional_failure_prob": 0.738
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.927,
+          "conditional_failure_prob": 0.965
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 16.716,
+          "conditional_failure_prob": 0.486
+        }
+      ]
+    },
+    {
+      "id": "uc_broker_quote",
+      "name": "Broker quote submission",
+      "subdomain": "sales",
+      "volume_per_month": 31000,
+      "adopted_month": 10,
+      "edges": [
+        {
+          "platform_id": "policy_cl",
+          "driver_units_per_volume_unit": 1.063,
+          "conditional_failure_prob": 0.944
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.247,
+          "conditional_failure_prob": 0.281
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 16.033,
+          "conditional_failure_prob": 0.482
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 15.869,
+          "conditional_failure_prob": 0.684
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.098,
+          "conditional_failure_prob": 0.993
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 15.8,
+          "conditional_failure_prob": 0.406
+        }
+      ]
+    },
+    {
+      "id": "uc_renewal",
+      "name": "Renewal invitation",
+      "subdomain": "sales",
+      "volume_per_month": 22000,
+      "adopted_month": 15,
+      "edges": [
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.106,
+          "conditional_failure_prob": 0.991
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 6.45,
+          "conditional_failure_prob": 0.638
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.439,
+          "conditional_failure_prob": 0.366
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 12.105,
+          "conditional_failure_prob": 0.608
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 10.592,
+          "conditional_failure_prob": 0.605
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.374,
+          "conditional_failure_prob": 0.952
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 13.327,
+          "conditional_failure_prob": 0.33
+        }
+      ]
+    },
+    {
+      "id": "uc_mta",
+      "name": "Mid-term adjustment",
+      "subdomain": "sales",
+      "volume_per_month": 14500,
+      "adopted_month": 12,
+      "edges": [
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.366,
+          "conditional_failure_prob": 0.949
+        },
+        {
+          "platform_id": "billing_core",
+          "driver_units_per_volume_unit": 1.439,
+          "conditional_failure_prob": 0.548
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 17.396,
+          "conditional_failure_prob": 0.463
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 10.584,
+          "conditional_failure_prob": 0.818
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.163,
+          "conditional_failure_prob": 0.985
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 9.636,
+          "conditional_failure_prob": 0.39
+        }
+      ]
+    },
+    {
+      "id": "uc_broker_portal",
+      "name": "Broker portal servicing",
+      "subdomain": "sales",
+      "volume_per_month": 9800,
+      "adopted_month": 21,
+      "edges": [
+        {
+          "platform_id": "portal_cx",
+          "driver_units_per_volume_unit": 3.657,
+          "conditional_failure_prob": 0.904
+        },
+        {
+          "platform_id": "policy_cl",
+          "driver_units_per_volume_unit": 0.88,
+          "conditional_failure_prob": 0.721
+        },
+        {
+          "platform_id": "doc_store",
+          "driver_units_per_volume_unit": 1.985,
+          "conditional_failure_prob": 0.57
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 11.319,
+          "conditional_failure_prob": 0.545
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 16.974,
+          "conditional_failure_prob": 0.621
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.609,
+          "conditional_failure_prob": 0.987
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 23.804,
+          "conditional_failure_prob": 0.378
+        }
+      ]
+    },
+    {
+      "id": "uc_fnol",
+      "name": "First notification of loss",
+      "subdomain": "claims",
+      "volume_per_month": 12400,
+      "adopted_month": 6,
+      "edges": [
+        {
+          "platform_id": "claims_core",
+          "driver_units_per_volume_unit": 1.39,
+          "conditional_failure_prob": 0.908
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.273,
+          "conditional_failure_prob": 0.55
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 6.22,
+          "conditional_failure_prob": 0.782
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 8.901,
+          "conditional_failure_prob": 0.598
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 17.83,
+          "conditional_failure_prob": 0.749
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.879,
+          "conditional_failure_prob": 0.99
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 8.43,
+          "conditional_failure_prob": 0.496
+        }
+      ]
+    },
+    {
+      "id": "uc_claim_triage",
+      "name": "Claim triage",
+      "subdomain": "claims",
+      "volume_per_month": 11800,
+      "adopted_month": 18,
+      "edges": [
+        {
+          "platform_id": "claims_core",
+          "driver_units_per_volume_unit": 1.331,
+          "conditional_failure_prob": 0.968
+        },
+        {
+          "platform_id": "workflow_svc",
+          "driver_units_per_volume_unit": 0.331,
+          "conditional_failure_prob": 0.787
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.473,
+          "conditional_failure_prob": 0.391
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 13.177,
+          "conditional_failure_prob": 0.408
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 16.713,
+          "conditional_failure_prob": 0.624
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.609,
+          "conditional_failure_prob": 0.96
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 22.901,
+          "conditional_failure_prob": 0.336
+        }
+      ]
+    },
+    {
+      "id": "uc_claim_settle",
+      "name": "Claim settlement",
+      "subdomain": "claims",
+      "volume_per_month": 7600,
+      "adopted_month": 11,
+      "edges": [
+        {
+          "platform_id": "claims_core",
+          "driver_units_per_volume_unit": 1.437,
+          "conditional_failure_prob": 0.995
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.002,
+          "conditional_failure_prob": 0.682
+        },
+        {
+          "platform_id": "pay_orch",
+          "driver_units_per_volume_unit": 0.755,
+          "conditional_failure_prob": 0.747
+        },
+        {
+          "platform_id": "billing_core",
+          "driver_units_per_volume_unit": 1.129,
+          "conditional_failure_prob": 0.694
+        },
+        {
+          "platform_id": "doc_store",
+          "driver_units_per_volume_unit": 1.471,
+          "conditional_failure_prob": 0.605
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 15.087,
+          "conditional_failure_prob": 0.489
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 15.481,
+          "conditional_failure_prob": 0.629
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.113,
+          "conditional_failure_prob": 0.952
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 11.918,
+          "conditional_failure_prob": 0.41
+        }
+      ]
+    },
+    {
+      "id": "uc_fraud_referral",
+      "name": "Fraud referral",
+      "subdomain": "claims",
+      "volume_per_month": 1450,
+      "adopted_month": 26,
+      "edges": [
+        {
+          "platform_id": "claims_core",
+          "driver_units_per_volume_unit": 1.474,
+          "conditional_failure_prob": 0.994
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.255,
+          "conditional_failure_prob": 0.371
+        },
+        {
+          "platform_id": "workflow_svc",
+          "driver_units_per_volume_unit": 0.433,
+          "conditional_failure_prob": 0.661
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 17.213,
+          "conditional_failure_prob": 0.464
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 16.469,
+          "conditional_failure_prob": 0.738
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.139,
+          "conditional_failure_prob": 0.972
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 23.218,
+          "conditional_failure_prob": 0.329
+        }
+      ]
+    },
+    {
+      "id": "uc_claim_docs",
+      "name": "Claim document handling",
+      "subdomain": "claims",
+      "volume_per_month": 18900,
+      "adopted_month": 8,
+      "edges": [
+        {
+          "platform_id": "doc_store",
+          "driver_units_per_volume_unit": 1.947,
+          "conditional_failure_prob": 0.955
+        },
+        {
+          "platform_id": "claims_core",
+          "driver_units_per_volume_unit": 0.958,
+          "conditional_failure_prob": 0.594
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 13.517,
+          "conditional_failure_prob": 0.641
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 16.053,
+          "conditional_failure_prob": 0.603
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.311,
+          "conditional_failure_prob": 0.99
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 10.601,
+          "conditional_failure_prob": 0.467
+        }
+      ]
+    },
+    {
+      "id": "uc_gl_close",
+      "name": "General ledger close",
+      "subdomain": "finance",
+      "volume_per_month": 620,
+      "adopted_month": 1,
+      "edges": [
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 4.086,
+          "conditional_failure_prob": 0.998
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.806,
+          "conditional_failure_prob": 0.406
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 6.601,
+          "conditional_failure_prob": 0.468
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 15.313,
+          "conditional_failure_prob": 0.662
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.821,
+          "conditional_failure_prob": 0.979
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 12.96,
+          "conditional_failure_prob": 0.387
+        }
+      ]
+    },
+    {
+      "id": "uc_reins_settle",
+      "name": "Reinsurance settlement",
+      "subdomain": "finance",
+      "volume_per_month": 310,
+      "adopted_month": 16,
+      "edges": [
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 2.93,
+          "conditional_failure_prob": 0.999
+        },
+        {
+          "platform_id": "billing_core",
+          "driver_units_per_volume_unit": 1.43,
+          "conditional_failure_prob": 0.564
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.263,
+          "conditional_failure_prob": 0.431
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 7.07,
+          "conditional_failure_prob": 0.682
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 17.421,
+          "conditional_failure_prob": 0.776
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.46,
+          "conditional_failure_prob": 0.979
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 20.131,
+          "conditional_failure_prob": 0.546
+        }
+      ]
+    },
+    {
+      "id": "uc_ifrs17",
+      "name": "IFRS 17 reporting",
+      "subdomain": "finance",
+      "volume_per_month": 240,
+      "adopted_month": 29,
+      "edges": [
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 5.455,
+          "conditional_failure_prob": 0.965
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.547,
+          "conditional_failure_prob": 0.41
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 15.68,
+          "conditional_failure_prob": 0.551
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 12.407,
+          "conditional_failure_prob": 0.609
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.605,
+          "conditional_failure_prob": 0.952
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 19.757,
+          "conditional_failure_prob": 0.51
+        }
+      ]
+    },
+    {
+      "id": "uc_premium_recon",
+      "name": "Premium reconciliation",
+      "subdomain": "finance",
+      "volume_per_month": 4200,
+      "adopted_month": 13,
+      "edges": [
+        {
+          "platform_id": "billing_core",
+          "driver_units_per_volume_unit": 0.841,
+          "conditional_failure_prob": 0.946
+        },
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 2.571,
+          "conditional_failure_prob": 0.726
+        },
+        {
+          "platform_id": "pay_orch",
+          "driver_units_per_volume_unit": 1.056,
+          "conditional_failure_prob": 0.628
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 12.392,
+          "conditional_failure_prob": 0.663
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 16.146,
+          "conditional_failure_prob": 0.625
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.946,
+          "conditional_failure_prob": 0.953
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 14.437,
+          "conditional_failure_prob": 0.286
+        }
+      ]
+    },
+    {
+      "id": "uc_supplier_pay",
+      "name": "Supplier payment run",
+      "subdomain": "finance",
+      "volume_per_month": 1900,
+      "adopted_month": 5,
+      "edges": [
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 4.932,
+          "conditional_failure_prob": 0.948
+        },
+        {
+          "platform_id": "pay_orch",
+          "driver_units_per_volume_unit": 0.512,
+          "conditional_failure_prob": 0.503
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 12.564,
+          "conditional_failure_prob": 0.417
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 17.615,
+          "conditional_failure_prob": 0.785
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.713,
+          "conditional_failure_prob": 0.966
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 17.553,
+          "conditional_failure_prob": 0.411
+        }
+      ]
+    },
+    {
+      "id": "uc_contact_centre",
+      "name": "Contact centre handling",
+      "subdomain": "service",
+      "volume_per_month": 64000,
+      "adopted_month": 4,
+      "edges": [
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 7.072,
+          "conditional_failure_prob": 0.937
+        },
+        {
+          "platform_id": "workflow_svc",
+          "driver_units_per_volume_unit": 0.434,
+          "conditional_failure_prob": 0.668
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.356,
+          "conditional_failure_prob": 0.69
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 7.39,
+          "conditional_failure_prob": 0.475
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 10.556,
+          "conditional_failure_prob": 0.726
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.675,
+          "conditional_failure_prob": 0.96
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 19.566,
+          "conditional_failure_prob": 0.295
+        }
+      ]
+    },
+    {
+      "id": "uc_self_service",
+      "name": "Self-service portal",
+      "subdomain": "service",
+      "volume_per_month": 88000,
+      "adopted_month": 20,
+      "edges": [
+        {
+          "platform_id": "portal_cx",
+          "driver_units_per_volume_unit": 4.169,
+          "conditional_failure_prob": 0.95
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.162,
+          "conditional_failure_prob": 0.693
+        },
+        {
+          "platform_id": "billing_core",
+          "driver_units_per_volume_unit": 0.65,
+          "conditional_failure_prob": 0.553
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 12.841,
+          "conditional_failure_prob": 0.649
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 12.982,
+          "conditional_failure_prob": 0.64
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.841,
+          "conditional_failure_prob": 0.994
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 17.742,
+          "conditional_failure_prob": 0.464
+        }
+      ]
+    },
+    {
+      "id": "uc_complaints",
+      "name": "Complaints handling",
+      "subdomain": "service",
+      "volume_per_month": 3400,
+      "adopted_month": 9,
+      "edges": [
+        {
+          "platform_id": "workflow_svc",
+          "driver_units_per_volume_unit": 0.177,
+          "conditional_failure_prob": 0.912
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.333,
+          "conditional_failure_prob": 0.611
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 6.742,
+          "conditional_failure_prob": 0.791
+        },
+        {
+          "platform_id": "doc_store",
+          "driver_units_per_volume_unit": 1.158,
+          "conditional_failure_prob": 0.625
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.795,
+          "conditional_failure_prob": 0.32
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 8.697,
+          "conditional_failure_prob": 0.695
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 10.16,
+          "conditional_failure_prob": 0.777
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.847,
+          "conditional_failure_prob": 0.979
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 17.872,
+          "conditional_failure_prob": 0.388
+        }
+      ]
+    },
+    {
+      "id": "uc_cust_docs",
+      "name": "Customer correspondence",
+      "subdomain": "service",
+      "volume_per_month": 41000,
+      "adopted_month": 3,
+      "edges": [
+        {
+          "platform_id": "doc_store",
+          "driver_units_per_volume_unit": 1.264,
+          "conditional_failure_prob": 0.915
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.253,
+          "conditional_failure_prob": 0.627
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 4.89,
+          "conditional_failure_prob": 0.591
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 12.799,
+          "conditional_failure_prob": 0.496
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 14.156,
+          "conditional_failure_prob": 0.641
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.032,
+          "conditional_failure_prob": 0.95
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 10.486,
+          "conditional_failure_prob": 0.463
+        }
+      ]
+    },
+    {
+      "id": "uc_payment_query",
+      "name": "Payment query",
+      "subdomain": "service",
+      "volume_per_month": 12700,
+      "adopted_month": 14,
+      "edges": [
+        {
+          "platform_id": "billing_core",
+          "driver_units_per_volume_unit": 1.153,
+          "conditional_failure_prob": 0.914
+        },
+        {
+          "platform_id": "policy_pl",
+          "driver_units_per_volume_unit": 1.063,
+          "conditional_failure_prob": 0.776
+        },
+        {
+          "platform_id": "pay_orch",
+          "driver_units_per_volume_unit": 0.804,
+          "conditional_failure_prob": 0.607
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 5.207,
+          "conditional_failure_prob": 0.799
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 9.59,
+          "conditional_failure_prob": 0.548
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 12.213,
+          "conditional_failure_prob": 0.831
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 3,
+          "conditional_failure_prob": 0.956
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 19.493,
+          "conditional_failure_prob": 0.442
+        }
+      ]
+    },
+    {
+      "id": "uc_onboarding",
+      "name": "Employee onboarding",
+      "subdomain": "people",
+      "volume_per_month": 260,
+      "adopted_month": 13,
+      "edges": [
+        {
+          "platform_id": "people_core",
+          "driver_units_per_volume_unit": 0.102,
+          "conditional_failure_prob": 0.913
+        },
+        {
+          "platform_id": "workflow_svc",
+          "driver_units_per_volume_unit": 0.44,
+          "conditional_failure_prob": 0.677
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 18.694,
+          "conditional_failure_prob": 0.429
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 13.393,
+          "conditional_failure_prob": 0.677
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.553,
+          "conditional_failure_prob": 0.952
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 14.981,
+          "conditional_failure_prob": 0.429
+        }
+      ]
+    },
+    {
+      "id": "uc_payroll",
+      "name": "Payroll run",
+      "subdomain": "people",
+      "volume_per_month": 4000,
+      "adopted_month": 13,
+      "edges": [
+        {
+          "platform_id": "people_core",
+          "driver_units_per_volume_unit": 0.074,
+          "conditional_failure_prob": 0.98
+        },
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 4.552,
+          "conditional_failure_prob": 0.591
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 8.477,
+          "conditional_failure_prob": 0.419
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 11.101,
+          "conditional_failure_prob": 0.796
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.421,
+          "conditional_failure_prob": 0.958
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 17.06,
+          "conditional_failure_prob": 0.391
+        }
+      ]
+    },
+    {
+      "id": "uc_learning",
+      "name": "Learning and compliance",
+      "subdomain": "people",
+      "volume_per_month": 3800,
+      "adopted_month": 24,
+      "edges": [
+        {
+          "platform_id": "people_core",
+          "driver_units_per_volume_unit": 0.076,
+          "conditional_failure_prob": 0.985
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.524,
+          "conditional_failure_prob": 0.389
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 7.706,
+          "conditional_failure_prob": 0.574
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 14.665,
+          "conditional_failure_prob": 0.734
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.315,
+          "conditional_failure_prob": 0.985
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 12.259,
+          "conditional_failure_prob": 0.295
+        }
+      ]
+    },
+    {
+      "id": "uc_leaver",
+      "name": "Leaver process",
+      "subdomain": "people",
+      "volume_per_month": 190,
+      "adopted_month": 13,
+      "edges": [
+        {
+          "platform_id": "people_core",
+          "driver_units_per_volume_unit": 0.081,
+          "conditional_failure_prob": 0.958
+        },
+        {
+          "platform_id": "workflow_svc",
+          "driver_units_per_volume_unit": 0.212,
+          "conditional_failure_prob": 0.592
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 16.42,
+          "conditional_failure_prob": 0.403
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 15.46,
+          "conditional_failure_prob": 0.78
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.519,
+          "conditional_failure_prob": 0.969
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 15.035,
+          "conditional_failure_prob": 0.486
+        }
+      ]
+    },
+    {
+      "id": "uc_people_report",
+      "name": "People reporting",
+      "subdomain": "people",
+      "volume_per_month": 140,
+      "adopted_month": 27,
+      "edges": [
+        {
+          "platform_id": "people_core",
+          "driver_units_per_volume_unit": 0.116,
+          "conditional_failure_prob": 0.97
+        },
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.608,
+          "conditional_failure_prob": 0.385
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 13.148,
+          "conditional_failure_prob": 0.444
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 16.373,
+          "conditional_failure_prob": 0.689
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.243,
+          "conditional_failure_prob": 0.973
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 19.03,
+          "conditional_failure_prob": 0.297
+        }
+      ]
+    },
+    {
+      "id": "uc_pricing_refresh",
+      "name": "Pricing model refresh",
+      "subdomain": "data",
+      "volume_per_month": 45,
+      "adopted_month": 19,
+      "edges": [
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.848,
+          "conditional_failure_prob": 0.98
+        },
+        {
+          "platform_id": "policy_cl",
+          "driver_units_per_volume_unit": 1.34,
+          "conditional_failure_prob": 0.712
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 7.816,
+          "conditional_failure_prob": 0.669
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 15.65,
+          "conditional_failure_prob": 0.751
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 1.956,
+          "conditional_failure_prob": 0.977
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 15.875,
+          "conditional_failure_prob": 0.284
+        }
+      ]
+    },
+    {
+      "id": "uc_reg_report",
+      "name": "Regulatory reporting",
+      "subdomain": "data",
+      "volume_per_month": 26,
+      "adopted_month": 23,
+      "edges": [
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.46,
+          "conditional_failure_prob": 0.957
+        },
+        {
+          "platform_id": "ledger_fin",
+          "driver_units_per_volume_unit": 6.059,
+          "conditional_failure_prob": 0.728
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 17.904,
+          "conditional_failure_prob": 0.422
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 12.693,
+          "conditional_failure_prob": 0.723
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.922,
+          "conditional_failure_prob": 0.957
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 9.053,
+          "conditional_failure_prob": 0.41
+        }
+      ]
+    },
+    {
+      "id": "uc_mi_dashboards",
+      "name": "Management dashboards",
+      "subdomain": "data",
+      "volume_per_month": 320,
+      "adopted_month": 21,
+      "edges": [
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.739,
+          "conditional_failure_prob": 0.912
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 7.547,
+          "conditional_failure_prob": 0.581
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 10.954,
+          "conditional_failure_prob": 0.623
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.899,
+          "conditional_failure_prob": 0.964
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 18.729,
+          "conditional_failure_prob": 0.497
+        }
+      ]
+    },
+    {
+      "id": "uc_cust_analytics",
+      "name": "Customer analytics",
+      "subdomain": "data",
+      "volume_per_month": 180,
+      "adopted_month": 25,
+      "edges": [
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.821,
+          "conditional_failure_prob": 0.949
+        },
+        {
+          "platform_id": "crm_core",
+          "driver_units_per_volume_unit": 6.268,
+          "conditional_failure_prob": 0.74
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 19.001,
+          "conditional_failure_prob": 0.481
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 9.02,
+          "conditional_failure_prob": 0.679
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 2.971,
+          "conditional_failure_prob": 0.941
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 21.016,
+          "conditional_failure_prob": 0.409
+        }
+      ]
+    },
+    {
+      "id": "uc_claims_analytics",
+      "name": "Claims analytics",
+      "subdomain": "data",
+      "volume_per_month": 95,
+      "adopted_month": 30,
+      "edges": [
+        {
+          "platform_id": "lakehouse",
+          "driver_units_per_volume_unit": 0.48,
+          "conditional_failure_prob": 0.972
+        },
+        {
+          "platform_id": "claims_core",
+          "driver_units_per_volume_unit": 1.52,
+          "conditional_failure_prob": 0.573
+        },
+        {
+          "platform_id": "conduit",
+          "driver_units_per_volume_unit": 15.221,
+          "conditional_failure_prob": 0.662
+        },
+        {
+          "platform_id": "apigee",
+          "driver_units_per_volume_unit": 13.808,
+          "conditional_failure_prob": 0.762
+        },
+        {
+          "platform_id": "okta",
+          "driver_units_per_volume_unit": 3.026,
+          "conditional_failure_prob": 0.947
+        },
+        {
+          "platform_id": "kafka",
+          "driver_units_per_volume_unit": 12.529,
+          "conditional_failure_prob": 0.515
+        }
+      ]
+    }
+  ]
+}
