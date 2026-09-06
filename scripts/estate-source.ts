@@ -103,7 +103,7 @@ export const PLATFORMS: PlatformSpec[] = [
     failure_lef: 0.20, loss_median_gbp: 38000, loss_log_sd: 0.80, adopted_month: 19,
     exit_base_execution_gbp: 150000, exit_k_reversible_gbp: 62000,
     counterfactual_note: 'A semantic layer kept independent of the reporting tool.',
-    delta_v_median_gbp: 190000, delta_v_log_sd: 0.45, units_band: [0.5, 3] },
+    delta_v_median_gbp: 190000, delta_v_log_sd: 0.45, units_band: [40, 260] },
 
   { id: 'marketingcloud', name: 'Salesforce Marketing Cloud', category: 'Marketing automation', type: 'platform',
     fixed_pool_gbp_month: 14000, driver_name: 'messages', driver_unit_cost_gbp: 0.006,
@@ -204,9 +204,9 @@ export const USE_CASES: UseCaseSpec[] = [
 
   // Claims. Spec 3.5 requires this subdomain to ride ClaimCenter, ServiceNow,
   // Salesforce, OpenText, Adyen and Kafka.
-  { id: 'uc_fnol', name: 'First notification of loss', subdomain: 'claims', volume_per_month: 12400, adopted_month: 6, platforms: ['claimcenter', 'policycenter', 'salesforce', 'kafka', 'okta', 'apigee'] },
+  { id: 'uc_fnol', name: 'First notification of loss', subdomain: 'claims', volume_per_month: 12400, adopted_month: 6, platforms: ['claimcenter', 'salesforce', 'kafka', 'okta', 'apigee'] },
   { id: 'uc_claim_triage', name: 'Claim triage', subdomain: 'claims', volume_per_month: 11800, adopted_month: 18, platforms: ['claimcenter', 'servicenow', 'meridian', 'okta', 'kafka'] },
-  { id: 'uc_claim_settle', name: 'Claim settlement', subdomain: 'claims', volume_per_month: 7600, adopted_month: 11, platforms: ['claimcenter', 'policycenter', 'adyen', 'billingcenter', 'okta', 'opentext'] },
+  { id: 'uc_claim_settle', name: 'Claim settlement', subdomain: 'claims', volume_per_month: 7600, adopted_month: 11, platforms: ['claimcenter', 'adyen', 'billingcenter', 'okta', 'opentext'] },
   { id: 'uc_fraud_referral', name: 'Fraud referral', subdomain: 'claims', volume_per_month: 1450, adopted_month: 26, platforms: ['claimcenter', 'meridian', 'servicenow', 'okta', 'kafka'] },
   { id: 'uc_claim_docs', name: 'Claim document handling', subdomain: 'claims', volume_per_month: 18900, adopted_month: 8, platforms: ['opentext', 'claimcenter', 'conduit', 'okta'] },
 
@@ -220,9 +220,9 @@ export const USE_CASES: UseCaseSpec[] = [
   // Customer Service
   { id: 'uc_contact_centre', name: 'Contact centre handling', subdomain: 'service', volume_per_month: 64000, adopted_month: 4, platforms: ['salesforce', 'servicenow', 'apigee', 'okta', 'policycenter'] },
   { id: 'uc_self_service', name: 'Self-service portal', subdomain: 'service', volume_per_month: 88000, adopted_month: 20, platforms: ['salesforce', 'apigee', 'okta', 'policycenter', 'billingcenter'] },
-  { id: 'uc_complaints', name: 'Complaints handling', subdomain: 'service', volume_per_month: 3400, adopted_month: 9, platforms: ['servicenow', 'policycenter', 'salesforce', 'opentext', 'okta', 'meridian'] },
-  { id: 'uc_cust_docs', name: 'Customer correspondence', subdomain: 'service', volume_per_month: 41000, adopted_month: 3, platforms: ['opentext', 'policycenter', 'salesforce', 'conduit', 'okta'] },
-  { id: 'uc_payment_query', name: 'Payment query', subdomain: 'service', volume_per_month: 12700, adopted_month: 14, platforms: ['billingcenter', 'policycenter', 'adyen', 'salesforce', 'okta', 'apigee'] },
+  { id: 'uc_complaints', name: 'Complaints handling', subdomain: 'service', volume_per_month: 3400, adopted_month: 9, platforms: ['servicenow', 'salesforce', 'opentext', 'okta', 'meridian'] },
+  { id: 'uc_cust_docs', name: 'Customer correspondence', subdomain: 'service', volume_per_month: 41000, adopted_month: 3, platforms: ['opentext', 'salesforce', 'conduit', 'okta'] },
+  { id: 'uc_payment_query', name: 'Payment query', subdomain: 'service', volume_per_month: 12700, adopted_month: 14, platforms: ['billingcenter', 'adyen', 'salesforce', 'okta', 'apigee'] },
 
   // People
   { id: 'uc_onboarding', name: 'Employee onboarding', subdomain: 'people', volume_per_month: 260, adopted_month: 13, platforms: ['workday', 'okta', 'servicenow', 'conduit'] },

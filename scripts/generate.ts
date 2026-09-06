@@ -67,7 +67,6 @@ function cfpBand(platformId: string, isPrimary: boolean, shape: Shape, primaryId
     case 'kafka': return [0.25, 0.55] // buffered, asynchronous
     case 'meridian': case 'lakehouse': return [0.2, 0.45] // feeds, mostly async
     case 'powerbi': return [0.15, 0.4]
-    case 'policycenter': return [0.6, 0.85] // policy record is checked on most customer work
     default: return [0.5, 0.8]
   }
 }
@@ -225,12 +224,17 @@ function report(estate: Estate, opts: { requireIdentityMaxFanIn: boolean }): Che
       volAtRisk.set(e.platform_id, volAtRisk.get(e.platform_id)! + uc.volume_per_month * e.conditional_failure_prob)
     }
   }
-  const topVol = [...volAtRisk.entries()].sort((a, b) => b[1] - a[1])[0]!
+  const volRanked = [...volAtRisk.entries()].sort((a, b) => b[1] - a[1])
+  const topVol = volRanked[0]!
 
   // Use cases crossing three or more subdomain boundaries via shared platforms.
+  // Integration nodes are EXCLUDED from the path. They connect nearly
+  // everything by construction, so counting them would report every use case as
+  // a crosser and the check would pass on any wiring at all.
   const crossers = use_cases.filter((uc) => {
     const others = new Set<string>()
     for (const e of uc.edges) {
+      if (byId.get(e.platform_id)!.type === 'integration') continue
       for (const r of riders.get(e.platform_id)!) {
         if (r.subdomain !== uc.subdomain) others.add(r.subdomain)
       }
@@ -281,10 +285,15 @@ function report(estate: Estate, opts: { requireIdentityMaxFanIn: boolean }): Che
       `${Math.round(volAtRisk.get(p.id)!).toLocaleString('en-GB').padStart(13)}`,
     )
   }
-  console.log(`\nblast radius, largest by monthly volume at risk`)
-  console.log(`  ${byId.get(topVol[0])!.name} (${byId.get(topVol[0])!.type}), ${Math.round(topVol[1]).toLocaleString('en-GB')} units/month`)
+  // Reported rather than asserted. Which node type leads is a finding about the
+  // shape of the estate, not a property the generator is entitled to arrange.
+  console.log(`\nblast radius, top three by monthly volume at risk`)
+  for (const [pid, v] of volRanked.slice(0, 3)) {
+    const p = byId.get(pid)!
+    console.log(`  ${p.name.padEnd(26)}${p.type.padEnd(13)}${Math.round(v).toLocaleString('en-GB').padStart(12)} units/month`)
+  }
   console.log(`\nboundary crossing`)
-  console.log(`  use cases reaching 3+ other subdomains via shared platforms: ${crossers.length}`)
+  console.log(`  use cases reaching 3+ other subdomains via shared platforms (integration nodes excluded from the path): ${crossers.length}`)
   console.log(`\nsubdomains`)
   for (const s of subdomains) {
     const n = use_cases.filter((u) => u.subdomain === s.id).length
@@ -315,11 +324,6 @@ function report(estate: Estate, opts: { requireIdentityMaxFanIn: boolean }): Che
       name: 'Claims rides ClaimCenter, ServiceNow, Salesforce, OpenText, Adyen, Kafka',
       pass: claimsMissing.length === 0,
       detail: claimsMissing.length ? `missing: ${claimsMissing.join(', ')}` : 'all six present',
-    })
-    checks.push({
-      name: 'largest blast radius by volume at risk is a platform, not integration',
-      pass: byId.get(topVol[0])!.type === 'platform',
-      detail: `${byId.get(topVol[0])!.id} is ${byId.get(topVol[0])!.type}`,
     })
   } else {
     checks.push({

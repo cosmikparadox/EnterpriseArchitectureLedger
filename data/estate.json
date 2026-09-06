@@ -563,7 +563,7 @@
         {
           "platform_id": "policycenter",
           "driver_units_per_volume_unit": 0.936,
-          "conditional_failure_prob": 0.66
+          "conditional_failure_prob": 0.571
         },
         {
           "platform_id": "conduit",
@@ -595,29 +595,24 @@
           "conditional_failure_prob": 0.935
         },
         {
-          "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 1.074,
-          "conditional_failure_prob": 0.813
-        },
-        {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 6.936,
-          "conditional_failure_prob": 0.576
+          "driver_units_per_volume_unit": 6.287,
+          "conditional_failure_prob": 0.756
         },
         {
           "platform_id": "kafka",
-          "driver_units_per_volume_unit": 11.849,
-          "conditional_failure_prob": 0.394
+          "driver_units_per_volume_unit": 18.568,
+          "conditional_failure_prob": 0.326
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 3.16,
-          "conditional_failure_prob": 0.628
+          "driver_units_per_volume_unit": 1.863,
+          "conditional_failure_prob": 0.57
         },
         {
           "platform_id": "apigee",
-          "driver_units_per_volume_unit": 14.556,
-          "conditional_failure_prob": 0.835
+          "driver_units_per_volume_unit": 17.786,
+          "conditional_failure_prob": 0.778
         }
       ]
     },
@@ -630,28 +625,28 @@
       "edges": [
         {
           "platform_id": "claimcenter",
-          "driver_units_per_volume_unit": 0.966,
-          "conditional_failure_prob": 0.911
+          "driver_units_per_volume_unit": 1.332,
+          "conditional_failure_prob": 0.994
         },
         {
           "platform_id": "servicenow",
-          "driver_units_per_volume_unit": 0.473,
-          "conditional_failure_prob": 0.503
+          "driver_units_per_volume_unit": 0.183,
+          "conditional_failure_prob": 0.532
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.741,
-          "conditional_failure_prob": 0.443
+          "driver_units_per_volume_unit": 0.847,
+          "conditional_failure_prob": 0.203
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.413,
-          "conditional_failure_prob": 0.523
+          "driver_units_per_volume_unit": 2.813,
+          "conditional_failure_prob": 0.693
         },
         {
           "platform_id": "kafka",
-          "driver_units_per_volume_unit": 10.646,
-          "conditional_failure_prob": 0.469
+          "driver_units_per_volume_unit": 17.666,
+          "conditional_failure_prob": 0.338
         }
       ]
     },
@@ -664,33 +659,28 @@
       "edges": [
         {
           "platform_id": "claimcenter",
-          "driver_units_per_volume_unit": 1.001,
-          "conditional_failure_prob": 0.923
-        },
-        {
-          "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 0.932,
-          "conditional_failure_prob": 0.619
+          "driver_units_per_volume_unit": 1.003,
+          "conditional_failure_prob": 0.973
         },
         {
           "platform_id": "adyen",
-          "driver_units_per_volume_unit": 0.536,
-          "conditional_failure_prob": 0.554
+          "driver_units_per_volume_unit": 0.601,
+          "conditional_failure_prob": 0.57
         },
         {
           "platform_id": "billingcenter",
-          "driver_units_per_volume_unit": 1.185,
-          "conditional_failure_prob": 0.668
+          "driver_units_per_volume_unit": 0.798,
+          "conditional_failure_prob": 0.522
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.627,
-          "conditional_failure_prob": 0.474
+          "driver_units_per_volume_unit": 1.587,
+          "conditional_failure_prob": 0.495
         },
         {
           "platform_id": "opentext",
-          "driver_units_per_volume_unit": 1.815,
-          "conditional_failure_prob": 0.617
+          "driver_units_per_volume_unit": 1.905,
+          "conditional_failure_prob": 0.668
         }
       ]
     },
@@ -703,28 +693,28 @@
       "edges": [
         {
           "platform_id": "claimcenter",
-          "driver_units_per_volume_unit": 1.041,
-          "conditional_failure_prob": 0.928
+          "driver_units_per_volume_unit": 1.364,
+          "conditional_failure_prob": 0.91
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.831,
-          "conditional_failure_prob": 0.365
+          "driver_units_per_volume_unit": 0.618,
+          "conditional_failure_prob": 0.298
         },
         {
           "platform_id": "servicenow",
-          "driver_units_per_volume_unit": 0.252,
-          "conditional_failure_prob": 0.662
+          "driver_units_per_volume_unit": 0.221,
+          "conditional_failure_prob": 0.583
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 3.084,
-          "conditional_failure_prob": 0.56
+          "driver_units_per_volume_unit": 3.034,
+          "conditional_failure_prob": 0.615
         },
         {
           "platform_id": "kafka",
-          "driver_units_per_volume_unit": 15.35,
-          "conditional_failure_prob": 0.428
+          "driver_units_per_volume_unit": 13.251,
+          "conditional_failure_prob": 0.412
         }
       ]
     },
@@ -737,23 +727,23 @@
       "edges": [
         {
           "platform_id": "opentext",
-          "driver_units_per_volume_unit": 1.054,
-          "conditional_failure_prob": 0.975
+          "driver_units_per_volume_unit": 2.384,
+          "conditional_failure_prob": 0.944
         },
         {
           "platform_id": "claimcenter",
-          "driver_units_per_volume_unit": 0.914,
-          "conditional_failure_prob": 0.519
+          "driver_units_per_volume_unit": 1.186,
+          "conditional_failure_prob": 0.678
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 12.164,
-          "conditional_failure_prob": 0.427
+          "driver_units_per_volume_unit": 8.088,
+          "conditional_failure_prob": 0.626
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.618,
-          "conditional_failure_prob": 0.621
+          "driver_units_per_volume_unit": 1.535,
+          "conditional_failure_prob": 0.466
         }
       ]
     },
@@ -766,23 +756,23 @@
       "edges": [
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 2.473,
-          "conditional_failure_prob": 0.94
+          "driver_units_per_volume_unit": 4.202,
+          "conditional_failure_prob": 0.909
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.671,
-          "conditional_failure_prob": 0.385
+          "driver_units_per_volume_unit": 0.661,
+          "conditional_failure_prob": 0.371
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 16.172,
-          "conditional_failure_prob": 0.636
+          "driver_units_per_volume_unit": 7.323,
+          "conditional_failure_prob": 0.52
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 1.569,
-          "conditional_failure_prob": 0.645
+          "driver_units_per_volume_unit": 2.645,
+          "conditional_failure_prob": 0.635
         }
       ]
     },
@@ -795,28 +785,28 @@
       "edges": [
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 6.353,
-          "conditional_failure_prob": 0.901
+          "driver_units_per_volume_unit": 5.633,
+          "conditional_failure_prob": 0.979
         },
         {
           "platform_id": "billingcenter",
-          "driver_units_per_volume_unit": 1.021,
-          "conditional_failure_prob": 0.704
+          "driver_units_per_volume_unit": 0.636,
+          "conditional_failure_prob": 0.734
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 9.119,
-          "conditional_failure_prob": 0.418
+          "driver_units_per_volume_unit": 18.187,
+          "conditional_failure_prob": 0.404
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.928,
-          "conditional_failure_prob": 0.538
+          "driver_units_per_volume_unit": 2.296,
+          "conditional_failure_prob": 0.62
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.693,
-          "conditional_failure_prob": 0.204
+          "driver_units_per_volume_unit": 0.356,
+          "conditional_failure_prob": 0.215
         }
       ]
     },
@@ -829,23 +819,23 @@
       "edges": [
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 5.549,
-          "conditional_failure_prob": 0.921
+          "driver_units_per_volume_unit": 6.199,
+          "conditional_failure_prob": 0.935
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.866,
-          "conditional_failure_prob": 0.378
+          "driver_units_per_volume_unit": 0.693,
+          "conditional_failure_prob": 0.204
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 1.749,
-          "conditional_failure_prob": 0.24
+          "driver_units_per_volume_unit": 196.173,
+          "conditional_failure_prob": 0.202
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.029,
-          "conditional_failure_prob": 0.626
+          "driver_units_per_volume_unit": 3.118,
+          "conditional_failure_prob": 0.628
         }
       ]
     },
@@ -858,28 +848,28 @@
       "edges": [
         {
           "platform_id": "billingcenter",
-          "driver_units_per_volume_unit": 1.242,
-          "conditional_failure_prob": 0.947
+          "driver_units_per_volume_unit": 1.05,
+          "conditional_failure_prob": 0.936
         },
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 6.979,
-          "conditional_failure_prob": 0.708
+          "driver_units_per_volume_unit": 3.555,
+          "conditional_failure_prob": 0.711
         },
         {
           "platform_id": "adyen",
-          "driver_units_per_volume_unit": 0.688,
-          "conditional_failure_prob": 0.761
+          "driver_units_per_volume_unit": 0.999,
+          "conditional_failure_prob": 0.641
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 3.156,
-          "conditional_failure_prob": 0.577
+          "driver_units_per_volume_unit": 3.193,
+          "conditional_failure_prob": 0.623
         },
         {
           "platform_id": "kafka",
-          "driver_units_per_volume_unit": 14.152,
-          "conditional_failure_prob": 0.346
+          "driver_units_per_volume_unit": 12.824,
+          "conditional_failure_prob": 0.511
         }
       ]
     },
@@ -892,23 +882,23 @@
       "edges": [
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 3.597,
-          "conditional_failure_prob": 0.992
+          "driver_units_per_volume_unit": 6.872,
+          "conditional_failure_prob": 0.951
         },
         {
           "platform_id": "adyen",
-          "driver_units_per_volume_unit": 1.11,
-          "conditional_failure_prob": 0.601
+          "driver_units_per_volume_unit": 0.739,
+          "conditional_failure_prob": 0.596
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 17.404,
-          "conditional_failure_prob": 0.514
+          "driver_units_per_volume_unit": 10.472,
+          "conditional_failure_prob": 0.677
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.217,
-          "conditional_failure_prob": 0.591
+          "driver_units_per_volume_unit": 2.983,
+          "conditional_failure_prob": 0.534
         }
       ]
     },
@@ -921,28 +911,28 @@
       "edges": [
         {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 4.623,
+          "driver_units_per_volume_unit": 8.073,
           "conditional_failure_prob": 0.938
         },
         {
           "platform_id": "servicenow",
-          "driver_units_per_volume_unit": 0.283,
-          "conditional_failure_prob": 0.627
+          "driver_units_per_volume_unit": 0.298,
+          "conditional_failure_prob": 0.669
         },
         {
           "platform_id": "apigee",
-          "driver_units_per_volume_unit": 13.303,
-          "conditional_failure_prob": 0.612
+          "driver_units_per_volume_unit": 10.122,
+          "conditional_failure_prob": 0.694
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 1.69,
-          "conditional_failure_prob": 0.558
+          "driver_units_per_volume_unit": 2.145,
+          "conditional_failure_prob": 0.556
         },
         {
           "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 1.157,
-          "conditional_failure_prob": 0.657
+          "driver_units_per_volume_unit": 1.087,
+          "conditional_failure_prob": 0.514
         }
       ]
     },
@@ -955,28 +945,28 @@
       "edges": [
         {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 8.906,
-          "conditional_failure_prob": 0.917
+          "driver_units_per_volume_unit": 4.559,
+          "conditional_failure_prob": 0.943
         },
         {
           "platform_id": "apigee",
-          "driver_units_per_volume_unit": 14.367,
-          "conditional_failure_prob": 0.687
+          "driver_units_per_volume_unit": 14.358,
+          "conditional_failure_prob": 0.657
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.12,
-          "conditional_failure_prob": 0.611
+          "driver_units_per_volume_unit": 3.168,
+          "conditional_failure_prob": 0.492
         },
         {
           "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 0.868,
-          "conditional_failure_prob": 0.842
+          "driver_units_per_volume_unit": 1.158,
+          "conditional_failure_prob": 0.605
         },
         {
           "platform_id": "billingcenter",
-          "driver_units_per_volume_unit": 0.917,
-          "conditional_failure_prob": 0.677
+          "driver_units_per_volume_unit": 0.928,
+          "conditional_failure_prob": 0.694
         }
       ]
     },
@@ -989,33 +979,28 @@
       "edges": [
         {
           "platform_id": "servicenow",
-          "driver_units_per_volume_unit": 0.401,
-          "conditional_failure_prob": 0.978
-        },
-        {
-          "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 1.106,
-          "conditional_failure_prob": 0.644
+          "driver_units_per_volume_unit": 0.19,
+          "conditional_failure_prob": 0.997
         },
         {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 8.755,
-          "conditional_failure_prob": 0.735
+          "driver_units_per_volume_unit": 5.76,
+          "conditional_failure_prob": 0.677
         },
         {
           "platform_id": "opentext",
-          "driver_units_per_volume_unit": 1.232,
-          "conditional_failure_prob": 0.794
+          "driver_units_per_volume_unit": 2.018,
+          "conditional_failure_prob": 0.733
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.87,
-          "conditional_failure_prob": 0.545
+          "driver_units_per_volume_unit": 2.367,
+          "conditional_failure_prob": 0.494
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.628,
-          "conditional_failure_prob": 0.288
+          "driver_units_per_volume_unit": 0.866,
+          "conditional_failure_prob": 0.396
         }
       ]
     },
@@ -1028,28 +1013,23 @@
       "edges": [
         {
           "platform_id": "opentext",
-          "driver_units_per_volume_unit": 1.177,
-          "conditional_failure_prob": 0.948
-        },
-        {
-          "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 0.984,
-          "conditional_failure_prob": 0.614
+          "driver_units_per_volume_unit": 1.232,
+          "conditional_failure_prob": 0.998
         },
         {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 8.235,
-          "conditional_failure_prob": 0.786
+          "driver_units_per_volume_unit": 8.029,
+          "conditional_failure_prob": 0.614
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 16.866,
-          "conditional_failure_prob": 0.502
+          "driver_units_per_volume_unit": 14.562,
+          "conditional_failure_prob": 0.506
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 1.896,
-          "conditional_failure_prob": 0.649
+          "driver_units_per_volume_unit": 1.877,
+          "conditional_failure_prob": 0.571
         }
       ]
     },
@@ -1062,33 +1042,28 @@
       "edges": [
         {
           "platform_id": "billingcenter",
-          "driver_units_per_volume_unit": 0.902,
-          "conditional_failure_prob": 0.924
-        },
-        {
-          "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 0.812,
-          "conditional_failure_prob": 0.84
+          "driver_units_per_volume_unit": 0.876,
+          "conditional_failure_prob": 0.905
         },
         {
           "platform_id": "adyen",
-          "driver_units_per_volume_unit": 0.641,
-          "conditional_failure_prob": 0.564
+          "driver_units_per_volume_unit": 1.093,
+          "conditional_failure_prob": 0.786
         },
         {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 5.297,
-          "conditional_failure_prob": 0.581
+          "driver_units_per_volume_unit": 7.881,
+          "conditional_failure_prob": 0.602
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.199,
-          "conditional_failure_prob": 0.623
+          "driver_units_per_volume_unit": 1.896,
+          "conditional_failure_prob": 0.649
         },
         {
           "platform_id": "apigee",
-          "driver_units_per_volume_unit": 14.521,
-          "conditional_failure_prob": 0.845
+          "driver_units_per_volume_unit": 12.015,
+          "conditional_failure_prob": 0.66
         }
       ]
     },
@@ -1101,23 +1076,23 @@
       "edges": [
         {
           "platform_id": "workday",
-          "driver_units_per_volume_unit": 0.035,
-          "conditional_failure_prob": 0.964
+          "driver_units_per_volume_unit": 0.022,
+          "conditional_failure_prob": 0.996
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.601,
-          "conditional_failure_prob": 0.644
+          "driver_units_per_volume_unit": 1.843,
+          "conditional_failure_prob": 0.503
         },
         {
           "platform_id": "servicenow",
-          "driver_units_per_volume_unit": 0.333,
-          "conditional_failure_prob": 0.576
+          "driver_units_per_volume_unit": 0.241,
+          "conditional_failure_prob": 0.581
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 9.702,
-          "conditional_failure_prob": 0.671
+          "driver_units_per_volume_unit": 11.755,
+          "conditional_failure_prob": 0.608
         }
       ]
     },
@@ -1130,23 +1105,23 @@
       "edges": [
         {
           "platform_id": "workday",
-          "driver_units_per_volume_unit": 0.032,
-          "conditional_failure_prob": 0.931
+          "driver_units_per_volume_unit": 0.081,
+          "conditional_failure_prob": 0.998
         },
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 3.866,
-          "conditional_failure_prob": 0.749
+          "driver_units_per_volume_unit": 2.771,
+          "conditional_failure_prob": 0.691
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.192,
-          "conditional_failure_prob": 0.459
+          "driver_units_per_volume_unit": 2.601,
+          "conditional_failure_prob": 0.644
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 17.457,
-          "conditional_failure_prob": 0.652
+          "driver_units_per_volume_unit": 13.313,
+          "conditional_failure_prob": 0.476
         }
       ]
     },
@@ -1159,18 +1134,18 @@
       "edges": [
         {
           "platform_id": "workday",
-          "driver_units_per_volume_unit": 0.033,
-          "conditional_failure_prob": 0.9
+          "driver_units_per_volume_unit": 0.046,
+          "conditional_failure_prob": 0.99
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 1.863,
-          "conditional_failure_prob": 0.569
+          "driver_units_per_volume_unit": 1.698,
+          "conditional_failure_prob": 0.527
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.813,
-          "conditional_failure_prob": 0.357
+          "driver_units_per_volume_unit": 0.461,
+          "conditional_failure_prob": 0.407
         }
       ]
     },
@@ -1183,23 +1158,23 @@
       "edges": [
         {
           "platform_id": "workday",
-          "driver_units_per_volume_unit": 0.076,
-          "conditional_failure_prob": 0.909
+          "driver_units_per_volume_unit": 0.061,
+          "conditional_failure_prob": 0.904
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.019,
-          "conditional_failure_prob": 0.537
+          "driver_units_per_volume_unit": 2.891,
+          "conditional_failure_prob": 0.66
         },
         {
           "platform_id": "servicenow",
-          "driver_units_per_volume_unit": 0.456,
-          "conditional_failure_prob": 0.543
+          "driver_units_per_volume_unit": 0.194,
+          "conditional_failure_prob": 0.5
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 9.703,
-          "conditional_failure_prob": 0.471
+          "driver_units_per_volume_unit": 8.991,
+          "conditional_failure_prob": 0.543
         }
       ]
     },
@@ -1212,23 +1187,23 @@
       "edges": [
         {
           "platform_id": "workday",
-          "driver_units_per_volume_unit": 0.024,
-          "conditional_failure_prob": 0.917
+          "driver_units_per_volume_unit": 0.108,
+          "conditional_failure_prob": 0.963
         },
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.343,
-          "conditional_failure_prob": 0.202
+          "driver_units_per_volume_unit": 0.594,
+          "conditional_failure_prob": 0.223
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 1.696,
-          "conditional_failure_prob": 0.288
+          "driver_units_per_volume_unit": 107.15,
+          "conditional_failure_prob": 0.237
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 8.992,
-          "conditional_failure_prob": 0.53
+          "driver_units_per_volume_unit": 18.247,
+          "conditional_failure_prob": 0.443
         }
       ]
     },
@@ -1241,28 +1216,28 @@
       "edges": [
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.889,
-          "conditional_failure_prob": 0.931
+          "driver_units_per_volume_unit": 0.385,
+          "conditional_failure_prob": 0.924
         },
         {
           "platform_id": "policycenter",
-          "driver_units_per_volume_unit": 1.065,
-          "conditional_failure_prob": 0.774
+          "driver_units_per_volume_unit": 0.825,
+          "conditional_failure_prob": 0.55
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 0.824,
-          "conditional_failure_prob": 0.279
+          "driver_units_per_volume_unit": 84.974,
+          "conditional_failure_prob": 0.152
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.754,
-          "conditional_failure_prob": 0.969
+          "driver_units_per_volume_unit": 2.313,
+          "conditional_failure_prob": 0.955
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 6.527,
-          "conditional_failure_prob": 0.693
+          "driver_units_per_volume_unit": 8.992,
+          "conditional_failure_prob": 0.53
         }
       ]
     },
@@ -1275,23 +1250,23 @@
       "edges": [
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.481,
-          "conditional_failure_prob": 0.934
+          "driver_units_per_volume_unit": 0.889,
+          "conditional_failure_prob": 0.931
         },
         {
           "platform_id": "sap_s4",
-          "driver_units_per_volume_unit": 5.433,
-          "conditional_failure_prob": 0.526
+          "driver_units_per_volume_unit": 4.209,
+          "conditional_failure_prob": 0.709
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 0.835,
-          "conditional_failure_prob": 0.296
+          "driver_units_per_volume_unit": 68.497,
+          "conditional_failure_prob": 0.279
         },
         {
           "platform_id": "conduit",
-          "driver_units_per_volume_unit": 11.756,
-          "conditional_failure_prob": 0.445
+          "driver_units_per_volume_unit": 16.329,
+          "conditional_failure_prob": 0.606
         }
       ]
     },
@@ -1304,23 +1279,23 @@
       "edges": [
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.855,
-          "conditional_failure_prob": 0.966
+          "driver_units_per_volume_unit": 0.226,
+          "conditional_failure_prob": 0.998
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 2.24,
-          "conditional_failure_prob": 0.203
+          "driver_units_per_volume_unit": 128.441,
+          "conditional_failure_prob": 0.236
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.495,
-          "conditional_failure_prob": 0.955
+          "driver_units_per_volume_unit": 2.667,
+          "conditional_failure_prob": 0.909
         },
         {
           "platform_id": "kafka",
-          "driver_units_per_volume_unit": 21.428,
-          "conditional_failure_prob": 0.457
+          "driver_units_per_volume_unit": 10.409,
+          "conditional_failure_prob": 0.426
         }
       ]
     },
@@ -1333,28 +1308,28 @@
       "edges": [
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.883,
-          "conditional_failure_prob": 0.972
+          "driver_units_per_volume_unit": 0.488,
+          "conditional_failure_prob": 0.915
         },
         {
           "platform_id": "salesforce",
-          "driver_units_per_volume_unit": 5.367,
-          "conditional_failure_prob": 0.725
+          "driver_units_per_volume_unit": 8.677,
+          "conditional_failure_prob": 0.697
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 2.585,
-          "conditional_failure_prob": 0.358
+          "driver_units_per_volume_unit": 193.088,
+          "conditional_failure_prob": 0.203
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.183,
-          "conditional_failure_prob": 0.962
+          "driver_units_per_volume_unit": 2.495,
+          "conditional_failure_prob": 0.955
         },
         {
           "platform_id": "marketingcloud",
-          "driver_units_per_volume_unit": 2.616,
-          "conditional_failure_prob": 0.539
+          "driver_units_per_volume_unit": 4.111,
+          "conditional_failure_prob": 0.707
         }
       ]
     },
@@ -1367,28 +1342,28 @@
       "edges": [
         {
           "platform_id": "meridian",
-          "driver_units_per_volume_unit": 0.523,
-          "conditional_failure_prob": 0.969
+          "driver_units_per_volume_unit": 0.883,
+          "conditional_failure_prob": 0.972
         },
         {
           "platform_id": "claimcenter",
-          "driver_units_per_volume_unit": 0.974,
-          "conditional_failure_prob": 0.647
+          "driver_units_per_volume_unit": 1.091,
+          "conditional_failure_prob": 0.725
         },
         {
           "platform_id": "powerbi",
-          "driver_units_per_volume_unit": 2.318,
-          "conditional_failure_prob": 0.382
+          "driver_units_per_volume_unit": 223.485,
+          "conditional_failure_prob": 0.358
         },
         {
           "platform_id": "okta",
-          "driver_units_per_volume_unit": 2.088,
-          "conditional_failure_prob": 0.909
+          "driver_units_per_volume_unit": 2.183,
+          "conditional_failure_prob": 0.962
         },
         {
           "platform_id": "kafka",
-          "driver_units_per_volume_unit": 8.243,
-          "conditional_failure_prob": 0.472
+          "driver_units_per_volume_unit": 13.737,
+          "conditional_failure_prob": 0.289
         }
       ]
     }
