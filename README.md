@@ -79,6 +79,16 @@ The canon wins. Dependence is drawn from a Student-t copula with four degrees
 of freedom, declared on screen. The rho slider and its plain-English endpoints
 are unchanged.
 
+One consequence is worth stating because it changes what an endpoint means.
+Spec section 6 reads "rho = 0 independent, rho = 1 comonotonic", which is true
+of a Gaussian copula. Under a Student-t copula the platforms share a single
+chi-square denominator, and that shared term is precisely the tail dependence
+canon 9.3.8 asks for. At rho = 0 the platforms are therefore UNCORRELATED but
+NOT INDEPENDENT: they still fail together in the tail more often than chance.
+The slider's low endpoint reads "platforms fail on their own", which remains a
+fair plain-English description of the direction of travel, but the tool does not
+claim independence anywhere.
+
 ### 2. The by-headcount allocation rule is prohibited, and ships as a counter-example
 
 Spec section 4.2 offers three allocation rules: equal split, by volume, and by
@@ -205,6 +215,49 @@ The build was specified against Node 20 LTS. The container provides Node
 v22.22.2 and no version manager, and Node 20 could not be obtained. Node 22 is
 also LTS and is supported by Vite 5. The project is built and tested on Node
 22. `package.json` declares `>=20`.
+
+### 11. Secondary loss is not modelled
+
+Canon 9.3.1 corrects the FAIR loss magnitude to `LM = LM_primary + (SLEF * SLM)`,
+where the secondary loss event frequency is a conditional probability that the
+knock-on happens at all. The spec's section 6 risk model carries only a primary
+direct loss per platform and a business-interruption loss per use case. No
+secondary term is modelled. This is a simplification of the canon rather than a
+contradiction of it, and it means the loss figures here are, if anything, low
+relative to the structure canon 9.3.1 specifies.
+
+### 12. The subdomain ceiling and its censoring rule do not apply
+
+Canon 9.3.4 requires a subdomain valuation ceiling to be treated as explicit
+censoring, with the mass at the boundary reported, and canon 9.9 refuses the
+tail statistics where that cap binds in more than about one percent of
+simulations. This tool applies no ceiling, so nothing is censored and the rule
+has nothing to bind on. The censoring rate that canon 9.8.2 lists as a required
+reported field is therefore reported as not applicable rather than as zero.
+
+## A note on acceptance check 3
+
+Acceptance check 3 requires the non-additivity exhibit to show a gap of at least
+20 percent between the two P99 figures for at least three of six subdomains at
+rho = 0.5. It passes, but by the smallest possible margin. At 6,000 runs on the
+test seed:
+
+| subdomain | sum of per-use-case P99s | P99 of joint loss | gap |
+|---|---|---|---|
+| Sales and Distribution | 453,392 | 379,545 | 19.5% |
+| Claims | 263,379 | 196,339 | 34.1% |
+| Finance | 185,875 | 150,774 | 23.3% |
+| Customer Service | 268,951 | 233,760 | 15.1% |
+| People | 5,867 | 4,887 | 20.0% |
+| Data and Analytics | 12,256 | 10,455 | 17.2% |
+
+Exactly three subdomains clear 20 percent, and the third clears it by a hair.
+The figure moves with the run count and the seed, so this check should be read
+as marginal rather than comfortably met. It has not been tuned to pass. The
+direction of the result is robust and holds in all six subdomains: the sum of
+per-use-case P99s exceeds the P99 of the joint loss everywhere, which is canon
+9.8.3 result two, and the gap narrows as dependence rises, which is the
+comonotonic limit where value-at-risk becomes exactly additive.
 
 ## The C1 question
 
