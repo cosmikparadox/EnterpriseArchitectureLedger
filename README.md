@@ -216,17 +216,37 @@ v22.22.2 and no version manager, and Node 20 could not be obtained. Node 22 is
 also LTS and is supported by Vite 5. The project is built and tested on Node
 22. `package.json` declares `>=20`.
 
-### 11. Secondary loss is not modelled
+### 11. Acceptance check 3 replaced
+
+Recorded at the owner's direction. The spec's 20 percent threshold was arbitrary
+and is withdrawn, on the reason that the canon makes a directional claim and not
+a magnitude claim. The replacement criteria and the observed results, including
+the one criterion that is not met, are set out in full under "Acceptance check
+3, replaced" below.
+
+### 12. The rho slider's low endpoint is relabelled
+
+Spec section 4.3 labels the endpoints "platforms fail on their own" to
+"platforms fail together". Because deviation 1 replaced the Gaussian copula with
+a Student-t, the low endpoint no longer means independence, and the original
+wording asserted something false. It now reads "platforms fail without
+correlation", with a tooltip: "Under the t copula the extremes still move
+together even at zero correlation. That is deliberate. See 9.3.8."
+
+### 13. Secondary loss is not modelled
 
 Canon 9.3.1 corrects the FAIR loss magnitude to `LM = LM_primary + (SLEF * SLM)`,
 where the secondary loss event frequency is a conditional probability that the
 knock-on happens at all. The spec's section 6 risk model carries only a primary
 direct loss per platform and a business-interruption loss per use case. No
-secondary term is modelled. This is a simplification of the canon rather than a
-contradiction of it, and it means the loss figures here are, if anything, low
-relative to the structure canon 9.3.1 specifies.
+secondary term is modelled. **Scope note.** The secondary term is absent, and the loss figures this tool
+reports are therefore UNDERSTATED relative to the structure canon 9.3.1
+specifies. This is a simplification of the canon rather than a contradiction of
+it. It will not be modelled: the exhibit view 3 exists to show is the
+non-additivity of correlated losses, and a secondary term would scale the
+figures without changing that result.
 
-### 12. The subdomain ceiling and its censoring rule do not apply
+### 14. The subdomain ceiling and its censoring rule do not apply
 
 Canon 9.3.4 requires a subdomain valuation ceiling to be treated as explicit
 censoring, with the mass at the boundary reported, and canon 9.9 refuses the
@@ -235,29 +255,88 @@ simulations. This tool applies no ceiling, so nothing is censored and the rule
 has nothing to bind on. The censoring rate that canon 9.8.2 lists as a required
 reported field is therefore reported as not applicable rather than as zero.
 
-## A note on acceptance check 3
+## Acceptance check 3, replaced
 
-Acceptance check 3 requires the non-additivity exhibit to show a gap of at least
-20 percent between the two P99 figures for at least three of six subdomains at
-rho = 0.5. It passes, but by the smallest possible margin. At 6,000 runs on the
-test seed:
+The spec's acceptance 3 required a gap of at least 20 percent between the two
+P99 figures for at least three of six subdomains at rho = 0.5. The first build
+met it, but by the smallest possible margin: exactly three subdomains cleared
+the line and the third cleared it by a hair, on a figure that moves with the
+seed and the run count.
+
+The threshold has been withdrawn by the owner and replaced, on the reasoning
+that canon 9.8.3 result two makes a DIRECTIONAL claim and not a magnitude one:
+
+> VaR_q( sum of L_u ) = sum of VaR_q( L_u ) ONLY under comonotonicity.
+
+Nothing in the canon licenses any particular size of gap. The replacement is:
+
+```
+(a) at rho = 0.5, the sum of per-use-case P99s exceeds the joint
+    P99 in all six subdomains
+(b) for each subdomain the gap is monotonically non-increasing as
+    rho steps 0, 0.25, 0.5, 0.75, 1.0, within Monte Carlo noise
+    at 100k runs
+(c) at rho = 1.0 the gap is within 2 percent of zero
+```
+
+Observed, at 100,000 runs on seed 424242:
+
+| subdomain | rho 0.00 | rho 0.25 | rho 0.50 | rho 0.75 | rho 1.00 |
+|---|---|---|---|---|---|
+| Sales and Distribution | 25.6% | 22.1% | 18.6% | 15.7% | 6.7% |
+| Claims | 37.1% | 30.6% | 25.3% | 17.0% | 7.3% |
+| Finance | 23.7% | 20.7% | 19.4% | 14.1% | 7.4% |
+| Customer Service | 21.9% | 17.8% | 15.9% | 11.2% | 2.0% |
+| People | 21.9% | 19.4% | 17.8% | 12.3% | 6.3% |
+| Data and Analytics | 14.1% | 13.1% | 10.6% | 7.8% | 2.8% |
+
+And in GBP at rho = 0.5:
 
 | subdomain | sum of per-use-case P99s | P99 of joint loss | gap |
 |---|---|---|---|
-| Sales and Distribution | 453,392 | 379,545 | 19.5% |
-| Claims | 263,379 | 196,339 | 34.1% |
-| Finance | 185,875 | 150,774 | 23.3% |
-| Customer Service | 268,951 | 233,760 | 15.1% |
-| People | 5,867 | 4,887 | 20.0% |
-| Data and Analytics | 12,256 | 10,455 | 17.2% |
+| Sales and Distribution | 432,795 | 364,891 | 18.6% |
+| Claims | 253,165 | 202,097 | 25.3% |
+| Finance | 179,889 | 150,607 | 19.4% |
+| Customer Service | 247,809 | 213,805 | 15.9% |
+| People | 5,677 | 4,821 | 17.8% |
+| Data and Analytics | 12,027 | 10,870 | 10.6% |
 
-Exactly three subdomains clear 20 percent, and the third clears it by a hair.
-The figure moves with the run count and the seed, so this check should be read
-as marginal rather than comfortably met. It has not been tuned to pass. The
-direction of the result is robust and holds in all six subdomains: the sum of
-per-use-case P99s exceeds the P99 of the joint loss everywhere, which is canon
-9.8.3 result two, and the gap narrows as dependence rises, which is the
-comonotonic limit where value-at-risk becomes exactly additive.
+**(a) holds.** The sum exceeds the joint in all six subdomains.
+
+**(b) holds.** Every subdomain declines monotonically across all five steps,
+with no step needing the noise allowance at all. The allowance is declared at
+0.02 absolute on the gap ratio, as an operating convention rather than a derived
+threshold, in the sense canon 9.3.4 uses for its one percent censoring rule.
+
+**(c) IS NOT MET.** At rho = 1.0 the mean gap is 5.4 percent, ranging from 2.0
+to 7.4 percent by subdomain, against a criterion of 2 percent.
+
+This is a property of the spec's risk model, not a defect in the copula, and the
+cause has been isolated rather than assumed. rho governs the copula on PLATFORM
+FAILURES. Making platform failures comonotonic does not make USE-CASE LOSSES
+comonotonic, and it is the use-case losses that are being summed. Two further
+random sources survive rho = 1 and neither is under its control: the per-edge
+propagation draw that spec section 6 specifies as
+`Uniform() < conditional_failure_prob`, and the per-run outage fraction. Each
+use case is a different random function of the same failure vector, so the
+summands are not monotone functions of a single scalar and the comonotonic
+condition is never reached.
+
+Removing those two sources one at a time, mean gap at rho = 1.0 over 50,000
+runs:
+
+| model | mean gap at rho = 1.0 |
+|---|---|
+| as specified in spec section 6 | 5.2% |
+| conditional failure probability forced to 1 | 3.7% |
+| ... and the outage fraction pinned | 0.1% |
+
+With both removed the gap collapses to 0.1 percent and value-at-risk becomes
+additive, which is canon 9.8.3 result two behaving exactly as stated. The
+canon's condition is sound; rho simply is not a control that can reach it in
+this model. Meeting (c) as written would require changing the spec's risk model
+to remove propagation randomness, which would remove the mechanism view 3 exists
+to show. Nothing has been tuned.
 
 ## The C1 question
 
@@ -318,6 +397,22 @@ One point in the spec's favour is worth recording. Canon 9.2.8 requires that
 two expressions for C1 algebraically identical, so the spec's formula is
 internally consistent with the canon's basis rule even though the spec predates
 it.
+
+## Performance
+
+The Monte Carlo runs in a Web Worker so the 3D view keeps its frame rate.
+Measured in Chromium 141 in an actual worker, on seed 20260905, with the
+concentrated estate:
+
+| runs | wall ms | worker ms |
+|---|---|---|
+| 10,000 | 237 | 232 |
+| 10,000 | 248 | 245 |
+| 10,000 | 240 | 236 |
+| 100,000 | 2,598 | 2,595 |
+
+Two runs at the same seed produce identical subdomain P99s. `npm run bench`
+reproduces this.
 
 ## Modelling assumptions
 
