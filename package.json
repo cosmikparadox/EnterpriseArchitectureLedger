@@ -12,7 +12,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "shots": "tsx scripts/screenshots.ts"
+    "shots": "tsx scripts/screenshots.ts",
+    "bench": "tsx scripts/bench.ts"
   },
   "dependencies": {
     "3d-force-graph": "1.73.4",

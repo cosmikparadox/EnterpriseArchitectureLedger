@@ -383,6 +383,38 @@ export function studentTCdf(x: number, nu: number): number {
   return x > 0 ? 1 - p : p
 }
 
+/** Inverse Student-t CDF by bisection. Computed once per platform, never in a run. */
+export function studentTQuantile(prob: number, nu: number): number {
+  if (prob <= 0) return -Infinity
+  if (prob >= 1) return Infinity
+  let lo = -60, hi = 60
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2
+    if (studentTCdf(mid, nu) < prob) lo = mid
+    else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+/**
+ * Per-platform t thresholds for the monthly failure probability.
+ *
+ * Comparing U = tCdf(t) against p is identical to comparing t against
+ * tQuantile(p), because the CDF is strictly increasing. Doing it the second way
+ * moves the incomplete beta out of the Monte Carlo loop, where it would
+ * otherwise be evaluated once per platform per run.
+ *
+ * Monthly failure probability from an annual rate, spec section 6:
+ *   fails ~ Bernoulli(1 - exp(-LEF/12))
+ */
+export function failureThresholds(platforms: Platform[], nu: number): Float64Array {
+  const out = new Float64Array(platforms.length)
+  platforms.forEach((p, i) => {
+    out[i] = studentTQuantile(1 - Math.exp(-p.failure_lef / 12), nu)
+  })
+  return out
+}
+
 /**
  * Draw one set of platform failure indicators under a Student-t copula.
  *
@@ -391,27 +423,22 @@ export function studentTCdf(x: number, nu: number): number {
  * another tail-dependent family and declare it." The canon wins.
  *
  * Equicorrelation is built as z_i = sqrt(rho)*w + sqrt(1-rho)*e_i, then divided
- * by sqrt(chi2_nu / nu) with the chi-square shared across platforms. That
+ * by sqrt(chi2_nu / nu) with the chi-square SHARED across platforms. That
  * shared denominator is the tail dependence, and it is why rho = 0 here is
  * uncorrelated but NOT independent, unlike the Gaussian case the spec assumed.
  * Recorded in README.
- *
- * Monthly failure probability from an annual rate, spec section 6:
- *   fails ~ Bernoulli(1 - exp(-LEF/12))
  */
-export function drawFailures(platforms: Platform[], rho: number, nu: number, rng: Rng): boolean[] {
+export function drawFailures(thresholds: Float64Array, rho: number, nu: number, rng: Rng, out: boolean[]): boolean[] {
   const w = normal(rng)
   const a = Math.sqrt(Math.max(0, Math.min(1, rho)))
   const b = Math.sqrt(1 - a * a)
   let chi = 0
   for (let i = 0; i < nu; i++) { const n = normal(rng); chi += n * n }
   const scale = Math.sqrt(nu / chi)
-  return platforms.map((p) => {
-    const z = a * w + b * normal(rng)
-    const u = studentTCdf(z * scale, nu)
-    const pMonthly = 1 - Math.exp(-p.failure_lef / 12)
-    return u < pMonthly
-  })
+  for (let i = 0; i < thresholds.length; i++) {
+    out[i] = (a * w + b * normal(rng)) * scale < thresholds[i]!
+  }
+  return out
 }
 
 /** Beta(a,b) for integer shapes, via sums of exponentials. */
@@ -439,9 +466,10 @@ export interface RunResult {
  * exists to show, is adding per-use-case P99s together. Canon 9.8.3 result two:
  * "VaR_q( sum of L_u ) = sum of VaR_q( L_u ) ONLY under comonotonicity."
  */
-export function runOnce(ix: Index, rho: number, nu: number, rng: Rng): RunResult {
+export function runOnce(ix: Index, rho: number, nu: number, rng: Rng, thresholds?: Float64Array): RunResult {
   const { platforms, use_cases, outage_fraction_beta } = ix.estate
-  const failed = drawFailures(platforms, rho, nu, rng)
+  const th = thresholds ?? failureThresholds(platforms, nu)
+  const failed = drawFailures(th, rho, nu, rng, new Array<boolean>(platforms.length))
   const failedById = new Map<string, boolean>()
   const platformLoss = new Map<string, number>()
   platforms.forEach((p, i) => {

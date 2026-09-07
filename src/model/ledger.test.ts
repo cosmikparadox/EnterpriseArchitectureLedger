@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import type { Estate, AllocationRule, UseCase } from './types'
-import { buildIndex, ruleShare, basis, c1, meteredSpend, runOnce, percentile } from './ledger'
+import { buildIndex, ruleShare, basis, c1, meteredSpend, runOnce, percentile, failureThresholds } from './ledger'
 import { makeRng } from './rng'
 
 const estate: Estate = JSON.parse(readFileSync('data/estate.json', 'utf8'))
@@ -90,63 +90,92 @@ describe('cost axis, partition independence', () => {
 
 describe('risk axis, non-additivity', () => {
   /**
-   * Canon 9.8.3 result two: "VaR_q( sum of L_u ) = sum of VaR_q( L_u ) ONLY
-   * under comonotonicity." Summing per-use-case P99s counts the same shared
-   * platform failure many times, so it should EXCEED the P99 of the joint
-   * quantity summed within each run.
+   * ACCEPTANCE 3, as replaced. The spec's original check required a gap of at
+   * least 20 percent in at least three of six subdomains at rho = 0.5. That
+   * threshold was arbitrary and has been withdrawn by the owner. Canon 9.8.3
+   * result two makes a DIRECTIONAL claim, not a magnitude one:
+   *
+   *   "VaR_q( sum of L_u ) = sum of VaR_q( L_u ) ONLY under comonotonicity."
+   *
+   * so the testable content is the direction and the comonotonic limit, not any
+   * particular size of gap. Three criteria replace it:
+   *
+   *   (a) at rho = 0.5, the sum of per-use-case P99s exceeds the joint P99 in
+   *       all six subdomains
+   *   (b) for each subdomain the gap is monotonically non-increasing as rho
+   *       steps 0, 0.25, 0.5, 0.75, 1.0, within Monte Carlo noise
+   *   (c) at rho = 1.0 the gap is within 2 percent of zero
    */
-  const RUNS = 6000
-  const RHO = 0.5
+  const RUNS = 100_000
   const NU = 4
+  const RHOS = [0, 0.25, 0.5, 0.75, 1.0]
 
-  function simulate(rho: number) {
+  /**
+   * Monte Carlo noise allowance for criterion (b), as an absolute tolerance on
+   * the gap ratio. This is a DECLARED OPERATING CONVENTION, not a derived
+   * threshold, in the same sense as canon 9.3.4's one percent censoring rule.
+   * A P99 estimated from 100k runs still moves by a fraction of a percent
+   * between seeds, and the gap is a ratio of two such estimates.
+   */
+  const NOISE = 0.02
+
+  const thresholds = failureThresholds(estate.platforms, NU)
+
+  function gapsAt(rho: number) {
     const rng = makeRng(424242)
     const perUc = new Map<string, number[]>(estate.use_cases.map((u) => [u.id, []]))
     const perSub = new Map<string, number[]>(estate.subdomains.map((s) => [s.id, []]))
     for (let i = 0; i < RUNS; i++) {
-      const r = runOnce(ix, rho, NU, rng)
+      const r = runOnce(ix, rho, NU, rng, thresholds)
       for (const [k, v] of r.useCaseLoss) perUc.get(k)!.push(v)
       for (const [k, v] of r.subdomainLoss) perSub.get(k)!.push(v)
     }
     for (const a of perUc.values()) a.sort((x, y) => x - y)
     for (const a of perSub.values()) a.sort((x, y) => x - y)
-    return { perUc, perSub }
+    return estate.subdomains.map((sd) => {
+      const members = estate.use_cases.filter((u) => u.subdomain === sd.id)
+      const sumOfP99s = members.reduce((a, u) => a + percentile(perUc.get(u.id)!, 0.99), 0)
+      const jointP99 = percentile(perSub.get(sd.id)!, 0.99)
+      return { id: sd.id, name: sd.name, sumOfP99s, jointP99, gap: jointP99 === 0 ? 0 : (sumOfP99s - jointP99) / jointP99 }
+    })
   }
 
-  const { perUc, perSub } = simulate(RHO)
+  const byRho = new Map(RHOS.map((r) => [r, gapsAt(r)]))
 
-  const gaps = estate.subdomains.map((s) => {
-    const members = estate.use_cases.filter((u) => u.subdomain === s.id)
-    const sumOfP99s = members.reduce((a, u) => a + percentile(perUc.get(u.id)!, 0.99), 0)
-    const jointP99 = percentile(perSub.get(s.id)!, 0.99)
-    return { id: s.id, name: s.name, sumOfP99s, jointP99, gap: jointP99 === 0 ? Infinity : (sumOfP99s - jointP99) / jointP99 }
+  it('reports the observed gaps at every rho', () => {
+    const header = ['subdomain'.padEnd(24), ...RHOS.map((r) => `rho ${r.toFixed(2)}`.padStart(10))].join('')
+    console.log('\n  ' + header)
+    for (let i = 0; i < estate.subdomains.length; i++) {
+      const row = RHOS.map((r) => `${(byRho.get(r)![i]!.gap * 100).toFixed(1)}%`.padStart(10)).join('')
+      console.log('  ' + estate.subdomains[i]!.name.padEnd(24) + row)
+    }
+    const at50 = byRho.get(0.5)!
+    console.log('\n  at rho = 0.50, GBP figures')
+    for (const g of at50) {
+      console.log(`  ${g.name.padEnd(24)} sum of P99s ${Math.round(g.sumOfP99s).toLocaleString('en-GB').padStart(10)}   joint P99 ${Math.round(g.jointP99).toLocaleString('en-GB').padStart(10)}   gap ${(g.gap * 100).toFixed(1)}%`)
+    }
+    expect(byRho.size).toBe(RHOS.length)
   })
 
-  it('sum of per-use-case P99s exceeds the P99 of the joint loss, in every subdomain, at rho = 0.5', () => {
-    for (const g of gaps) {
+  it('(a) at rho = 0.5 the sum of per-use-case P99s exceeds the joint P99, in all six subdomains', () => {
+    for (const g of byRho.get(0.5)!) {
       expect(g.sumOfP99s).toBeGreaterThan(g.jointP99)
     }
   })
 
-  it('the gap is at least 20 percent in at least three of six subdomains (acceptance 3)', () => {
-    const over20 = gaps.filter((g) => g.gap >= 0.2)
-    // Printed so the report can quote real figures rather than a bare pass.
-    for (const g of gaps) {
-      console.log(`  ${g.name.padEnd(24)} sum of P99s ${Math.round(g.sumOfP99s).toLocaleString('en-GB').padStart(10)}   joint P99 ${Math.round(g.jointP99).toLocaleString('en-GB').padStart(10)}   gap ${(g.gap * 100).toFixed(1)}%`)
+  it('(b) the gap is monotonically non-increasing in rho, within Monte Carlo noise', () => {
+    for (let i = 0; i < estate.subdomains.length; i++) {
+      for (let j = 1; j < RHOS.length; j++) {
+        const prev = byRho.get(RHOS[j - 1]!)![i]!
+        const cur = byRho.get(RHOS[j]!)![i]!
+        expect(cur.gap).toBeLessThanOrEqual(prev.gap + NOISE)
+      }
     }
-    expect(over20.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('the gap narrows as dependence rises, because comonotonic risks add exactly', () => {
-    const hi = simulate(0.98)
-    const mean = (gs: number[]) => gs.reduce((a, b) => a + b, 0) / gs.length
-    const gapAt = (p: typeof perUc, s: typeof perSub) =>
-      mean(estate.subdomains.map((sd) => {
-        const members = estate.use_cases.filter((u) => u.subdomain === sd.id)
-        const sum = members.reduce((a, u) => a + percentile(p.get(u.id)!, 0.99), 0)
-        const joint = percentile(s.get(sd.id)!, 0.99)
-        return joint === 0 ? 0 : (sum - joint) / joint
-      }))
-    expect(gapAt(hi.perUc, hi.perSub)).toBeLessThan(gapAt(perUc, perSub))
+  it('(c) at rho = 1.0 the gap is within 2 percent of zero, the comonotonic limit', () => {
+    for (const g of byRho.get(1.0)!) {
+      expect(Math.abs(g.gap)).toBeLessThanOrEqual(0.02)
+    }
   })
-})
+}, 600_000)

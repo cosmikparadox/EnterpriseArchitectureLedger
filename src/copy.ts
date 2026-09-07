@@ -98,8 +98,14 @@ export const copy = {
     'This share is allocated by a declared rule. It must not inform a decision ' +
     'to leave this node, because leaving does not release it.',
 
-  dependence_low: 'platforms fail on their own',
+  // The low endpoint says "without correlation" rather than "on their own",
+  // because under a Student-t copula rho = 0 is uncorrelated but not
+  // independent. Claiming independence here would be false.
+  dependence_low: 'platforms fail without correlation',
   dependence_high: 'platforms fail together',
+  dependence_low_tip:
+    'Under the t copula the extremes still move together even at zero ' +
+    'correlation. That is deliberate. See 9.3.8.',
 } as const
 
 export type CopyKey = keyof typeof copy
