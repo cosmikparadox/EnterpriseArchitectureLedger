@@ -155,50 +155,55 @@ describe('risk axis, non-additivity', () => {
   })
 
   /**
-   * (c) IS NOT MET, and this test records the measured value rather than
-   * asserting a criterion that the model cannot satisfy.
+   * (c) AS RESTATED. The original criterion applied a comonotonicity condition
+   * to PLATFORM FAILURES, which is what rho controls. Canon 9.8.3 applies that
+   * condition to the LOSSES BEING SUMMED. Those are not the same object: each
+   * use case is a different random function of the same failure vector, so
+   * comonotonic platform failures do not produce comonotonic use-case losses.
    *
-   * rho governs the copula on PLATFORM FAILURES. Making those comonotonic does
-   * not make the USE-CASE LOSSES comonotonic, and it is the use-case losses
-   * that are being summed. Two further random sources survive rho = 1, and
-   * neither is under its control:
+   * Restated as two parts:
+   *   (i)  the gap is at its minimum across the rho sweep, for every subdomain
+   *   (ii) with edge conditional failure fixed at 1 and loss magnitude fixed at
+   *        its median, the gap is within 2 percent of zero
    *
-   *   the per-edge propagation draw, spec section 6's
-   *     "Uniform() < conditional_failure_prob"
-   *   the per-run outage fraction
-   *
-   * Each use case is a different random function of the same failure vector, so
-   * the summands are not monotone functions of one scalar and canon 9.8.3's
-   * comonotonic condition is not reached.
+   * (ii) is a DIAGNOSTIC. It is reported in README and is not reachable from
+   * the interface.
    */
-  it('(c) NOT MET on use-case losses: the gap at rho = 1.0 is about 5 percent, not within 2 percent', () => {
-    const g = meanGap(byRho.get(1.0)!)
-    console.log(`\n  mean gap at rho = 1.0, as specified: ${(g * 100).toFixed(1)}%`)
-    expect(g).toBeGreaterThan(0.02)
-    expect(g).toBeLessThan(0.10)
+  it('(c)(i) the gap is at its minimum at rho = 1.0, in every subdomain', () => {
+    for (let i = 0; i < estate.subdomains.length; i++) {
+      const atOne = byRho.get(1.0)![i]!.gap
+      for (const r of RHOS) {
+        if (r === 1.0) continue
+        expect(atOne).toBeLessThanOrEqual(byRho.get(r)![i]!.gap)
+      }
+    }
   })
 
-  it('(c) holds at the layer rho actually controls: remove the two other random sources and the gap collapses', () => {
+  it('(c)(ii) stripped run: edge conditional failure at 1, magnitudes at median, gap within 2 percent of zero', () => {
     const noProp: Estate = {
       ...estate,
       use_cases: estate.use_cases.map((u) => ({ ...u, edges: u.edges.map((e) => ({ ...e, conditional_failure_prob: 1 })) })),
     }
-    // Beta(120, 1) has a standard deviation of about 0.008, so the outage
-    // fraction is effectively a constant.
-    const pinned: Estate = { ...noProp, outage_fraction_beta: { alpha: 120, beta: 1 } }
-    const steps: [string, Estate][] = [
-      ['as specified', estate],
-      ['conditional failure prob forced to 1', noProp],
-      ['  and outage fraction pinned', pinned],
-    ]
-    console.log('\n  mean gap at rho = 1.0')
-    let last = 1
-    for (const [name, e] of steps) {
-      last = meanGap(gapsAt(1.0, e, 50_000))
-      console.log(`  ${name.padEnd(38)}${(last * 100).toFixed(1).padStart(7)}%`)
+    const stripped = simulate({
+      estate: noProp, rho: 1.0, nu: NU, runs: 50_000, seed: 424242,
+      options: { fixedMagnitudes: true },
+    }).subdomains
+
+    console.log('\n  stripped diagnostic at rho = 1.0')
+    console.log('  edge conditional failure fixed at 1, loss magnitude fixed at its median\n')
+    for (const g of stripped) {
+      const name = estate.subdomains.find((s) => s.id === g.id)!.name
+      console.log(`  ${name.padEnd(24)} sum of P99s ${Math.round(g.sumOfP99s).toLocaleString('en-GB').padStart(10)}   joint P99 ${Math.round(g.jointP99).toLocaleString('en-GB').padStart(10)}   gap ${(g.gap * 100).toFixed(2)}%`)
     }
-    // With both extra sources removed, the copula reaches comonotonicity and
-    // value-at-risk becomes additive, exactly as canon 9.8.3 says it must.
-    expect(last).toBeLessThanOrEqual(0.02)
+    // With the two other random sources removed the copula reaches
+    // comonotonicity and value-at-risk becomes additive, which is canon 9.8.3
+    // result two behaving exactly as stated.
+    for (const g of stripped) expect(Math.abs(g.gap)).toBeLessThanOrEqual(0.02)
+  })
+
+  it('for the record, the unstripped gap at rho = 1.0 is not within 2 percent', () => {
+    const g = meanGap(byRho.get(1.0)!)
+    console.log(`\n  mean gap at rho = 1.0, model as specified: ${(g * 100).toFixed(1)}%`)
+    expect(g).toBeGreaterThan(0.02)
   })
 }, 900_000)

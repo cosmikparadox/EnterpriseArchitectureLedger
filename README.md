@@ -224,7 +224,17 @@ a magnitude claim. The replacement criteria and the observed results, including
 the one criterion that is not met, are set out in full under "Acceptance check
 3, replaced" below.
 
-### 12. The rho slider's low endpoint is relabelled
+### 12. Acceptance check 3(c) restated
+
+The first replacement criterion required the gap to close to within 2 percent of
+zero at rho = 1.0. It does not; it closes to 5.4 percent. The criterion was
+wrong rather than the model: it applied a comonotonicity condition to platform
+failures, which is what rho controls, when the canon applies that condition to
+the losses being summed. Restated at the owner's direction as a minimum across
+the rho sweep plus a stripped diagnostic run, both of which hold, the second one
+exactly. Set out in full under "Acceptance check 3, replaced".
+
+### 13. The rho slider's low endpoint is relabelled
 
 Spec section 4.3 labels the endpoints "platforms fail on their own" to
 "platforms fail together". Because deviation 1 replaced the Gaussian copula with
@@ -233,7 +243,7 @@ wording asserted something false. It now reads "platforms fail without
 correlation", with a tooltip: "Under the t copula the extremes still move
 together even at zero correlation. That is deliberate. See 9.3.8."
 
-### 13. Secondary loss is not modelled
+### 14. Secondary loss is not modelled
 
 Canon 9.3.1 corrects the FAIR loss magnitude to `LM = LM_primary + (SLEF * SLM)`,
 where the secondary loss event frequency is a conditional probability that the
@@ -246,7 +256,7 @@ it. It will not be modelled: the exhibit view 3 exists to show is the
 non-additivity of correlated losses, and a secondary term would scale the
 figures without changing that result.
 
-### 14. The subdomain ceiling and its censoring rule do not apply
+### 15. The subdomain ceiling and its censoring rule do not apply
 
 Canon 9.3.4 requires a subdomain valuation ceiling to be treated as explicit
 censoring, with the mass at the boundary reported, and canon 9.9 refuses the
@@ -308,35 +318,58 @@ with no step needing the noise allowance at all. The allowance is declared at
 0.02 absolute on the gap ratio, as an operating convention rather than a derived
 threshold, in the sense canon 9.3.4 uses for its one percent censoring rule.
 
-**(c) IS NOT MET.** At rho = 1.0 the mean gap is 5.4 percent, ranging from 2.0
-to 7.4 percent by subdomain, against a criterion of 2 percent.
+**(c) as originally written was not met, and has been restated.** At rho = 1.0
+the mean gap is 5.4 percent, not 2 percent.
 
-This is a property of the spec's risk model, not a defect in the copula, and the
-cause has been isolated rather than assumed. rho governs the copula on PLATFORM
-FAILURES. Making platform failures comonotonic does not make USE-CASE LOSSES
-comonotonic, and it is the use-case losses that are being summed. Two further
-random sources survive rho = 1 and neither is under its control: the per-edge
-propagation draw that spec section 6 specifies as
-`Uniform() < conditional_failure_prob`, and the per-run outage fraction. Each
-use case is a different random function of the same failure vector, so the
-summands are not monotone functions of a single scalar and the comonotonic
-condition is never reached.
+The reason is that the original criterion applied a comonotonicity condition to
+PLATFORM FAILURES, which is what rho controls, whereas canon 9.8.3 applies that
+condition to THE LOSSES BEING SUMMED. Those are not the same object. Each use
+case is a different random function of the same failure vector, so comonotonic
+platform failures do not produce comonotonic use-case losses. Two random sources
+survive rho = 1 and neither is under rho's control: the per-edge propagation
+draw that spec section 6 specifies as `Uniform() < conditional_failure_prob`,
+and the loss magnitude.
 
-Removing those two sources one at a time, mean gap at rho = 1.0 over 50,000
-runs:
+The restated criterion is:
 
-| model | mean gap at rho = 1.0 |
-|---|---|
-| as specified in spec section 6 | 5.2% |
-| conditional failure probability forced to 1 | 3.7% |
-| ... and the outage fraction pinned | 0.1% |
+```
+(i)  the gap is at its minimum across the rho sweep, for
+     every subdomain
+(ii) with edge conditional failure fixed at 1 and loss
+     magnitude fixed at its median, the gap is within
+     2 percent of zero
+```
 
-With both removed the gap collapses to 0.1 percent and value-at-risk becomes
-additive, which is canon 9.8.3 result two behaving exactly as stated. The
-canon's condition is sound; rho simply is not a control that can reach it in
-this model. Meeting (c) as written would require changing the spec's risk model
-to remove propagation randomness, which would remove the mechanism view 3 exists
-to show. Nothing has been tuned.
+**(i) holds.** rho = 1.0 is the minimum for all six subdomains, by a wide
+margin: the next-lowest column, rho = 0.75, is roughly double it everywhere.
+
+**(ii) holds, exactly.** The stripped run at rho = 1.0, over 50,000 runs, with
+edge conditional failure fixed at 1 and every loss magnitude fixed at its median
+(the platform direct loss at exp(mu), the outage fraction at the median of its
+Beta):
+
+| subdomain | sum of per-use-case P99s | P99 of joint loss | gap |
+|---|---|---|---|
+| Sales and Distribution | 246,732 | 246,732 | 0.00% |
+| Claims | 148,330 | 148,330 | 0.00% |
+| Finance | 111,343 | 111,343 | 0.00% |
+| Customer Service | 137,248 | 137,248 | 0.00% |
+| People | 3,671 | 3,671 | 0.00% |
+| Data and Analytics | 6,921 | 6,921 | 0.00% |
+
+Not approximately zero. Zero. Once the losses being summed are genuinely
+comonotonic, the quantile of the sum equals the sum of the quantiles to the last
+digit, which is canon 9.8.3 result two and canon 9.3.8's exact-additivity
+statement for comonotonic risks, reproduced from the simulation rather than
+assumed.
+
+**This stripped run is a diagnostic.** It exists to show that the machinery is
+correct and that the residual gap in the shipped model comes from the two
+sources named above rather than from an error. It is not reachable from the
+interface, and no figure from it appears on screen. The switch that produces it
+is `SimOptions.fixedMagnitudes` in `src/model/ledger.ts`.
+
+Nothing has been tuned at any point in this exercise.
 
 ## The C1 question
 

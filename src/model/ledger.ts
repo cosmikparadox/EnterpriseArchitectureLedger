@@ -441,12 +441,43 @@ export function drawFailures(thresholds: Float64Array, rho: number, nu: number, 
   return out
 }
 
-/** Beta(a,b) for integer shapes, via sums of exponentials. */
+/**
+ * Median of Beta(a, b), by bisection on the regularized incomplete beta.
+ * Used only by the stripped diagnostic run, which fixes loss magnitude at its
+ * median so that the only randomness left is the copula factor.
+ */
+export function betaMedian(a: number, b: number): number {
+  let lo = 0, hi = 1
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2
+    if (betai(a, b, mid) < 0.5) lo = mid
+    else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+/** Beta(a,b) for SMALL integer shapes, via sums of exponentials. O(a + b) per
+ * draw, which is fine for the estate's Beta(2, 14) and would not be for large
+ * shape parameters. */
 function betaDraw(a: number, b: number, rng: Rng): number {
   let x = 0, y = 0
   for (let i = 0; i < a; i++) x -= Math.log(1 - rng.next())
   for (let i = 0; i < b; i++) y -= Math.log(1 - rng.next())
   return x / (x + y)
+}
+
+/**
+ * Diagnostic switches. Not reachable from the interface: these exist so the
+ * README can isolate WHICH random source holds the non-additivity gap open at
+ * rho = 1.0. See "Acceptance check 3, replaced" in README.
+ */
+export interface SimOptions {
+  /**
+   * Fix every loss magnitude at its median: the platform direct loss at
+   * exp(mu), and the outage fraction at the median of its Beta. The remaining
+   * randomness is then the copula factor and the per-edge propagation draw.
+   */
+  fixedMagnitudes?: boolean
 }
 
 export interface RunResult {
@@ -466,8 +497,9 @@ export interface RunResult {
  * exists to show, is adding per-use-case P99s together. Canon 9.8.3 result two:
  * "VaR_q( sum of L_u ) = sum of VaR_q( L_u ) ONLY under comonotonicity."
  */
-export function runOnce(ix: Index, rho: number, nu: number, rng: Rng, thresholds?: Float64Array): RunResult {
+export function runOnce(ix: Index, rho: number, nu: number, rng: Rng, thresholds?: Float64Array, opts?: SimOptions): RunResult {
   const { platforms, use_cases, outage_fraction_beta } = ix.estate
+  const fixed = opts?.fixedMagnitudes === true
   const th = thresholds ?? failureThresholds(platforms, nu)
   const failed = drawFailures(th, rho, nu, rng, new Array<boolean>(platforms.length))
   const failedById = new Map<string, boolean>()
@@ -475,10 +507,17 @@ export function runOnce(ix: Index, rho: number, nu: number, rng: Rng, thresholds
   platforms.forEach((p, i) => {
     const f = failed[i]!
     failedById.set(p.id, f)
-    platformLoss.set(p.id, f ? Math.exp(p.failure_loss_lognormal.mu + p.failure_loss_lognormal.sigma * normal(rng)) : 0)
+    // Drawn only when the platform actually failed, so the random stream is not
+    // advanced by nodes that did not fail. exp(mu) is the lognormal's median, so
+    // the fixed branch is fixing magnitude at the median.
+    platformLoss.set(p.id, !f ? 0
+      : fixed ? Math.exp(p.failure_loss_lognormal.mu)
+      : Math.exp(p.failure_loss_lognormal.mu + p.failure_loss_lognormal.sigma * normal(rng)))
   })
 
-  const outage = betaDraw(outage_fraction_beta.alpha, outage_fraction_beta.beta, rng)
+  const outage = fixed
+    ? betaMedian(outage_fraction_beta.alpha, outage_fraction_beta.beta)
+    : betaDraw(outage_fraction_beta.alpha, outage_fraction_beta.beta, rng)
   const useCaseLoss = new Map<string, number>()
   const subdomainLoss = new Map<string, number>()
   for (const s of ix.estate.subdomains) subdomainLoss.set(s.id, 0)

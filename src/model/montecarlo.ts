@@ -5,7 +5,7 @@
 // also be timed directly from Node.
 
 import type { Estate } from './types'
-import { buildIndex, failureThresholds, runOnce } from './ledger'
+import { buildIndex, failureThresholds, runOnce, type SimOptions } from './ledger'
 import { makeRng } from './rng'
 
 export interface McRequest {
@@ -17,6 +17,8 @@ export interface McRequest {
   seed: number
   /** Use case ids for a bespoke joint exceedance curve. Spec section 4.3. */
   selection?: string[]
+  /** Diagnostic only, never set from the interface. See SimOptions. */
+  options?: SimOptions
 }
 
 export interface ExceedancePoint { loss: number; prob: number }
@@ -84,7 +86,7 @@ function statsOf(id: string, sortedAsc: Float64Array, sum: number): EntityStats 
 
 export function simulate(req: McRequest): McResult {
   const started = Date.now()
-  const { estate, rho, nu, runs, seed, selection } = req
+  const { estate, rho, nu, runs, seed, selection, options } = req
   const ix = buildIndex(estate)
   const thresholds = failureThresholds(estate.platforms, nu)
   const rng = makeRng(seed)
@@ -106,7 +108,7 @@ export function simulate(req: McRequest): McResult {
   let selSum = 0
 
   for (let i = 0; i < runs; i++) {
-    const r = runOnce(ix, rho, nu, rng, thresholds)
+    const r = runOnce(ix, rho, nu, rng, thresholds, options)
     for (const [k, v] of r.platformLoss) { pLoss.get(k)![i] = v; pSum.set(k, pSum.get(k)! + v) }
     let sel = 0
     for (const [k, v] of r.useCaseLoss) {
