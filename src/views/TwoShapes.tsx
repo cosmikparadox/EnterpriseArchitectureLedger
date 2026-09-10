@@ -1,0 +1,214 @@
+// View 5, Two shapes. Spec section 4.5.
+//
+// Purpose: concentration versus best of breed, honestly. The tool never says
+// which to pick. It shows both and names what moved.
+//
+// Every readout is PER SUBDOMAIN and none of them is totalled, per spec hard
+// rule D and canon 9.8.3.
+
+import { useMemo, useState } from 'react'
+import { Graph3D } from '../components/Graph3D'
+import { PanelShell } from '../components/PanelShell'
+import { gbp } from '../components/DetailPanel'
+import { buildGraph } from '../app/graph'
+import { useMonteCarlo } from '../app/useMonteCarlo'
+import {
+  buildIndex, c1, edgeSpend, executionComponent, kCommitted, reportedCost, ruleShare,
+} from '../model/ledger'
+import type { AllocationRule, Estate } from '../model/types'
+import { copy } from '../copy'
+import { RuleSelect } from '../components/RuleSelect'
+
+export interface TwoShapesProps {
+  concentrated: Estate
+  bestOfBreed: Estate
+  dark: boolean
+  rule: AllocationRule
+  setRule: (r: AllocationRule) => void
+}
+
+const AS_AT = 60
+
+interface Shape {
+  label: string
+  estate: Estate
+  ix: ReturnType<typeof buildIndex>
+}
+
+function shapeStats(shape: Shape, rule: AllocationRule) {
+  const { ix, estate } = shape
+  const perSubdomain = estate.subdomains.map((s) => {
+    const ucs = estate.use_cases.filter((u) => u.subdomain === s.id)
+    let metered = 0, rule_ = 0, reported = 0, volume = 0
+    for (const u of ucs) {
+      volume += u.volume_per_month
+      for (const e of u.edges) {
+        const p = ix.platformById.get(e.platform_id)!
+        metered += edgeSpend(u, e, p)
+        rule_ += ruleShare(ix, p.id, u.id, rule)
+        reported += reportedCost(ix, p.id, u.id, rule)
+      }
+    }
+    return {
+      id: s.id,
+      name: s.name,
+      meteredPerUnit: volume === 0 ? 0 : metered / volume,
+      ruleProportion: reported === 0 ? 0 : rule_ / reported,
+    }
+  })
+
+  // Blast radius by monthly volume at risk. Reported, not asserted: which node
+  // TYPE leads is a finding about the shape, not something the tool arranges.
+  const blast = estate.platforms.map((p) => ({
+    p,
+    volume: ix.ridersOf.get(p.id)!.reduce((a, r) => a + r.uc.volume_per_month * r.edge.conditional_failure_prob, 0),
+  })).sort((a, b) => b.volume - a.volume)
+
+  const exits = estate.platforms.map((p) => {
+    const n = ix.ridersOf.get(p.id)!.length
+    return { p, exec: executionComponent(p, n, AS_AT - p.adopted_month), k: kCommitted(p, n, AS_AT - p.adopted_month) }
+  }).sort((a, b) => b.exec - a.exec)
+
+  const integrationExecSum = exits
+    .filter((e) => e.p.type === 'integration')
+    .reduce((a, e) => a + e.exec, 0)
+
+  const maxC1 = estate.platforms
+    .map((p) => ({ p, v: c1(ix, p.id) }))
+    .sort((a, b) => b.v - a.v)[0]!
+
+  return { perSubdomain, blast, exits, integrationExecSum, maxC1 }
+}
+
+export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: TwoShapesProps) {
+  const left: Shape = useMemo(() => ({ label: 'Concentrated', estate: concentrated, ix: buildIndex(concentrated) }), [concentrated])
+  const right: Shape = useMemo(() => ({ label: 'Best of breed', estate: bestOfBreed, ix: buildIndex(bestOfBreed) }), [bestOfBreed])
+  const leftData = useMemo(() => buildGraph(left.estate, left.ix), [left])
+  const rightData = useMemo(() => buildGraph(right.estate, right.ix), [right])
+
+  const [rho] = useState(0.5)
+  const [collapsed, setCollapsed] = useState(false)
+  const [which, setWhich] = useState<'left' | 'right'>('left')
+
+  const mcLeft = useMonteCarlo(concentrated, rho, 10_000)
+  const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000, 4, 20260906)
+
+  const sl = useMemo(() => shapeStats(left, rule), [left, rule])
+  const sr = useMemo(() => shapeStats(right, rule), [right, rule])
+
+  const Row = ({ l, a, b }: { l: string; a: string; b: string }) => (
+    <div className="cmp">
+      <span className="cl">{l}</span>
+      <span className="ca">{a}</span>
+      <span className="cb">{b}</span>
+    </div>
+  )
+
+  const p99 = (mc: typeof mcLeft, id: string) =>
+    mc.result?.subdomains.find((s) => s.id === id)?.jointP99 ?? null
+
+  return (
+    <>
+      <div className="topbar">
+        <h1>Ledger Explorer</h1>
+        <span className="sub">Two shapes</span>
+        <RuleSelect rule={rule} setRule={setRule} />
+        <span className="sub">rho {rho.toFixed(2)}, 10,000 runs</span>
+        <button className="ctl" onClick={() => setWhich((w) => (w === 'left' ? 'right' : 'left'))}>
+          Show: {which === 'left' ? 'Concentrated' : 'Best of breed'}
+        </button>
+      </div>
+
+      <div className={`graphwrap split${collapsed ? '' : ' panel-open'}`}>
+        <div className="half">
+          <div className="half-title">Concentrated</div>
+          <Graph3D
+            data={leftData} dark={dark} showHulls={false} labelMode="none"
+            selectedId={null} isolatedSubdomain={null} flyToId={null}
+            onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
+          />
+        </div>
+        <div className="half">
+          <div className="half-title">Best of breed</div>
+          <Graph3D
+            data={rightData} dark={dark} showHulls={false} labelMode="none"
+            selectedId={null} isolatedSubdomain={null} flyToId={null}
+            onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
+          />
+        </div>
+
+        <PanelShell
+          label="Two shapes"
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+          tabHint="Two shapes"
+        >
+          <h2>Concentrated against best of breed</h2>
+          <div className="kind">Same 30 use cases, wired two ways</div>
+
+          <div className="callout">{copy.view5_land}</div>
+
+          <section>
+            <h3>Per-unit metered cost, by subdomain</h3>
+            <Row l="" a="concentrated" b="best of breed" />
+            {sl.perSubdomain.map((s, i) => (
+              <Row key={s.id} l={s.name}
+                a={gbp(s.meteredPerUnit, 3)}
+                b={gbp(sr.perSubdomain[i]!.meteredPerUnit, 3)} />
+            ))}
+          </section>
+
+          <section>
+            <h3>Rule share of reported cost, by subdomain</h3>
+            <Row l="" a="concentrated" b="best of breed" />
+            {sl.perSubdomain.map((s, i) => (
+              <Row key={s.id} l={s.name}
+                a={`${(s.ruleProportion * 100).toFixed(1)}%`}
+                b={`${(sr.perSubdomain[i]!.ruleProportion * 100).toFixed(1)}%`} />
+            ))}
+            <div className="note">
+              Highest on a single node: {sl.maxC1.p.name} at {(sl.maxC1.v * 100).toFixed(1)} percent
+              on the left, {sr.maxC1.p.name} at {(sr.maxC1.v * 100).toFixed(1)} percent on the right.
+            </div>
+          </section>
+
+          <section>
+            <h3>Joint P99 loss, by subdomain</h3>
+            <Row l="" a="concentrated" b="best of breed" />
+            {concentrated.subdomains.map((s) => {
+              const a = p99(mcLeft, s.id), b = p99(mcRight, s.id)
+              return <Row key={s.id} l={s.name} a={a === null ? '...' : gbp(a)} b={b === null ? '...' : gbp(b)} />
+            })}
+            <div className="note">{copy.no_total}</div>
+          </section>
+
+          <section>
+            <h3>Largest single blast radius</h3>
+            <Row l="node" a={sl.blast[0]!.p.name} b={sr.blast[0]!.p.name} />
+            <Row l="type" a={sl.blast[0]!.p.type} b={sr.blast[0]!.p.type} />
+            <Row l="volume at risk"
+              a={Math.round(sl.blast[0]!.volume).toLocaleString('en-GB')}
+              b={Math.round(sr.blast[0]!.volume).toLocaleString('en-GB')} />
+            <div className="note">
+              Next two on the right: {sr.blast[1]!.p.name} ({sr.blast[1]!.p.type}) and{' '}
+              {sr.blast[2]!.p.name} ({sr.blast[2]!.p.type}).
+            </div>
+          </section>
+
+          <section>
+            <h3>Execution component of leaving, largest single</h3>
+            <Row l="node" a={sl.exits[0]!.p.name} b={sr.exits[0]!.p.name} />
+            <Row l="execution" a={gbp(sl.exits[0]!.exec)} b={gbp(sr.exits[0]!.exec)} />
+            <div className="refusal">
+              <span className="fig">
+                Sum across integration commitments: {gbp(sl.integrationExecSum)} left,{' '}
+                {gbp(sr.integrationExecSum)} right
+              </span>
+              {copy.option_upper_bound}
+            </div>
+          </section>
+        </PanelShell>
+      </div>
+    </>
+  )
+}

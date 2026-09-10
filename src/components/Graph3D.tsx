@@ -32,6 +32,8 @@ export interface Graph3DProps {
   litLinks?: Set<string>
   /** View 4. Nodes not yet attached at the current month, drawn faint. */
   dimNodes?: Set<string>
+  /** View 6. Edges that cross a declared boundary, drawn dashed. */
+  dashedLinks?: Set<string>
   onSelectNode: (id: string) => void
   onSelectLink: (link: GLink) => void
   onBackground: () => void
@@ -284,6 +286,45 @@ export function Graph3D(props: Graph3DProps) {
       return (lit ? 1.6 : 0) + 0.25 + 2.6 * Math.sqrt(l.spend / maxSpend)
     })
     g.linkOpacity(0.3)
+
+    // Spec section 4.6: boundary-crossing edges are rendered distinctly, dashed.
+    // The library has no dash accessor, so the links are drawn as custom
+    // three.js lines with a dashed material. Dash pattern rather than colour, so
+    // the distinction is not carried by colour alone.
+    if (props.dashedLinks) {
+      const dashed = props.dashedLinks
+      g.linkThreeObject(((raw: object) => {
+        const l = raw as GLink
+        const isDashed = dashed.has(`${l.ucId}>${l.platformId}`)
+        const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()])
+        const mat = isDashed
+          ? new THREE.LineDashedMaterial({
+            color: dark ? '#e8c46a' : '#a97c12', dashSize: 3, gapSize: 2.4,
+            transparent: true, opacity: 0.95,
+          })
+          : new THREE.LineBasicMaterial({
+            color: dark ? '#7d848e' : '#9aa0a8', transparent: true, opacity: 0.35,
+          })
+        return new THREE.Line(geom, mat)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any)
+      g.linkPositionUpdate(((obj: THREE.Object3D, coords: { start: Positioned; end: Positioned }) => {
+        const line = obj as THREE.Line
+        const pos = line.geometry.getAttribute('position') as THREE.BufferAttribute
+        pos.setXYZ(0, coords.start.x ?? 0, coords.start.y ?? 0, coords.start.z ?? 0)
+        pos.setXYZ(1, coords.end.x ?? 0, coords.end.y ?? 0, coords.end.z ?? 0)
+        pos.needsUpdate = true
+        line.geometry.computeBoundingSphere()
+        line.computeLineDistances()
+        return true
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any)
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      g.linkThreeObject(null as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      g.linkPositionUpdate(null as any)
+    }
     g.linkColor((raw: object) => {
       const l = raw as GLink
       if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'
@@ -294,7 +335,8 @@ export function Graph3D(props: Graph3DProps) {
     rebuildHulls()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data,
-      props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks, props.dimNodes])
+      props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks, props.dimNodes,
+      props.dashedLinks])
 
   // ---- search flies the camera. Spec section 4.1 ----
   useEffect(() => {

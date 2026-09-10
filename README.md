@@ -328,6 +328,71 @@ with its W(K) curve. The ratification sentence quotes the execution component as
 its only hard figure and states the other half in words: "plus an option
 component the ledger would refuse to state without an evidenced counterfactual".
 
+### 19. View 5's expectations are reported, not asserted, and two of them do not hold
+
+Spec section 4.5 predicts what the side-by-side readouts will show. Three of its
+five predictions hold on the generated estates and two do not. The view reports
+what the data says rather than the prediction.
+
+**Holds.** Rule share of reported cost is higher on the concentrated side in
+five of six subdomains, and it is spread across more nodes on the best of breed
+side. The highest single-node figure falls from 97.1 percent (Salesforce
+Marketing Cloud) to 83.5 percent (Customer portal).
+
+**Holds.** The largest blast radius on the best of breed side is an integration
+node, which is acceptance check 5.
+
+**Does not hold: "left cheaper, usually" on per-unit metered cost.** The
+concentrated side is cheaper in three of six subdomains and dearer in three.
+Data and Analytics is dearer on the concentrated side by a factor of eight.
+
+| per-unit metered cost | concentrated | best of breed |
+|---|---|---|
+| Sales and Distribution | GBP 1.073 | GBP 1.166 |
+| Claims | GBP 1.459 | GBP 1.585 |
+| Finance | GBP 2.374 | GBP 2.150 |
+| Customer Service | GBP 0.898 | GBP 0.874 |
+| People | GBP 1.210 | GBP 1.770 |
+| Data and Analytics | GBP 8.392 | GBP 0.998 |
+
+**Does not hold: "left fatter tail" on joint P99 loss.** The best of breed side
+has the HIGHER joint P99 in all six subdomains, at rho = 0.5.
+
+| joint P99 loss | concentrated | best of breed |
+|---|---|---|
+| Sales and Distribution | GBP 361,290 | GBP 418,024 |
+| Claims | GBP 203,758 | GBP 261,507 |
+| Finance | GBP 150,511 | GBP 197,060 |
+| Customer Service | GBP 217,837 | GBP 241,969 |
+| People | GBP 4,831 | GBP 6,740 |
+| Data and Analytics | GBP 11,859 | GBP 12,391 |
+
+The mechanism is visible in the graph. In the best of breed estate every use
+case routes through all four integration nodes at a high conditional failure
+probability, so more use cases are interrupted by the same event and the joint
+tail is heavier. Diversifying the platforms did not thin the tail; it moved the
+thing that drives the tail into the integration layer, which is the view's
+lesson stated more sharply than the spec expected. Nothing was tuned to produce
+this.
+
+### 20. View 6 moves use cases by selection, and does not split subdomains
+
+Spec section 4.6 asks the user to "drag use cases from one subdomain hull to
+another, or merge two subdomains, or split one".
+
+Dragging a node between overlapping translucent hulls in a 3D scene is
+imprecise with a mouse and worse with a thumb, and the hulls overlap by design.
+A use case is therefore selected, by tapping it in the graph or picking it from
+the list, and reassigned from a menu. The effect on the decomposition is
+identical.
+
+Merge is provided. Split is NOT, and the reason is in the spec itself: splitting
+a subdomain needs a rule for which use cases go which way, and any rule the tool
+supplied would amount to the tool proposing a placement. Section 4.6 says
+plainly, "Do NOT imply that some boundary placement is correct. There is no
+correct placement in this tool." A split can be performed by moving the
+individual use cases, which leaves the choice with the person making it.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -433,6 +498,36 @@ interface, and no figure from it appears on screen. The switch that produces it
 is `SimOptions.fixedMagnitudes` in `src/model/ledger.ts`.
 
 Nothing has been tuned at any point in this exercise.
+
+## Acceptance, spec section 10
+
+Run with `npm run acceptance`, against the built bundle and a real browser.
+
+| # | check | result | evidence |
+|---|---|---|---|
+| 1 | cold start under 3s laptop, 6s phone | PASS | desktop 2,151 ms; mobile emulation 919 ms. Emulation is not a mid-range phone. |
+| 2 | executive finds the fan-in slider unaided | NOT RUN | Needs one real human. Cannot be run from a container. |
+| 3 | non-additivity exhibit | PASS | As restated. (a), (b) and (c) all hold; (c) exactly. |
+| 4 | ratification sentence computed, changes when dragged | PASS | Months 24 and 48 differ, and it is not the spec's hard-coded 2.4m example. |
+| 5 | largest blast radius on the right-hand graph is integration | PASS | Okta, integration. |
+| 6 | equal split changes nothing, by-headcount changes figures | PASS | Equal split, driver-proportional and by volume all unchanged; by headcount moved 95 figures by up to GBP 3,497. |
+| 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive, "total cost" 0, "true cost" 0, "Snowflake" 0, em-dash 0, en-dash 0. |
+| 8 | every view carries the footer | PASS | 6 of 6. |
+| 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 26.7 KB. |
+| - | no page errors across all six views | PASS | none |
+| - | dist is one self-contained file, no runtime network calls | PASS | 1.59 MB, 0 offsite requests. |
+
+**10 pass, 0 fail, 1 not run.**
+
+On check 7: a case-INSENSITIVE grep for "TCO" hits the bundle 81 times, every one
+of them inside an ordinary identifier such as `currentColor`, `getComponent`,
+`OrbitControls` and `outputColorSpace`. TCO is an acronym and is checked
+case-sensitively; the prose phrases are checked case-insensitively. The grep
+that passes was not selected after the fact: both counts are printed.
+
+On check 1: the mobile figure is Chromium emulation at a 390 by 844 viewport,
+which is not a mid-range phone and is faster than one. It is labelled as
+emulation wherever it appears.
 
 ## The C1 question
 

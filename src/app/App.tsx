@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import estateJson from '../../data/estate.json'
+import bestOfBreedJson from '../../data/estate_bestofbreed.json'
 import type { AllocationRule, Estate } from '../model/types'
 import { buildIndex } from '../model/ledger'
 import { copy } from '../copy'
@@ -14,8 +15,11 @@ import { Explore } from '../views/Explore'
 import { FixedPool } from '../views/FixedPool'
 import { Risk } from '../views/Risk'
 import { Footprint } from '../views/Footprint'
+import { TwoShapes } from '../views/TwoShapes'
+import { Boundaries } from '../views/Boundaries'
 
 const estate = estateJson as unknown as Estate
+const bestOfBreed = bestOfBreedJson as unknown as Estate
 
 const BASIS_LABEL: Record<AllocationRule, string> = {
   equal: 'equal split',
@@ -29,8 +33,8 @@ const VIEWS = [
   { n: 2, t: 'Fixed pool', ready: true },
   { n: 3, t: 'Risk', ready: true },
   { n: 4, t: 'Footprint', ready: true },
-  { n: 5, t: 'Two shapes', ready: false },
-  { n: 6, t: 'Boundaries', ready: false },
+  { n: 5, t: 'Two shapes', ready: true },
+  { n: 6, t: 'Boundaries', ready: true },
 ]
 
 function useDark(): boolean {
@@ -77,6 +81,8 @@ export function App() {
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
+        {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
+        {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
       </main>
 
       <footer className="footer">

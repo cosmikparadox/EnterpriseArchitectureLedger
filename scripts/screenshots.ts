@@ -81,6 +81,35 @@ const SHOTS: Shot[] = [
     },
   },
   {
+    name: '05-two-shapes', view: 5,
+    act: async (p) => {
+      await p.getByRole('button', { name: '5 Two shapes' }).click()
+      await p.waitForTimeout(5000)
+    },
+  },
+  {
+    name: '06-boundaries', view: 6,
+    act: async (p) => {
+      await p.getByRole('button', { name: '6 Boundaries' }).click()
+      await p.waitForTimeout(4200)
+    },
+  },
+  {
+    name: '06-boundaries-moved', view: 6,
+    act: async (p) => {
+      await p.getByRole('button', { name: '6 Boundaries' }).click()
+      await p.waitForTimeout(4000)
+      // Move three use cases out of their declared subdomains and watch which
+      // figures move. Under equal split, none should.
+      for (const [name, to] of [['Payroll run', 'finance'], ['Claim triage', 'service'], ['IFRS 17 reporting', 'data']] as const) {
+        await p.getByRole('button', { name, exact: true }).click()
+        await p.getByLabel(`Subdomain for ${name}`).selectOption(to)
+        await p.waitForTimeout(300)
+      }
+      await p.waitForTimeout(900)
+    },
+  },
+  {
     name: '02-fixed-pool-collapsed', view: 2,
     act: async (p) => {
       await p.getByRole('button', { name: '2 Fixed pool' }).click()

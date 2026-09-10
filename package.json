@@ -14,7 +14,8 @@
     "test": "vitest run",
     "shots": "tsx scripts/screenshots.ts",
     "bench": "tsx scripts/bench.ts",
-    "pack": "tsx scripts/pack-artifact.ts"
+    "pack": "tsx scripts/pack-artifact.ts",
+    "acceptance": "tsx scripts/acceptance.ts"
   },
   "dependencies": {
     "3d-force-graph": "1.73.4",
