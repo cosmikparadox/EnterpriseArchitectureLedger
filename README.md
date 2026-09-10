@@ -256,7 +256,28 @@ it. It will not be modelled: the exhibit view 3 exists to show is the
 non-additivity of correlated losses, and a secondary term would scale the
 figures without changing that result.
 
-### 15. The subdomain ceiling and its censoring rule do not apply
+### 15. three.js is r185, not the pinned r160
+
+The build plan pinned three.js 0.160. 3d-force-graph 1.73.4 depends on
+`three: ">=0.118 <1"` and npm resolved a nested copy at 0.185.1 alongside it, so
+two copies of three were live in one page: objects built against r160 were being
+rendered by r185's renderer, which calls `Matrix4.determinantAffine`, a method
+r160 does not have. Every frame threw.
+
+Resolved by moving the project to three 0.185.1 and @types/three 0.185.0 so
+there is exactly one copy, with `resolve.dedupe: ['three']` in the Vite config as
+a guard against it recurring. This is a deviation from the pinned version in
+PLAN.md rather than from the spec, which names three.js without a version.
+
+### 16. The build is a single file
+
+Spec section 2 asks for "One index.html plus assets". The production build
+inlines all JavaScript and CSS into `dist/index.html` via vite-plugin-singlefile,
+so there are no separate assets at all. This is a stricter reading of the same
+requirement: the file opens from a folder with no toolchain, and it has been
+verified in a browser to make zero network requests at runtime.
+
+### 17. The subdomain ceiling and its censoring rule do not apply
 
 Canon 9.3.4 requires a subdomain valuation ceiling to be treated as explicit
 censoring, with the mass at the boundary reported, and canon 9.9 refuses the

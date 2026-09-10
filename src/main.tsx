@@ -1,5 +1,8 @@
-// Application entry. Views land at build steps 4d and 4e.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './styles.css'
+import { App } from './app/App'
 
-createRoot(document.getElementById('root')!).render(<StrictMode><div /></StrictMode>)
+createRoot(document.getElementById('root')!).render(
+  <StrictMode><App /></StrictMode>,
+)

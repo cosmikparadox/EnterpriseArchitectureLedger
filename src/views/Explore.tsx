@@ -1,0 +1,130 @@
+// View 1, Explore. Spec section 4.1.
+
+import { useMemo, useRef, useState } from 'react'
+import { Graph3D, type LabelMode } from '../components/Graph3D'
+import { DetailPanel } from '../components/DetailPanel'
+import { buildGraph, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
+import type { AllocationRule, Estate } from '../model/types'
+import type { Index } from '../model/ledger'
+
+export interface ExploreProps {
+  estate: Estate
+  ix: Index
+  rule: AllocationRule
+  dark: boolean
+}
+
+export function Explore({ estate, ix, rule, dark }: ExploreProps) {
+  const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
+  const [showHulls, setShowHulls] = useState(true)
+  const [labelMode, setLabelMode] = useState<LabelMode>('all')
+  const [isolated, setIsolated] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedLink, setSelectedLink] = useState<GLink | null>(null)
+  const [query, setQuery] = useState('')
+  const [flyTo, setFlyTo] = useState<string | null>(null)
+  const flyNonce = useRef(0)
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (q.length < 2) return []
+    return data.nodes.filter((n) => n.name.toLowerCase().includes(q)).slice(0, 8)
+  }, [query, data])
+
+  const pick = (id: string) => {
+    setSelectedLink(null)
+    setSelectedId(id)
+    flyNonce.current++
+    setFlyTo(id + '#' + flyNonce.current)
+  }
+
+  return (
+    <>
+      <div className="topbar">
+        <h1>Ledger Explorer</h1>
+        <span className="sub">Explore</span>
+
+        <div className="search">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search nodes"
+            aria-label="Search nodes by name"
+          />
+          {matches.length > 0 && (
+            <div className="results" role="listbox">
+              {matches.map((m) => (
+                <button key={m.id} role="option" aria-selected={false}
+                  onClick={() => { pick(m.id); setQuery('') }}>
+                  {m.name} <span className="k">{m.kind === 'use_case' ? 'use case' : m.kind}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button className="ctl" aria-pressed={showHulls} onClick={() => setShowHulls((v) => !v)}>
+          Boundaries
+        </button>
+        <button className="ctl" onClick={() =>
+          setLabelMode((m) => (m === 'none' ? 'selected' : m === 'selected' ? 'all' : 'none'))}>
+          Labels: {labelMode}
+        </button>
+        <select
+          className="ctl"
+          value={isolated ?? ''}
+          onChange={(e) => setIsolated(e.target.value || null)}
+          aria-label="Isolate a subdomain"
+        >
+          <option value="">Isolate: none</option>
+          {estate.subdomains.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
+
+      <div className="graphwrap">
+        <Graph3D
+          data={data}
+          dark={dark}
+          showHulls={showHulls}
+          labelMode={labelMode}
+          selectedId={selectedId}
+          isolatedSubdomain={isolated}
+          flyToId={flyTo ? flyTo.split('#')[0]! : null}
+          onSelectNode={(id) => { setSelectedLink(null); setSelectedId(id) }}
+          onSelectLink={(l) => { setSelectedId(null); setSelectedLink(l) }}
+          onBackground={() => { setSelectedId(null); setSelectedLink(null) }}
+        />
+
+        <div className="legend">
+          <div><span className="glyph">O</span> platform, size is fan-in</div>
+          <div><span className="glyph">&#9670;</span> integration node</div>
+          <div><span className="glyph">.</span> use case, coloured by subdomain</div>
+          <div style={{ marginTop: 4, opacity: 0.85 }}>
+            Hulls overlap where platforms are shared. The overlap is the point.
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
+            {estate.subdomains.map((s) => (
+              <span key={s.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <span style={{
+                  width: 8, height: 8, borderRadius: 2,
+                  background: SUBDOMAIN_COLOUR[s.id], display: 'inline-block',
+                }} />
+                <span style={{ fontSize: 10 }}>{s.name}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <DetailPanel
+          estate={estate}
+          ix={ix}
+          rule={rule}
+          selectedNodeId={selectedId}
+          selectedLink={selectedLink}
+          onClose={() => { setSelectedId(null); setSelectedLink(null) }}
+          onSelectNode={pick}
+        />
+      </div>
+    </>
+  )
+}
