@@ -12,6 +12,7 @@ import { buildIndex } from '../model/ledger'
 import { copy } from '../copy'
 import { Explore } from '../views/Explore'
 import { FixedPool } from '../views/FixedPool'
+import { Risk } from '../views/Risk'
 
 const estate = estateJson as unknown as Estate
 
@@ -25,7 +26,7 @@ const BASIS_LABEL: Record<AllocationRule, string> = {
 const VIEWS = [
   { n: 1, t: 'Explore', ready: true },
   { n: 2, t: 'Fixed pool', ready: true },
-  { n: 3, t: 'Risk', ready: false },
+  { n: 3, t: 'Risk', ready: true },
   { n: 4, t: 'Footprint', ready: false },
   { n: 5, t: 'Two shapes', ready: false },
   { n: 6, t: 'Boundaries', ready: false },
@@ -73,6 +74,7 @@ export function App() {
       <main className="main">
         {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
+        {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
       </main>
 
       <footer className="footer">

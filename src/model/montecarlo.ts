@@ -72,7 +72,9 @@ function exceedance(sortedAsc: Float64Array, points = 140): ExceedancePoint[] {
     lastLoss = loss
     out.push({ loss, prob })
   }
-  return out.reverse()
+  // Ascending in loss, descending in probability, which is how an exceedance
+  // curve is read left to right.
+  return out
 }
 
 function statsOf(id: string, sortedAsc: Float64Array, sum: number): EntityStats {

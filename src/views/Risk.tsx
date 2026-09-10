@@ -1,0 +1,219 @@
+// View 3, Risk. Spec section 4.3.
+//
+// Purpose: show propagation, and show that risk does not add.
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Graph3D } from '../components/Graph3D'
+import { PanelShell } from '../components/PanelShell'
+import { ExceedanceCurve } from '../components/ExceedanceCurve'
+import { gbp } from '../components/DetailPanel'
+import { buildGraph } from '../app/graph'
+import { useMonteCarlo } from '../app/useMonteCarlo'
+import { makeRng } from '../model/rng'
+import type { Index } from '../model/ledger'
+import type { Estate } from '../model/types'
+import { copy } from '../copy'
+
+export interface RiskProps { estate: Estate; ix: Index; dark: boolean }
+
+interface FailureRun {
+  platformId: string
+  affected: Set<string>
+  litLinks: Set<string>
+  subdomains: Set<string>
+  volume: number
+}
+
+export function Risk({ estate, ix, dark }: RiskProps) {
+  const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
+  const [selected, setSelected] = useState<string>('meridian')
+  const [rho, setRho] = useState(0.5)
+  const [runs, setRuns] = useState(10_000)
+  const [budget, setBudget] = useState(500_000)
+  const [subdomain, setSubdomain] = useState<string>(estate.subdomains[0]!.id)
+  const [collapsed, setCollapsed] = useState(false)
+  const [failure, setFailure] = useState<FailureRun | null>(null)
+  const [phase, setPhase] = useState(0)
+  const [seedTick, setSeedTick] = useState(0)
+
+  const mc = useMonteCarlo(estate, rho, runs)
+  const isPlatform = ix.platformById.has(selected)
+  const platform = isPlatform ? ix.platformById.get(selected)! : null
+
+  // ---- "Fail it". Sampled per press, so pressing again gives a different
+  // pattern, exactly as spec section 4.3 asks.
+  const failIt = useCallback(() => {
+    if (!platform) return
+    const rng = makeRng(0xf1a1 ^ (seedTick * 2654435761))
+    setSeedTick((t) => t + 1)
+    const affected = new Set<string>()
+    const litLinks = new Set<string>()
+    const subdomains = new Set<string>()
+    let volume = 0
+    for (const r of ix.ridersOf.get(platform.id)!) {
+      if (rng.next() < r.edge.conditional_failure_prob) {
+        affected.add(r.uc.id)
+        litLinks.add(`${r.uc.id}>${platform.id}`)
+        subdomains.add(r.uc.subdomain)
+        volume += r.uc.volume_per_month
+      }
+    }
+    setFailure({ platformId: platform.id, affected, litLinks, subdomains, volume })
+    setPhase(1)
+  }, [platform, ix, seedTick])
+
+  // Edges light outward after the node pulses. One hop here, because a use case
+  // does not propagate on to another platform in this model.
+  useEffect(() => {
+    if (phase !== 1) return
+    const t = setTimeout(() => setPhase(2), 420)
+    return () => clearTimeout(t)
+  }, [phase])
+
+  const sub = mc.result?.subdomains.find((s) => s.id === subdomain) ?? null
+  const subName = estate.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
+  const platformStats = mc.result?.platforms.find((p) => p.id === selected) ?? null
+
+  // The band the dependence slider spans, in GBP. Spec section 4.3.
+  const [band, setBand] = useState<{ lo: number; hi: number } | null>(null)
+  useEffect(() => {
+    if (!sub) return
+    setBand((b) => {
+      const lo = b ? Math.min(b.lo, sub.jointP99) : sub.jointP99
+      const hi = b ? Math.max(b.hi, sub.jointP99) : sub.jointP99
+      return { lo, hi }
+    })
+  }, [sub])
+  useEffect(() => { setBand(null) }, [subdomain, runs])
+
+  return (
+    <>
+      <div className="topbar">
+        <h1>Ledger Explorer</h1>
+        <span className="sub">Risk</span>
+        <button className="ctl" onClick={failIt} disabled={!platform}>
+          Fail it
+        </button>
+        {failure && <button className="ctl" onClick={() => { setFailure(null); setPhase(0) }}>Clear</button>}
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
+          <span title={copy.dependence_low_tip}>{copy.dependence_low}</span>
+          <input
+            type="range" min={0} max={1} step={0.05} value={rho}
+            onChange={(e) => setRho(Number(e.target.value))}
+            aria-label="Dependence between platform failures, rho"
+            style={{ width: 130 }}
+          />
+          <span>{copy.dependence_high}</span>
+          <strong style={{ fontVariantNumeric: 'tabular-nums' }}>rho {rho.toFixed(2)}</strong>
+        </label>
+        <button className="ctl" onClick={() => setRuns((r) => (r === 10_000 ? 100_000 : 10_000))}>
+          {runs.toLocaleString('en-GB')} runs
+        </button>
+        <span className="sub">{mc.running ? 'running' : `${mc.elapsedMs} ms`}</span>
+      </div>
+
+      <div className="graphwrap">
+        <Graph3D
+          data={data}
+          dark={dark}
+          showHulls={false}
+          labelMode="all"
+          selectedId={selected}
+          isolatedSubdomain={null}
+          flyToId={null}
+          failedNodeId={failure ? failure.platformId : null}
+          affectedUseCases={phase >= 2 && failure ? failure.affected : undefined}
+          litLinks={phase >= 2 && failure ? failure.litLinks : undefined}
+          onSelectNode={(id) => { setSelected(id); setFailure(null); setPhase(0); setCollapsed(false) }}
+          onSelectLink={() => {}}
+          onBackground={() => {}}
+        />
+
+        <div className="legend">
+          <div><span className="glyph">O</span> pulsing ring: the node you failed</div>
+          <div><span className="glyph">#</span> wireframe: use case interrupted</div>
+          <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.copula_note}</div>
+        </div>
+
+        <PanelShell
+          label="Risk"
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+          tabHint={platform ? platform.name : 'Risk'}
+        >
+          <h2>{platform ? platform.name : 'Select a platform'}</h2>
+          <div className="kind">{platform?.category ?? ''}</div>
+
+          {failure && (
+            <section>
+              <h3>Blast radius, this run</h3>
+              <div className="row"><span className="l">Use cases affected</span><span className="v">{failure.affected.size}</span></div>
+              <div className="row"><span className="l">Subdomains crossed</span><span className="v">{failure.subdomains.size}</span></div>
+              <div className="row"><span className="l">Volume interrupted</span><span className="v">{failure.volume.toLocaleString('en-GB')} /month</span></div>
+              <div className="note">
+                Sampled from each edge's conditional failure probability. Press Fail it again
+                for a different pattern.
+              </div>
+            </section>
+          )}
+
+          {platformStats && (
+            <section>
+              <h3>Loss exceedance, {platform?.name}</h3>
+              <ExceedanceCurve
+                points={platformStats.exceedance}
+                budget={budget}
+                onBudget={setBudget}
+                label={platform?.name ?? ''}
+              />
+            </section>
+          )}
+
+          <section>
+            <h3>Does risk add?</h3>
+            <select
+              className="ctl"
+              value={subdomain}
+              onChange={(e) => setSubdomain(e.target.value)}
+              aria-label="Subdomain for the non-additivity exhibit"
+              style={{ width: '100%', marginBottom: 6 }}
+            >
+              {estate.subdomains.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            {sub ? (
+              <>
+                <div className="row">
+                  <span className="l">Sum of per-use-case P99 losses</span>
+                  <span className="v">{gbp(sub.sumOfP99s)}</span>
+                </div>
+                <div className="row">
+                  <span className="l">P99 of the subdomain&apos;s joint loss</span>
+                  <span className="v">{gbp(sub.jointP99)}</span>
+                </div>
+                <div className="callout">{copy.view3_nonadd}</div>
+                <div className="row">
+                  <span className="l">Gap at rho {rho.toFixed(2)}</span>
+                  <span className="v">{(sub.gap * 100).toFixed(1)} percent</span>
+                </div>
+                {band && band.hi > band.lo && (
+                  <div className="row">
+                    <span className="l">Band spanned by the slider</span>
+                    <span className="v">{gbp(band.hi - band.lo)}</span>
+                  </div>
+                )}
+                <div className="note">{copy.no_total}</div>
+              </>
+            ) : <div className="note">Running.</div>}
+          </section>
+
+          {sub && (
+            <section>
+              <h3>Loss exceedance, {subName} joint</h3>
+              <ExceedanceCurve points={sub.exceedance} budget={budget} onBudget={setBudget} label={subName} />
+            </section>
+          )}
+        </PanelShell>
+      </div>
+    </>
+  )
+}

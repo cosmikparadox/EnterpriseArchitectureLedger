@@ -49,6 +49,31 @@ const SHOTS: Shot[] = [
     },
   },
   {
+    name: '03-risk', view: 3,
+    act: async (p) => {
+      await p.getByRole('button', { name: '3 Risk' }).click()
+      await p.waitForTimeout(4200)
+    },
+  },
+  {
+    name: '03-risk-failed', view: 3,
+    act: async (p) => {
+      await p.getByRole('button', { name: '3 Risk' }).click()
+      await p.waitForTimeout(4000)
+      await p.getByRole('button', { name: 'Fail it', exact: true }).click()
+      await p.waitForTimeout(1600)
+    },
+  },
+  {
+    name: '02-fixed-pool-collapsed', view: 2,
+    act: async (p) => {
+      await p.getByRole('button', { name: '2 Fixed pool' }).click()
+      await p.waitForTimeout(3000)
+      await p.getByRole('button', { name: /^Collapse / }).click()
+      await p.waitForTimeout(700)
+    },
+  },
+  {
     name: '02-fixed-pool-prohibited', view: 2,
     act: async (p) => {
       await p.getByRole('button', { name: '2 Fixed pool' }).click()

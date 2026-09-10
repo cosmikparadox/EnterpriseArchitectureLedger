@@ -24,6 +24,12 @@ export interface Graph3DProps {
   flyToId: string | null
   /** View 2 only. Returns the metered/rule split to draw around a node. */
   nodeRing?: (n: GNode) => RingSplit | null
+  /** View 3. The platform being failed, drawn pulsing. */
+  failedNodeId?: string | null
+  /** View 3. Use cases the failure reached, drawn as wireframe. */
+  affectedUseCases?: Set<string>
+  /** View 3. Edges the failure propagated along, keyed "ucId>platformId". */
+  litLinks?: Set<string>
   onSelectNode: (id: string) => void
   onSelectLink: (link: GLink) => void
   onBackground: () => void
@@ -210,13 +216,19 @@ export function Graph3D(props: Graph3DProps) {
       const geom = n.kind === 'integration'
         ? new THREE.OctahedronGeometry(r * 1.25)
         : new THREE.SphereGeometry(r, 20, 14)
-      const mat = new THREE.MeshLambertMaterial({
-        color: colour,
-        transparent: true,
-        opacity: dim ? 0.12 : 1,
-        emissive: isSel ? new THREE.Color(colour) : new THREE.Color('#000000'),
-        emissiveIntensity: isSel ? 0.55 : 0,
-      })
+      // Spec section 4.3: affected use cases take a distinct SHAPE STATE, not
+      // just a colour. Wireframe is the state, so the change survives greyscale.
+      const affected = props.affectedUseCases?.has(n.id) === true
+      const failed = props.failedNodeId === n.id
+      const mat = affected
+        ? new THREE.MeshBasicMaterial({ color: colour, wireframe: true })
+        : new THREE.MeshLambertMaterial({
+          color: colour,
+          transparent: true,
+          opacity: dim ? 0.12 : 1,
+          emissive: failed ? new THREE.Color('#d05a6a') : isSel ? new THREE.Color(colour) : new THREE.Color('#000000'),
+          emissiveIntensity: failed ? 0.9 : isSel ? 0.55 : 0,
+        })
       const obj = new THREE.Object3D()
       obj.add(new THREE.Mesh(geom, mat))
 
@@ -230,6 +242,15 @@ export function Graph3D(props: Graph3DProps) {
         const s = r * 5.4
         sprite.scale.set(s, s, 1)
         obj.add(sprite)
+      }
+
+      if (failed) {
+        const halo = new THREE.Mesh(
+          new THREE.TorusGeometry(r * 2.4, r * 0.16, 8, 44),
+          new THREE.MeshBasicMaterial({ color: '#d05a6a' }),
+        )
+        halo.rotation.x = Math.PI / 2
+        obj.add(halo)
       }
 
       if (isSel) {
@@ -256,18 +277,21 @@ export function Graph3D(props: Graph3DProps) {
 
     g.linkWidth((raw: object) => {
       const l = raw as GLink
-      return 0.25 + 2.6 * Math.sqrt(l.spend / maxSpend)
+      const lit = props.litLinks?.has(`${l.ucId}>${l.platformId}`) === true
+      return (lit ? 1.6 : 0) + 0.25 + 2.6 * Math.sqrt(l.spend / maxSpend)
     })
     g.linkOpacity(0.3)
     g.linkColor((raw: object) => {
       const l = raw as GLink
+      if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'
       if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
       if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
       return dark ? '#7d848e' : '#9aa0a8'
     })
     rebuildHulls()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data, props.nodeRing])
+  }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data,
+      props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks])
 
   // ---- search flies the camera. Spec section 4.1 ----
   useEffect(() => {

@@ -8,6 +8,7 @@ import { makeOptionEngine, optionComponent, wCurve, type Index } from '../model/
 import { makeRng } from '../model/rng'
 import { platformView, useCaseView, type GLink } from '../app/graph'
 import { WKCurve } from './WKCurve'
+import { PanelShell } from './PanelShell'
 
 /** The estate is observed at month 60, the end of the view 4 window. */
 export const AS_AT_MONTH = 60
@@ -27,6 +28,8 @@ export interface DetailPanelProps {
   rule: AllocationRule
   selectedNodeId: string | null
   selectedLink: GLink | null
+  collapsed: boolean
+  onToggleCollapsed: () => void
   onClose: () => void
   onSelectNode: (id: string) => void
 }
@@ -55,8 +58,7 @@ export function DetailPanel(props: DetailPanelProps) {
   if (isPlatform) {
     const v = platformView(ix, selectedNodeId, rule, AS_AT_MONTH - ix.platformById.get(selectedNodeId)!.adopted_month)
     return (
-      <aside className="panel" aria-label="Node detail">
-        <button className="close" onClick={props.onClose} aria-label="Close panel">x</button>
+      <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.category}, {v.kind === 'integration' ? 'integration node' : 'platform'}</div>
 
@@ -110,15 +112,14 @@ export function DetailPanel(props: DetailPanelProps) {
           )}
           <Row l="Adopted" v={'month ' + v.adoptedMonth} />
         </section>
-      </aside>
+      </PanelShell>
     )
   }
 
   if (isUseCase) {
     const v = useCaseView(ix, selectedNodeId, rule)
     return (
-      <aside className="panel" aria-label="Node detail">
-        <button className="close" onClick={props.onClose} aria-label="Close panel">x</button>
+      <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.subdomainName}, use case</div>
 
@@ -162,18 +163,17 @@ export function DetailPanel(props: DetailPanelProps) {
               : 'No single platform exit would strand this use case outright.'}
           </div>
         </section>
-      </aside>
+      </PanelShell>
     )
   }
   return null
 }
 
-function LinkPanel({ ix, link, onClose, onSelectNode }: DetailPanelProps & { link: GLink }) {
+function LinkPanel({ ix, link, collapsed, onToggleCollapsed, onSelectNode }: DetailPanelProps & { link: GLink }) {
   const p = ix.platformById.get(link.platformId)!
   const u = ix.useCaseById.get(link.ucId)!
   return (
-    <aside className="panel" aria-label="Edge detail">
-      <button className="close" onClick={onClose} aria-label="Close panel">x</button>
+    <PanelShell label="Edge detail" collapsed={collapsed} onToggle={onToggleCollapsed} tabHint={u.name}>
       <h2>{u.name}</h2>
       <div className="kind">edge to {p.name}</div>
       <section>
@@ -197,7 +197,7 @@ function LinkPanel({ ix, link, onClose, onSelectNode }: DetailPanelProps & { lin
           <button className="ctl" onClick={() => onSelectNode(p.id)}>{p.name}</button>
         </div>
       </section>
-    </aside>
+    </PanelShell>
   )
 }
 

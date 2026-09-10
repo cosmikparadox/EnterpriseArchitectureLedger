@@ -11,6 +11,7 @@ import { buildIndex, c1, edgeSpend, meteredSpend, reportedCost, ruleShare } from
 import type { AllocationRule, Estate } from '../model/types'
 import { copy } from '../copy'
 import { RuleSelect } from '../components/RuleSelect'
+import { PanelShell } from '../components/PanelShell'
 
 export interface FixedPoolProps {
   estate: Estate
@@ -26,6 +27,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
   const [showC1, setShowC1] = useState(true)
   const [showRank, setShowRank] = useState(false)
   const [watched, setWatched] = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState(false)
 
   const estate = useMemo(() => withSyntheticRiders(base, selected, added), [base, selected, added])
   const ix = useMemo(() => buildIndex(estate), [estate])
@@ -84,7 +86,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           isolatedSubdomain={null}
           flyToId={null}
           nodeRing={nodeRing}
-          onSelectNode={(id) => { setSelected(id); setAdded(0); setWatched(null) }}
+          onSelectNode={(id) => { setSelected(id); setAdded(0); setWatched(null); setCollapsed(false) }}
           onSelectLink={() => {}}
           onBackground={() => {}}
         />
@@ -95,7 +97,12 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.view2_hint}</div>
         </div>
 
-        <aside className="panel" aria-label="Fixed pool controls">
+        <PanelShell
+          label="Fixed pool controls"
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+          tabHint={platform ? platform.name : 'Fixed pool'}
+        >
           {platform ? (
             <>
               <h2>{platform.name}</h2>
@@ -183,7 +190,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           ) : (
             <div className="note">Select a platform or integration node.</div>
           )}
-        </aside>
+        </PanelShell>
       </div>
     </>
   )

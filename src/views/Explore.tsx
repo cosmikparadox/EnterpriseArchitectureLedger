@@ -23,6 +23,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [selectedLink, setSelectedLink] = useState<GLink | null>(null)
   const [query, setQuery] = useState('')
   const [flyTo, setFlyTo] = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState(false)
   const flyNonce = useRef(0)
 
   const matches = useMemo(() => {
@@ -34,6 +35,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const pick = (id: string) => {
     setSelectedLink(null)
     setSelectedId(id)
+    setCollapsed(false)
     flyNonce.current++
     setFlyTo(id + '#' + flyNonce.current)
   }
@@ -90,8 +92,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           selectedId={selectedId}
           isolatedSubdomain={isolated}
           flyToId={flyTo ? flyTo.split('#')[0]! : null}
-          onSelectNode={(id) => { setSelectedLink(null); setSelectedId(id) }}
-          onSelectLink={(l) => { setSelectedId(null); setSelectedLink(l) }}
+          onSelectNode={(id) => { setSelectedLink(null); setSelectedId(id); setCollapsed(false) }}
+          onSelectLink={(l) => { setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
           onBackground={() => { setSelectedId(null); setSelectedLink(null) }}
         />
 
@@ -121,6 +123,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           rule={rule}
           selectedNodeId={selectedId}
           selectedLink={selectedLink}
+          collapsed={collapsed}
+          onToggleCollapsed={() => setCollapsed((v) => !v)}
           onClose={() => { setSelectedId(null); setSelectedLink(null) }}
           onSelectNode={pick}
         />
