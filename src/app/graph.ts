@@ -215,3 +215,52 @@ export function useCaseView(ix: Index, id: string, rule: AllocationRule): UseCas
 export function makeIndex(estate: Estate): Index {
   return buildIndex(estate)
 }
+
+// ---------------------------------------------------------------------------
+// Synthetic riders, for view 2's fan-in slider
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a copy of the estate with `n` extra use cases riding `platformId`.
+ *
+ * Spec section 4.2: the fan-in slider "adds or removes synthetic use cases
+ * riding a selected platform, live. Watch the rule share on every existing use
+ * case move." Building a real estate rather than patching the arithmetic means
+ * the graph, the rings, C1 and every per-use-case figure all move together and
+ * cannot drift out of agreement.
+ *
+ * The added use cases are spread round-robin across the existing subdomains, so
+ * that the prohibited by-headcount basis has something to bite on. Their volume
+ * and driver intensity are the median of the node's existing riders, so they
+ * look like more of the same rather than like outliers.
+ */
+export function withSyntheticRiders(estate: Estate, platformId: string, n: number): Estate {
+  if (n <= 0) return estate
+  const existing = estate.use_cases
+    .map((u) => ({ u, e: u.edges.find((x) => x.platform_id === platformId) }))
+    .filter((r): r is { u: typeof r.u; e: NonNullable<typeof r.e> } => r.e !== undefined)
+  if (existing.length === 0) return estate
+
+  const median = (xs: number[]) => {
+    const s = [...xs].sort((a, b) => a - b)
+    return s.length % 2 ? s[(s.length - 1) / 2]! : (s[s.length / 2 - 1]! + s[s.length / 2]!) / 2
+  }
+  const vol = median(existing.map((r) => r.u.volume_per_month))
+  const units = median(existing.map((r) => r.e.driver_units_per_volume_unit))
+  const cfp = median(existing.map((r) => r.e.conditional_failure_prob))
+  const subs = estate.subdomains.map((s) => s.id)
+
+  const added = Array.from({ length: n }, (_, i) => ({
+    id: `uc_added_${i + 1}`,
+    name: `Added use case ${i + 1}`,
+    subdomain: subs[i % subs.length]!,
+    volume_per_month: Math.round(vol),
+    adopted_month: 60,
+    edges: [{
+      platform_id: platformId,
+      driver_units_per_volume_unit: units,
+      conditional_failure_prob: cfp,
+    }],
+  }))
+  return { ...estate, use_cases: [...estate.use_cases, ...added] }
+}

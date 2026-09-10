@@ -212,3 +212,10 @@ button, input, select { font: inherit; color: inherit; }
   .search input { width: 130px; }
   .legend { display: none; }
 }
+
+/* Canon 9.2.8's prohibited basis is marked wherever it can be chosen, not only
+   in the README. */
+.prohibited {
+  color: var(--refuse-line);
+  font-weight: 600;
+}

@@ -29,6 +29,34 @@ const SHOTS: Shot[] = [
       await p.waitForTimeout(900)
     },
   },
+  {
+    name: '02-fixed-pool', view: 2,
+    act: async (p) => {
+      await p.getByRole('button', { name: '2 Fixed pool' }).click()
+      await p.waitForTimeout(3200)
+    },
+  },
+  {
+    name: '02-fixed-pool-fanin', view: 2,
+    act: async (p) => {
+      await p.getByRole('button', { name: '2 Fixed pool' }).click()
+      await p.waitForTimeout(3000)
+      // The spec's ten second test: pick a rider, then drag the fan-in slider
+      // and watch its number move although it did nothing different.
+      await p.getByRole('button', { name: /Quote and bind/ }).first().click()
+      await p.getByLabel('Add synthetic use cases riding this platform').fill('16')
+      await p.waitForTimeout(1500)
+    },
+  },
+  {
+    name: '02-fixed-pool-prohibited', view: 2,
+    act: async (p) => {
+      await p.getByRole('button', { name: '2 Fixed pool' }).click()
+      await p.waitForTimeout(3000)
+      await p.getByLabel('Allocation basis for the fixed pool').selectOption('by_head')
+      await p.waitForTimeout(800)
+    },
+  },
 ]
 
 async function capture(browser: Browser, shot: Shot, size: { width: number; height: number }, suffix: string, dark: boolean) {

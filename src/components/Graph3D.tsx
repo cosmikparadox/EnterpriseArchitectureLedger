@@ -10,6 +10,7 @@ import * as THREE from 'three'
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
 import SpriteText from 'three-spritetext'
 import { NEUTRAL, NEUTRAL_DIM, SUBDOMAIN_COLOUR, type GLink, type GNode, type GraphData } from '../app/graph'
+import { ringTexture, type RingSplit } from './rings'
 
 export type LabelMode = 'all' | 'selected' | 'none'
 
@@ -21,6 +22,8 @@ export interface Graph3DProps {
   selectedId: string | null
   isolatedSubdomain: string | null
   flyToId: string | null
+  /** View 2 only. Returns the metered/rule split to draw around a node. */
+  nodeRing?: (n: GNode) => RingSplit | null
   onSelectNode: (id: string) => void
   onSelectLink: (link: GLink) => void
   onBackground: () => void
@@ -217,6 +220,18 @@ export function Graph3D(props: Graph3DProps) {
       const obj = new THREE.Object3D()
       obj.add(new THREE.Mesh(geom, mat))
 
+      // View 2's donut. A sprite, so it always faces the viewer: spec section
+      // 4.2 asks for the ring in screen space.
+      const split = props.nodeRing?.(n) ?? null
+      if (split && !dim) {
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: ringTexture(split, dark), transparent: true, depthWrite: false,
+        }))
+        const s = r * 5.4
+        sprite.scale.set(s, s, 1)
+        obj.add(sprite)
+      }
+
       if (isSel) {
         const ring = new THREE.Mesh(
           new THREE.TorusGeometry(r * 1.9, r * 0.13, 8, 40),
@@ -252,7 +267,7 @@ export function Graph3D(props: Graph3DProps) {
     })
     rebuildHulls()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data])
+  }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data, props.nodeRing])
 
   // ---- search flies the camera. Spec section 4.1 ----
   useEffect(() => {

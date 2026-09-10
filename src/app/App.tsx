@@ -11,12 +11,20 @@ import type { AllocationRule, Estate } from '../model/types'
 import { buildIndex } from '../model/ledger'
 import { copy } from '../copy'
 import { Explore } from '../views/Explore'
+import { FixedPool } from '../views/FixedPool'
 
 const estate = estateJson as unknown as Estate
 
+const BASIS_LABEL: Record<AllocationRule, string> = {
+  equal: 'equal split',
+  driver: 'driver-proportional',
+  by_volume: 'by volume',
+  by_head: 'by headcount, prohibited by 9.2.8',
+}
+
 const VIEWS = [
   { n: 1, t: 'Explore', ready: true },
-  { n: 2, t: 'Fixed pool', ready: false },
+  { n: 2, t: 'Fixed pool', ready: true },
   { n: 3, t: 'Risk', ready: false },
   { n: 4, t: 'Footprint', ready: false },
   { n: 5, t: 'Two shapes', ready: false },
@@ -41,7 +49,7 @@ export function App() {
   const dark = useDark()
   const ix = useMemo(() => buildIndex(estate), [])
   // Canon 9.2.8 default, and the spec's default: equal split.
-  const [rule] = useState<AllocationRule>('equal')
+  const [rule, setRule] = useState<AllocationRule>('equal')
   const p = estate.provenance
 
   return (
@@ -64,13 +72,14 @@ export function App() {
 
       <main className="main">
         {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
+        {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
       </main>
 
       <footer className="footer">
         <span>{copy.footer}</span>
         <span className="prov">
           graph {p.graph_version}, as at {p.graph_as_at} | decomposition owned by {p.decomposition_owner},
-          revised {p.decomposition_revised} | basis: equal split | seed {p.seed}
+          revised {p.decomposition_revised} | basis: {BASIS_LABEL[rule]} | seed {p.seed}
         </span>
       </footer>
     </div>
