@@ -65,6 +65,22 @@ const SHOTS: Shot[] = [
     },
   },
   {
+    name: '04-footprint', view: 4,
+    act: async (p) => {
+      await p.getByRole('button', { name: '4 Footprint' }).click()
+      await p.waitForTimeout(4000)
+    },
+  },
+  {
+    name: '04-footprint-early', view: 4,
+    act: async (p) => {
+      await p.getByRole('button', { name: '4 Footprint' }).click()
+      await p.waitForTimeout(3800)
+      await p.getByLabel('Time scrubber, month 0 to 60').fill('31')
+      await p.waitForTimeout(1000)
+    },
+  },
+  {
     name: '02-fixed-pool-collapsed', view: 2,
     act: async (p) => {
       await p.getByRole('button', { name: '2 Fixed pool' }).click()

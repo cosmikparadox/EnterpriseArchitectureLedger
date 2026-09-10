@@ -30,6 +30,8 @@ export interface Graph3DProps {
   affectedUseCases?: Set<string>
   /** View 3. Edges the failure propagated along, keyed "ucId>platformId". */
   litLinks?: Set<string>
+  /** View 4. Nodes not yet attached at the current month, drawn faint. */
+  dimNodes?: Set<string>
   onSelectNode: (id: string) => void
   onSelectLink: (link: GLink) => void
   onBackground: () => void
@@ -189,6 +191,7 @@ export function Graph3D(props: Graph3DProps) {
     }
 
     const dimmed = (n: GNode) => {
+      if (props.dimNodes?.has(n.id)) return true
       if (!isolatedSubdomain) return false
       // Isolate dims everything outside one subdomain but KEEPS shared
       // platforms lit, because the sharing is the point. Spec section 4.1.
@@ -291,7 +294,7 @@ export function Graph3D(props: Graph3DProps) {
     rebuildHulls()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data,
-      props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks])
+      props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks, props.dimNodes])
 
   // ---- search flies the camera. Spec section 4.1 ----
   useEffect(() => {

@@ -286,6 +286,48 @@ simulations. This tool applies no ceiling, so nothing is censored and the rule
 has nothing to bind on. The censoring rate that canon 9.8.2 lists as a required
 reported field is therefore reported as not applicable rather than as zero.
 
+### 16. three.js r185 rather than the pinned r160
+
+The build plan pinned three.js 0.160. `3d-force-graph` 1.73.4 depends on
+`three: ">=0.118 <1"` and npm resolved it a NESTED copy at 0.185.1, so two
+copies of three were live at once: objects built against r160 were handed to
+r185's renderer, which called `matrixWorld.determinantAffine()`, a method r160
+does not have, and the view failed on every frame. Two copies of three in one
+page is a known trap and there is no version of it that works.
+
+The top-level three is now 0.185.1, matching what the graph library brings, and
+`vite.config.ts` carries `resolve.dedupe: ['three']` so a second copy cannot
+reappear. `@types/three` moved to 0.185.0 with it.
+
+### 17. The two footprint lines are two charts, not two lines on one axis
+
+Spec section 4.4 asks for a chart showing "what the bill showed" against "what
+it committed you to" as two lines on the same time axis. Those two quantities
+are not commensurable. Metered spend and the rule share are GBP PER MONTH; the
+execution component of leaving is a ONE-OFF GBP figure, and on this estate it is
+roughly a hundred times larger. Drawn on one y axis the monthly pair flattens
+onto the baseline and reads as zero, and the drawing implies the two figures can
+be compared.
+
+They are drawn as two charts stacked on a SHARED TIME AXIS, sharing the
+ratification marker and the scrubber, each labelled with its own unit. The
+spec's two labels are kept verbatim. The lesson is unchanged and the chart no
+longer implies a comparison the units do not support.
+
+### 18. View 4 plots the execution component, not the exit cost
+
+Spec section 4.4's third readout is "Exit cost: execution + option". Canon 9.5.7
+and 9.9 refuse the option component without an evidenced counterfactual, and the
+owner's constraint is that it never renders as a bare number anywhere. A chart
+line of execution plus option would render it, and a screenshot of that line
+would carry the figure away from its refusal.
+
+The chart therefore plots the EXECUTION component alone, labelled as such. The
+option component appears only inside the refusal block in the panel, together
+with its W(K) curve. The ratification sentence quotes the execution component as
+its only hard figure and states the other half in words: "plus an option
+component the ledger would refuse to state without an evidenced counterfactual".
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
