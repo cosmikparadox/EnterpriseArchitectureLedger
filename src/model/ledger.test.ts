@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import type { Estate, AllocationRule, UseCase } from './types'
 import { simulate } from './montecarlo'
-import { buildIndex, ruleShare, basis, c1, meteredSpend } from './ledger'
+import {
+  buildIndex, ruleShare, basis, c1, meteredSpend,
+  makeOptionEngine, optionComponent, optionEngineFor, optionSeed,
+} from './ledger'
+import { makeRng } from './rng'
 
 const estate: Estate = JSON.parse(readFileSync('data/estate.json', 'utf8'))
 const ix = buildIndex(estate)
@@ -207,3 +211,56 @@ describe('risk axis, non-additivity', () => {
     expect(g).toBeGreaterThan(0.02)
   })
 }, 900_000)
+
+// Prerequisite: view 1 (DetailPanel) and view 4 (Footprint) both quote an option
+// component for the same node. They used to seed their own generators from two
+// different expressions of the platform id, so the same node read differently on
+// the two screens. Both now go through optionEngineFor. This test reproduces
+// what each call site does and asserts the two agree exactly.
+describe('option component, one seed across call sites', () => {
+  const AS_AT_MONTH = 60
+
+  it('gives the identical option component from both call sites, for every platform', () => {
+    for (const p of estate.platforms) {
+      const riders = ix.ridersOf.get(p.id)!.length
+      const months = AS_AT_MONTH - p.adopted_month
+
+      // View 1: DetailPanel builds the engine on selection.
+      const fromDetail = optionComponent(optionEngineFor(p, estate.option_model), p, riders, months)
+      // View 4: Footprint builds its own engine, memoised on the platform.
+      const fromFootprint = optionComponent(optionEngineFor(p, estate.option_model), p, riders, months)
+
+      expect(fromDetail).toBe(fromFootprint)
+      expect(Number.isFinite(fromDetail)).toBe(true)
+    }
+  })
+
+  it('is stable across rebuilds of the engine for the same node', () => {
+    const p = estate.platforms[0]!
+    const riders = ix.ridersOf.get(p.id)!.length
+    const months = AS_AT_MONTH - p.adopted_month
+    const a = optionComponent(optionEngineFor(p, estate.option_model), p, riders, months)
+    const b = optionComponent(optionEngineFor(p, estate.option_model), p, riders, months)
+    expect(a).toBe(b)
+  })
+
+  it('gives different platforms different seeds', () => {
+    const seeds = new Set(estate.platforms.map((p) => optionSeed(p.id)))
+    expect(seeds.size).toBe(estate.platforms.length)
+  })
+
+  // Guards the point of the change: seeding by hand is what let the two screens
+  // drift, so a hand seeded engine must be visibly not the same object of truth.
+  it('would disagree under the old per call site seeds', () => {
+    const differing = estate.platforms.filter((p) => {
+      const riders = ix.ridersOf.get(p.id)!.length
+      const months = AS_AT_MONTH - p.adopted_month
+      const oldFootprint = optionComponent(
+        makeOptionEngine(p, estate.option_model, makeRng(0x0071_0000 ^ (p.id.length * 2654435761))),
+        p, riders, months,
+      )
+      return oldFootprint !== optionComponent(optionEngineFor(p, estate.option_model), p, riders, months)
+    })
+    expect(differing.length).toBeGreaterThan(0)
+  })
+})

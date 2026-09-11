@@ -15,8 +15,7 @@ import { FootprintChart, type Series } from '../components/FootprintChart'
 import { WKCurve } from '../components/WKCurve'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
-import { executionComponent, kCommitted, makeOptionEngine, optionComponent, wCurve, type Index } from '../model/ledger'
-import { makeRng } from '../model/rng'
+import { executionComponent, kCommitted, optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy } from '../copy'
 
@@ -37,7 +36,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
 
   const engine = useMemo(() => {
     if (!platform) return null
-    return makeOptionEngine(platform, estate.option_model, makeRng(0x0071_0000 ^ platform.id.length * 2654435761))
+    return optionEngineFor(platform, estate.option_model)
   }, [platform, estate.option_model])
 
   /** Everything about the node at a given month. Riders attach in adoption order. */

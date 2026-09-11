@@ -12,7 +12,7 @@ import { useMonteCarlo } from '../app/useMonteCarlo'
 import { makeRng } from '../model/rng'
 import type { Index } from '../model/ledger'
 import type { Estate } from '../model/types'
-import { copy } from '../copy'
+import { copy, fill } from '../copy'
 
 export interface RiskProps { estate: Estate; ix: Index; dark: boolean }
 
@@ -106,10 +106,14 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           <span>{copy.dependence_high}</span>
           <strong style={{ fontVariantNumeric: 'tabular-nums' }}>rho {rho.toFixed(2)}</strong>
         </label>
-        <button className="ctl" onClick={() => setRuns((r) => (r === 10_000 ? 100_000 : 10_000))}>
-          {runs.toLocaleString('en-GB')} runs
+        <button
+          className="ctl"
+          disabled={mc.offline}
+          onClick={() => setRuns((r) => (r === 10_000 ? 100_000 : 10_000))}
+        >
+          {(mc.offline ? mc.result?.runs ?? runs : runs).toLocaleString('en-GB')} runs
         </button>
-        <span className="sub">{mc.running ? 'running' : `${mc.elapsedMs} ms`}</span>
+        <span className="sub">{mc.offline ? 'stored' : mc.running ? 'running' : `${mc.elapsedMs} ms`}</span>
       </div>
 
       <div className="graphwrap">
@@ -143,6 +147,15 @@ export function Risk({ estate, ix, dark }: RiskProps) {
         >
           <h2>{platform ? platform.name : 'Select a platform'}</h2>
           <div className="kind">{platform?.category ?? ''}</div>
+
+          {mc.offline && mc.snappedRho !== null && (
+            <div className="note" role="status">
+              {fill(copy.mc_offline, {
+                runs: (mc.result?.runs ?? 0).toLocaleString('en-GB'),
+                rho: mc.snappedRho.toFixed(2),
+              })}
+            </div>
+          )}
 
           {failure && (
             <section>

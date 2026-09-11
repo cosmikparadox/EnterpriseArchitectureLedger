@@ -8,6 +8,8 @@ import { writeFileSync, mkdirSync } from 'node:fs'
 import { makeRng, band, type Rng } from '../src/model/rng.ts'
 import type { Estate, Platform, UseCase, UseCaseEdge, Subdomain } from '../src/model/types.ts'
 import { PLATFORMS, SUBDOMAINS, USE_CASES, type PlatformSpec, type UseCaseSpec } from './estate-source.ts'
+import { simulate } from '../src/model/montecarlo.ts'
+import { packFrame, PRECOMPUTED_RHOS, PRECOMPUTED_RUNS, type PrecomputedIndex } from '../src/model/precomputed.ts'
 
 const SEED = 20260905
 
@@ -391,6 +393,8 @@ function main(): void {
   writeFileSync('data/estate_bestofbreed.json', JSON.stringify(bestOfBreed, null, 2) + '\n')
   console.log(`\nwrote data/estate.json and data/estate_bestofbreed.json`)
 
+  writePrecomputed(concentrated, bestOfBreed)
+
   const failed = [...checksA, ...checksB].filter((c) => !c.pass)
   if (failed.length > 0) {
     console.error(`\nGENERATOR FAILED: ${failed.length} realism check(s) did not hold.`)
@@ -398,6 +402,40 @@ function main(): void {
     process.exit(1)
   }
   console.log(`all realism checks passed\n`)
+}
+
+/**
+ * Bake a small set of Monte Carlo runs into the bundle.
+ *
+ * Opened from a file:// URL the browser blocks the inline module worker without
+ * logging anything, so views 3 and 5 would wait forever. These frames let the
+ * dependence slider still move offline, snapping to the nearest stored rho.
+ *
+ * Seeds match the two live call sites (view 3 and the left panel of view 5 use
+ * SEED; the right panel of view 5 uses SEED + 1) so the offline numbers are the
+ * same numbers the worker would have produced, not a different draw.
+ */
+function writePrecomputed(concentrated: Estate, bestOfBreed: Estate): void {
+  const index: PrecomputedIndex = {}
+  for (const [estate, seed] of [[concentrated, SEED], [bestOfBreed, SEED + 1]] as const) {
+    const frames = PRECOMPUTED_RHOS.map((rho) => {
+      const r = simulate({ estate, rho, nu: 4, runs: PRECOMPUTED_RUNS, seed })
+      process.stdout.write(`  precomputed ${estate.provenance.graph_version} rho ${rho} in ${r.elapsedMs} ms\n`)
+      return packFrame(r)
+    })
+    index[estate.provenance.graph_version] = {
+      runs: PRECOMPUTED_RUNS,
+      nu: 4,
+      seed,
+      platformIds: estate.platforms.map((p) => p.id),
+      useCaseIds: estate.use_cases.map((u) => u.id),
+      subdomainIds: estate.subdomains.map((s) => s.id),
+      frames,
+    }
+  }
+  const json = JSON.stringify(index)
+  writeFileSync('data/precomputed.json', json + '\n')
+  console.log(`wrote data/precomputed.json, ${(json.length / 1024).toFixed(1)} KB`)
 }
 
 main()

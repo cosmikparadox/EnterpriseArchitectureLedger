@@ -4,7 +4,16 @@
 
 import { simulate, type McRequest, type McResult } from '../model/montecarlo'
 
-self.onmessage = (ev: MessageEvent<McRequest & { requestId: number }>) => {
+type Incoming = (McRequest & { requestId: number }) | { ping: true }
+
+self.onmessage = (ev: MessageEvent<Incoming>) => {
+  // Liveness handshake. The hook sends a ping on startup and treats silence as
+  // a blocked worker. Answering here, before any simulation, is what tells a
+  // slow run apart from a worker that was never allowed to start.
+  if ('ping' in ev.data) {
+    ;(self as unknown as Worker).postMessage({ pong: true })
+    return
+  }
   const { requestId, ...req } = ev.data
   const result: McResult = simulate(req)
   ;(self as unknown as Worker).postMessage({ requestId, result })

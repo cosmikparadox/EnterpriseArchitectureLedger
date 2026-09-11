@@ -106,6 +106,23 @@ export const copy = {
   dependence_low_tip:
     'Under the t copula the extremes still move together even at zero ' +
     'correlation. That is deliberate. See 9.3.8.',
+
+  // Shown when the inline worker never starts. Opened as a file:// URL the
+  // browser blocks it and logs nothing, so the screen has to say so itself.
+  mc_offline:
+    'This browser blocked the background run, which is what happens when the ' +
+    'page is opened straight off disk. The figures below are a stored run of ' +
+    '{runs} at rho {rho}, the nearest stored point. Serve the folder over ' +
+    'http to move the slider freely.',
 } as const
 
 export type CopyKey = keyof typeof copy
+
+/**
+ * Fill {name} placeholders in a copy string. Keeping the sentence whole in the
+ * deck, rather than splicing prose around a number in a component, is what
+ * spec section 8 asks for.
+ */
+export function fill(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? String(values[k]) : m))
+}

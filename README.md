@@ -335,6 +335,10 @@ node, which is acceptance check 5.
 concentrated side is cheaper in three of six subdomains and dearer in three.
 Data and Analytics is dearer on the concentrated side by a factor of eight.
 
+This table does not move with rho. Metered spend is a cost figure and the
+dependence slider changes only the loss distribution, so there is no snapshot to
+date here.
+
 | per-unit metered cost | concentrated | best of breed |
 |---|---|---|
 | Sales and Distribution | GBP 1.073 | GBP 1.166 |
@@ -347,7 +351,11 @@ Data and Analytics is dearer on the concentrated side by a factor of eight.
 **Does not hold: "left fatter tail" on joint P99 loss.** The best of breed side
 has the HIGHER joint P99 in all six subdomains, at rho = 0.5.
 
-| joint P99 loss | concentrated | best of breed |
+This table is a snapshot at rho = 0.5. Since views 3 and 5 now share one
+dependence slider, view 5 can be read at any rho and these figures are the
+values at the midpoint, not fixed properties of the two estates.
+
+| joint P99 loss, at rho = 0.5 | concentrated | best of breed |
 |---|---|---|
 | Sales and Distribution | GBP 361,290 | GBP 418,024 |
 | Claims | GBP 203,758 | GBP 261,507 |
@@ -381,6 +389,57 @@ supplied would amount to the tool proposing a placement. Section 4.6 says
 plainly, "Do NOT imply that some boundary placement is correct. There is no
 correct placement in this tool." A split can be performed by moving the
 individual use cases, which leaves the choice with the person making it.
+
+### 22. Views 3 and 5 fall back to stored runs when the browser blocks the worker
+
+Spec section 2 asks for a folder that opens and works with no toolchain, and the
+same section asks for the Monte Carlo to run in a Web Worker. The two do not
+hold together. Opened as a `file://` URL, browsers refuse to start a module
+worker from a blob, and they do it silently: nothing is thrown, nothing is
+logged, and views 3 and 5 sit on a spinner forever with a clean console. Views
+1, 2, 4 and 6 are unaffected because they do no Monte Carlo.
+
+`npm run generate` therefore bakes ten runs into the bundle: both estates at
+rho = 0, 0.25, 0.5, 0.75 and 1.0, at 10,000 runs, on the same seeds the live
+call sites use (20260905 for view 3 and the left panel of view 5, 20260906 for
+the right panel). `useMonteCarlo` pings the worker once on startup and, if no
+answer comes back inside 2.5 seconds, serves the stored frame nearest the
+slider's rho and says so on screen. The ping matters: a 100,000 run request
+takes seconds, and without a handshake a slow run would be indistinguishable
+from a worker that was never allowed to start.
+
+What is lost offline, and is stated on screen: the figures are 10,000 runs at
+one of five rho values rather than a live run at the exact slider position, and
+the 100,000 run button is disabled.
+
+The frames are stored packed, not as result objects. Written out in full they
+are 196 KB each. Dropping the repeated keys, rounding each GBP figure to the
+pound, replacing each exceedance probability with its index into the fixed
+sampling grid, and dropping the use case exceedance curves (no view reads them;
+the percentiles that feed the non-additivity gap are kept) brings a frame to
+14.9 KB. Ten frames are 145 KB of data and the bundle grew by 147 KB, inside the
+200 KB budget the owner set, so all five rho points were kept.
+
+The data is imported as text and parsed on first use rather than imported as
+JSON. Imported as JSON the bundler emits 145 KB of object literals that every
+visitor parses at startup for data almost nobody needs, and acceptance check 1
+went from passing to 3,247 ms against a 3,000 ms limit. Parsed lazily it is
+2,401 ms.
+
+### 23. One function owns the option engine seed
+
+Spec section 6 does not say where the Monte Carlo seed for the option component
+comes from. View 1 and view 4 both show an option component for the same
+platform, and each seeded its own generator from a different expression of the
+platform id: `DetailPanel` hashed the id, `Footprint` used the id's length times
+a constant. The figure is a Monte Carlo estimate under canon 9.5.5 and not a
+closed form, so the two screens quoted different numbers for the same node.
+
+`optionEngineFor` in `src/model/ledger.ts` is now the only way to build the
+engine and call sites do not pass a generator. `npm test` reproduces what each
+call site does and asserts the two agree exactly for every platform, and asserts
+that the old per-call-site seeds did in fact disagree, so the test would fail if
+the seeding were quietly reintroduced.
 
 ## Acceptance check 3, replaced
 

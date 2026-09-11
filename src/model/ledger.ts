@@ -11,7 +11,7 @@
 import type {
   AllocationRule, Estate, Platform, Subdomain, UseCase, UseCaseEdge, OptionModel,
 } from './types'
-import { normal, type Rng } from './rng'
+import { makeRng, normal, type Rng } from './rng'
 
 // ---------------------------------------------------------------------------
 // Indexing
@@ -253,6 +253,36 @@ export function executionComponent(p: Platform, nRiders: number, monthsSinceAdop
  * K rather than a scatter of independently simulated points. Canon 9.5.3 needs
  * a stable sign for the difference, and 9.5.4 needs the curve.
  */
+/** Base for the per platform option seed. Kept apart so the test can see it. */
+const OPTION_SEED_BASE = 0x0071_0000
+
+/**
+ * FNV-1a over the platform id. Any stable hash would do; what matters is that
+ * one function decides the seed.
+ */
+export function optionSeed(platformId: string): number {
+  let h = 2166136261
+  for (let i = 0; i < platformId.length; i++) {
+    h ^= platformId.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return OPTION_SEED_BASE ^ (h >>> 0)
+}
+
+/**
+ * The one way to build an option engine for a platform.
+ *
+ * View 1 and view 4 both show an option component for the same node, and they
+ * used to seed their own generators from different expressions of the platform
+ * id. The two screens therefore disagreed about the same node. Since the figure
+ * is a Monte Carlo estimate under canon 9.5.5 and not a closed form, the only
+ * way to make them agree is for one function to decide the seed. Call sites do
+ * not pass an Rng.
+ */
+export function optionEngineFor(p: Platform, model: OptionModel): (k: number) => number {
+  return makeOptionEngine(p, model, makeRng(optionSeed(p.id)))
+}
+
 export function makeOptionEngine(p: Platform, model: OptionModel, rng: Rng): (k: number) => number {
   const { horizon_years: T, mu_risk_adjusted: mu, r_risk_free: r, paths } = model
   const logMedian = Math.log(p.delta_v_median_gbp)

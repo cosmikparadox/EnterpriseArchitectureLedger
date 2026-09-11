@@ -16,7 +16,7 @@ import {
   buildIndex, c1, edgeSpend, executionComponent, kCommitted, reportedCost, ruleShare,
 } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
-import { copy } from '../copy'
+import { copy, fill } from '../copy'
 import { RuleSelect } from '../components/RuleSelect'
 
 export interface TwoShapesProps {
@@ -180,6 +180,14 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
               return <Row key={s.id} l={s.name} a={a === null ? '...' : gbp(a)} b={b === null ? '...' : gbp(b)} />
             })}
             <div className="note">{copy.no_total}</div>
+            {mcLeft.offline && mcLeft.snappedRho !== null && (
+              <div className="note" role="status">
+                {fill(copy.mc_offline, {
+                  runs: (mcLeft.result?.runs ?? 0).toLocaleString('en-GB'),
+                  rho: mcLeft.snappedRho.toFixed(2),
+                })}
+              </div>
+            )}
           </section>
 
           <section>

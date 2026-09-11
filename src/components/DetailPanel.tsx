@@ -4,8 +4,7 @@
 import { useMemo } from 'react'
 import { copy } from '../copy'
 import type { AllocationRule, Estate } from '../model/types'
-import { makeOptionEngine, optionComponent, wCurve, type Index } from '../model/ledger'
-import { makeRng } from '../model/rng'
+import { optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
 import { platformView, useCaseView, type GLink } from '../app/graph'
 import { WKCurve } from './WKCurve'
 import { PanelShell } from './PanelShell'
@@ -44,8 +43,9 @@ export function DetailPanel(props: DetailPanelProps) {
     const p = ix.platformById.get(selectedNodeId)!
     const riders = ix.ridersOf.get(p.id)!.length
     const months = AS_AT_MONTH - p.adopted_month
-    // Canon 9.5.5. A fixed seed per node so the figure is stable across opens.
-    const w = makeOptionEngine(p, ix.estate.option_model, makeRng(0x0071_0000 ^ hash(p.id)))
+    // Canon 9.5.5. optionEngineFor owns the seed, so view 1 and view 4 quote the
+    // same figure for the same node.
+    const w = optionEngineFor(p, ix.estate.option_model)
     return {
       value: optionComponent(w, p, riders, months),
       curve: wCurve(w, p, riders, months),
@@ -199,10 +199,4 @@ function LinkPanel({ ix, link, collapsed, onToggleCollapsed, onSelectNode }: Det
       </section>
     </PanelShell>
   )
-}
-
-function hash(s: string): number {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) }
-  return h >>> 0
 }
