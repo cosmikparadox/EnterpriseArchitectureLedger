@@ -11,6 +11,8 @@ import bestOfBreedJson from '../../data/estate_bestofbreed.json'
 import type { AllocationRule, Estate } from '../model/types'
 import { buildIndex } from '../model/ledger'
 import { copy } from '../copy'
+import { useLedger, type View } from './store'
+import { useHashRoute } from './route'
 import { Explore } from '../views/Explore'
 import { FixedPool } from '../views/FixedPool'
 import { Risk } from '../views/Risk'
@@ -51,11 +53,14 @@ function useDark(): boolean {
 }
 
 export function App() {
-  const [view, setView] = useState(1)
+  useHashRoute()
+  const view = useLedger((s) => s.view)
+  const setView = useLedger((s) => s.setView)
+  // Canon 9.2.8 default, and the spec's default: equal split.
+  const rule = useLedger((s) => s.rule)
+  const setRule = useLedger((s) => s.setRule)
   const dark = useDark()
   const ix = useMemo(() => buildIndex(estate), [])
-  // Canon 9.2.8 default, and the spec's default: equal split.
-  const [rule, setRule] = useState<AllocationRule>('equal')
   const p = estate.provenance
 
   return (
@@ -65,9 +70,9 @@ export function App() {
         {VIEWS.map((v) => (
           <button
             key={v.n}
-            aria-current={view === v.n}
+            aria-current={view === v.n || (v.n === 1 && view === 'landing')}
             disabled={!v.ready}
-            onClick={() => setView(v.n)}
+            onClick={() => setView(v.n as View)}
             title={v.ready ? v.t : v.t + ' is not built yet'}
           >
             <span className="n">{v.n}</span>
@@ -77,7 +82,8 @@ export function App() {
       </nav>
 
       <main className="main">
-        {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
+        {/* The landing page is Part B. Until it lands, #/ shows view 1. */}
+        {(view === 1 || view === 'landing') && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}

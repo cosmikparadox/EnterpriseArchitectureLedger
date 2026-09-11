@@ -5,11 +5,14 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Legend } from '../components/Legend'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph, withSyntheticRiders, type GNode } from '../app/graph'
 import { buildIndex, c1, edgeSpend, meteredSpend, reportedCost, ruleShare } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
 import { copy } from '../copy'
+import { useLedger } from '../app/store'
+import { usePlatformSelection } from '../app/selection'
 import { RuleSelect } from '../components/RuleSelect'
 import { PanelShell } from '../components/PanelShell'
 
@@ -21,9 +24,11 @@ export interface FixedPoolProps {
 }
 
 export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps) {
-  // Identity is the node the spec's ten-second test uses, so it opens selected.
-  const [selected, setSelected] = useState<string>('okta')
-  const [added, setAdded] = useState(0)
+  // Identity is the node the spec's ten-second test uses, so it opens selected
+  // when nothing else is selected.
+  const [selected, setSelected] = usePlatformSelection(base, 'okta')
+  const added = useLedger((s) => s.fanInAdded)
+  const setAdded = useLedger((s) => s.setFanInAdded)
   const [showC1, setShowC1] = useState(true)
   const [showRank, setShowRank] = useState(false)
   const [watched, setWatched] = useState<string | null>(null)
@@ -91,11 +96,11 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           onBackground={() => {}}
         />
 
-        <div className="legend">
+        <Legend>
           <div><span className="glyph">O</span> solid arc: metered, a meter reading</div>
           <div><span className="glyph">/</span> hatched arc: rule, an allocation</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.view2_hint}</div>
-        </div>
+        </Legend>
 
         <PanelShell
           label="Fixed pool controls"

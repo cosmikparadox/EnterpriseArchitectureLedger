@@ -17,6 +17,7 @@ import {
 } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
 import { copy, fill } from '../copy'
+import { useLedger, DEFAULT_RHO } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
 
 export interface TwoShapesProps {
@@ -86,7 +87,11 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   const leftData = useMemo(() => buildGraph(left.estate, left.ix), [left])
   const rightData = useMemo(() => buildGraph(right.estate, right.ix), [right])
 
-  const [rho] = useState(0.5)
+  // Shared with view 3. This used to be hard coded at 0.5 with no setter, so
+  // the comparison could only ever be read at the midpoint.
+  const rho = useLedger((s) => s.rho)
+  const setRho = useLedger((s) => s.setRho)
+  const resetRho = useLedger((s) => s.resetRho)
   const [collapsed, setCollapsed] = useState(false)
   const [which, setWhich] = useState<'left' | 'right'>('left')
 
@@ -113,7 +118,26 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         <h1>Ledger Explorer</h1>
         <span className="sub">Two shapes</span>
         <RuleSelect rule={rule} setRule={setRule} />
-        <span className="sub">rho {rho.toFixed(2)}, 10,000 runs</span>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
+          <span title={copy.dependence_low_tip}>{copy.dependence_low}</span>
+          <input
+            type="range" min={0} max={1} step={0.05} value={rho}
+            onChange={(e) => setRho(Number(e.target.value))}
+            aria-label="Dependence between platform failures, rho"
+            style={{ width: 110 }}
+          />
+          <span>{copy.dependence_high}</span>
+          <strong style={{ fontVariantNumeric: 'tabular-nums' }}>rho {rho.toFixed(2)}</strong>
+        </label>
+        <button
+          className="ctl"
+          onClick={resetRho}
+          disabled={rho === DEFAULT_RHO}
+          title={copy.rho_reset_tip}
+        >
+          Reset to {DEFAULT_RHO.toFixed(2)}
+        </button>
+        <span className="sub">10,000 runs</span>
         <button className="ctl" onClick={() => setWhich((w) => (w === 'left' ? 'right' : 'left'))}>
           Show: {which === 'left' ? 'Concentrated' : 'Best of breed'}
         </button>

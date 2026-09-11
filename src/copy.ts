@@ -107,6 +107,14 @@ export const copy = {
     'Under the t copula the extremes still move together even at zero ' +
     'correlation. That is deliberate. See 9.3.8.',
 
+  // View 5 now shares the dependence slider with view 3, so the comparison can
+  // be read at any rho. 0.5 is the midpoint the two shapes were first compared
+  // at and the one the README tables are dated to, which is the only claim the
+  // button makes for it.
+  rho_reset_tip:
+    'Back to the midpoint. The comparison in the notes is written at this ' +
+    'value, and nothing else makes it special.',
+
   // Shown when the inline worker never starts. Opened as a file:// URL the
   // browser blocks it and logs nothing, so the screen has to say so itself.
   mc_offline:

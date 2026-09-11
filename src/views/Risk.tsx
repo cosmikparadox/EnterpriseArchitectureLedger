@@ -2,8 +2,9 @@
 //
 // Purpose: show propagation, and show that risk does not add.
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { ExceedanceCurve } from '../components/ExceedanceCurve'
 import { gbp } from '../components/DetailPanel'
@@ -13,6 +14,8 @@ import { makeRng } from '../model/rng'
 import type { Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy, fill } from '../copy'
+import { useLedger } from '../app/store'
+import { usePlatformSelection } from '../app/selection'
 
 export interface RiskProps { estate: Estate; ix: Index; dark: boolean }
 
@@ -26,41 +29,53 @@ interface FailureRun {
 
 export function Risk({ estate, ix, dark }: RiskProps) {
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
-  const [selected, setSelected] = useState<string>('meridian')
-  const [rho, setRho] = useState(0.5)
+  // Shared: the tour drives all four of these, and rho is the same slider as
+  // the one on view 5.
+  const [selected, setSelected] = usePlatformSelection(estate, 'meridian')
+  const rho = useLedger((s) => s.rho)
+  const setRho = useLedger((s) => s.setRho)
+  const storedSubdomain = useLedger((s) => s.subdomain)
+  const setStoredSubdomain = useLedger((s) => s.setSubdomain)
+  const subdomain = storedSubdomain ?? estate.subdomains[0]!.id
+  const failRequest = useLedger((s) => s.failRequest)
+  const requestFail = useLedger((s) => s.failIt)
+  const clearFailRequest = useLedger((s) => s.clearFailRequest)
+  // Local: nothing outside this view has an opinion about them.
   const [runs, setRuns] = useState(10_000)
   const [budget, setBudget] = useState(500_000)
-  const [subdomain, setSubdomain] = useState<string>(estate.subdomains[0]!.id)
   const [collapsed, setCollapsed] = useState(false)
   const [failure, setFailure] = useState<FailureRun | null>(null)
   const [phase, setPhase] = useState(0)
-  const [seedTick, setSeedTick] = useState(0)
 
   const mc = useMonteCarlo(estate, rho, runs)
   const isPlatform = ix.platformById.has(selected)
   const platform = isPlatform ? ix.platformById.get(selected)! : null
 
-  // ---- "Fail it". Sampled per press, so pressing again gives a different
-  // pattern, exactly as spec section 4.3 asks.
-  const failIt = useCallback(() => {
-    if (!platform) return
-    const rng = makeRng(0xf1a1 ^ (seedTick * 2654435761))
-    setSeedTick((t) => t + 1)
+  // ---- "Fail it". The button no longer samples; it raises a request on the
+  // store, and this effect answers it. That is what lets a tour step fail a node
+  // without reaching into this component, and it is why the request carries a
+  // nonce: pressing Fail it twice on the same node has to be two events, because
+  // spec section 4.3 asks for a fresh pattern each press.
+  useEffect(() => {
+    if (!failRequest) return
+    const p = ix.platformById.get(failRequest.nodeId)
+    if (!p) return
+    const rng = makeRng(0xf1a1 ^ (failRequest.nonce * 2654435761))
     const affected = new Set<string>()
     const litLinks = new Set<string>()
     const subdomains = new Set<string>()
     let volume = 0
-    for (const r of ix.ridersOf.get(platform.id)!) {
+    for (const r of ix.ridersOf.get(p.id)!) {
       if (rng.next() < r.edge.conditional_failure_prob) {
         affected.add(r.uc.id)
-        litLinks.add(`${r.uc.id}>${platform.id}`)
+        litLinks.add(`${r.uc.id}>${p.id}`)
         subdomains.add(r.uc.subdomain)
         volume += r.uc.volume_per_month
       }
     }
-    setFailure({ platformId: platform.id, affected, litLinks, subdomains, volume })
+    setFailure({ platformId: p.id, affected, litLinks, subdomains, volume })
     setPhase(1)
-  }, [platform, ix, seedTick])
+  }, [failRequest, ix])
 
   // Edges light outward after the node pulses. One hop here, because a use case
   // does not propagate on to another platform in this model.
@@ -91,10 +106,10 @@ export function Risk({ estate, ix, dark }: RiskProps) {
       <div className="topbar">
         <h1>Ledger Explorer</h1>
         <span className="sub">Risk</span>
-        <button className="ctl" onClick={failIt} disabled={!platform}>
+        <button className="ctl" onClick={() => platform && requestFail(platform.id)} disabled={!platform}>
           Fail it
         </button>
-        {failure && <button className="ctl" onClick={() => { setFailure(null); setPhase(0) }}>Clear</button>}
+        {failure && <button className="ctl" onClick={() => { setFailure(null); setPhase(0); clearFailRequest() }}>Clear</button>}
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
           <span title={copy.dependence_low_tip}>{copy.dependence_low}</span>
           <input
@@ -128,16 +143,16 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           failedNodeId={failure ? failure.platformId : null}
           affectedUseCases={phase >= 2 && failure ? failure.affected : undefined}
           litLinks={phase >= 2 && failure ? failure.litLinks : undefined}
-          onSelectNode={(id) => { setSelected(id); setFailure(null); setPhase(0); setCollapsed(false) }}
+          onSelectNode={(id) => { setSelected(id); setFailure(null); setPhase(0); clearFailRequest(); setCollapsed(false) }}
           onSelectLink={() => {}}
           onBackground={() => {}}
         />
 
-        <div className="legend">
+        <Legend>
           <div><span className="glyph">O</span> pulsing ring: the node you failed</div>
           <div><span className="glyph">#</span> wireframe: use case interrupted</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.copula_note}</div>
-        </div>
+        </Legend>
 
         <PanelShell
           label="Risk"
@@ -187,7 +202,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
             <select
               className="ctl"
               value={subdomain}
-              onChange={(e) => setSubdomain(e.target.value)}
+              onChange={(e) => setStoredSubdomain(e.target.value)}
               aria-label="Subdomain for the non-additivity exhibit"
               style={{ width: '100%', marginBottom: 6 }}
             >

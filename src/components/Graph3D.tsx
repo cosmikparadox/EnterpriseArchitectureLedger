@@ -22,6 +22,12 @@ export interface Graph3DProps {
   selectedId: string | null
   isolatedSubdomain: string | null
   flyToId: string | null
+  /**
+   * Called once the force simulation has come to rest, with the settled
+   * positions. The tour waits for this before flying the camera, because a
+   * camera aimed at a node that is still moving arrives somewhere else.
+   */
+  onSettle?: (nodes: { id: string; x: number; y: number; z: number }[]) => void
   /** View 2 only. Returns the metered/rule split to draw around a node. */
   nodeRing?: (n: GNode) => RingSplit | null
   /** View 3. The platform being failed, drawn pulsing. */
@@ -75,6 +81,14 @@ export function Graph3D(props: Graph3DProps) {
       .onLinkClick((l: object) => propsRef.current.onSelectLink(l as GLink))
       .onBackgroundClick(() => propsRef.current.onBackground())
       .enableNodeDrag(false)
+      // A4. Seeding the starting positions is only half of a reproducible
+      // layout. By default the simulation stops after 15 seconds of wall time,
+      // so how far it got depends on the frame rate of the machine it ran on and
+      // two loads settle differently. Counting ticks instead of milliseconds is
+      // what makes the shape the same every time. 300 is where d3's default
+      // alpha decay reaches its floor, so nothing is cut short.
+      .cooldownTicks(300)
+      .cooldownTime(Infinity)
 
     // Pull the hubs toward the centre so fan-in stays visible.
     g.d3Force('hub', ((alpha: number) => {
@@ -99,6 +113,9 @@ export function Graph3D(props: Graph3DProps) {
     g.onEngineTick(() => { if (++ticks % 8 === 0) rebuildHulls() })
     g.onEngineStop(() => {
       rebuildHulls()
+      const settled = (g.graphData().nodes as (GNode & Positioned)[])
+        .map((n) => ({ id: n.id, x: n.x ?? 0, y: n.y ?? 0, z: n.z ?? 0 }))
+      propsRef.current.onSettle?.(settled)
       // Frame the whole estate once, rather than leaving it small in the middle
       // of the canvas. Only on the first settle, so it does not yank the camera
       // back after the user has moved it.
@@ -339,11 +356,17 @@ export function Graph3D(props: Graph3DProps) {
       props.dashedLinks])
 
   // ---- search flies the camera. Spec section 4.1 ----
+  //
+  // flyToId carries a nonce after a '#', because the request is an event and not
+  // a value: asking to fly to the node the camera is already pointed at has to
+  // move the camera. Without the nonce the effect would not re-run and a second
+  // click on the same search result, or a tour step re-entered, would do nothing.
   useEffect(() => {
     const g = gRef.current
     if (!g || !props.flyToId) return
+    const wanted = props.flyToId.split('#')[0]!
     const all = g.graphData().nodes as (GNode & Positioned)[]
-    const n = all.find((x) => x.id === props.flyToId)
+    const n = all.find((x) => x.id === wanted)
     if (!n || n.x === undefined) return
     // Stand off by a fraction of the estate's own radius, so the camera frames
     // the node in context instead of ending up inside the graph.

@@ -10,6 +10,7 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { FootprintChart, type Series } from '../components/FootprintChart'
 import { WKCurve } from '../components/WKCurve'
@@ -18,6 +19,8 @@ import { buildGraph } from '../app/graph'
 import { executionComponent, kCommitted, optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy } from '../copy'
+import { useLedger } from '../app/store'
+import { usePlatformSelection } from '../app/selection'
 
 export interface FootprintProps { estate: Estate; ix: Index; dark: boolean }
 
@@ -26,9 +29,11 @@ const MONTHS = Array.from({ length: 61 }, (_, i) => i)
 export function Footprint({ estate, ix, dark }: FootprintProps) {
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
   // Spec section 4.4: default the cloud data platform.
-  const [selected, setSelected] = useState('meridian')
-  const [cursor, setCursor] = useState(60)
-  const [ratified, setRatified] = useState(31)
+  const [selected, setSelected] = usePlatformSelection(estate, 'meridian')
+  const cursor = useLedger((s) => s.cursor)
+  const setCursor = useLedger((s) => s.setCursor)
+  const ratified = useLedger((s) => s.ratified)
+  const setRatified = useLedger((s) => s.setRatified)
   const [collapsed, setCollapsed] = useState(false)
 
   const platform = ix.platformById.get(selected) ?? null
@@ -130,12 +135,12 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           onBackground={() => {}}
         />
 
-        <div className="legend">
+        <Legend>
           <div>Use cases attach in the order they were adopted.</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>
             Faint nodes have not arrived yet at month {cursor}.
           </div>
-        </div>
+        </Legend>
 
         <PanelShell
           label="Footprint"

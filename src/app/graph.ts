@@ -6,6 +6,7 @@
 // hulls carry colour, and colour is never the only carrier: node shape and the
 // label carry the same information.
 
+import { makeRng } from '../model/rng'
 import type { AllocationRule, Estate } from '../model/types'
 import {
   buildIndex, edgeSpend, meteredSpend, ruleShare, c1, reportedCost,
@@ -82,7 +83,45 @@ export function buildGraph(estate: Estate, ix: Index): GraphData {
       })
     }
   }
+  seedPositions(nodes)
   return { nodes, links }
+}
+
+/** Seed for the layout. Distinct from the estate seed; it decides shape, not data. */
+export const LAYOUT_SEED = 0x1ed9e4
+
+/**
+ * Give every node a starting position from a seeded generator.
+ *
+ * The force simulation is deterministic once the starting positions are, so
+ * seeding them is what makes the graph settle into the same shape on every load
+ * instead of a different one each time. That matters for three things: a tour
+ * step can say "the node at the top" and be right, screenshots are comparable
+ * between builds, and anyone reading this over someone's shoulder is looking at
+ * the same picture.
+ *
+ * Points are placed on a Fibonacci sphere and then jittered, rather than drawn
+ * uniformly at random. A uniform draw clumps, and d3 breaks ties between
+ * coincident nodes with Math.random, which would put the non-determinism
+ * straight back. The sphere spreads them; the jitter keeps the result from
+ * looking like a lattice.
+ */
+function seedPositions(nodes: GNode[]): void {
+  const rng = makeRng(LAYOUT_SEED)
+  const n = nodes.length
+  const golden = Math.PI * (3 - Math.sqrt(5))
+  // Radius scaled to the node count so a small estate is not lost in a big shell.
+  const radius = 26 * Math.cbrt(n)
+  for (let i = 0; i < n; i++) {
+    const y = 1 - (i / Math.max(1, n - 1)) * 2
+    const r = Math.sqrt(Math.max(0, 1 - y * y))
+    const theta = golden * i
+    const jitter = () => (rng.next() - 0.5) * radius * 0.18
+    const node = nodes[i]!
+    node.x = Math.cos(theta) * r * radius + jitter()
+    node.y = y * radius + jitter()
+    node.z = Math.sin(theta) * r * radius + jitter()
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -6,12 +6,14 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
 import { buildIndex, ruleShare } from '../model/ledger'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
 import { copy } from '../copy'
+import { useLedger } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
 
 export interface BoundariesProps {
@@ -24,7 +26,8 @@ export interface BoundariesProps {
 export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProps) {
   // The redrawn decomposition. The GRAPH is untouched by any of this.
   const [moved, setMoved] = useState<Record<string, string>>({})
-  const [picked, setPicked] = useState<string | null>(null)
+  const picked = useLedger((s) => s.selectedId)
+  const setPicked = useLedger((s) => s.setSelectedId)
   const [collapsed, setCollapsed] = useState(false)
 
   const estate: Estate = useMemo(() => ({
@@ -115,10 +118,10 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           onBackground={() => {}}
         />
 
-        <div className="legend">
+        <Legend>
           <div>Dashed edges cross a declared boundary.</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>Tap a use case to move it.</div>
-        </div>
+        </Legend>
 
         <PanelShell
           label="Boundaries"

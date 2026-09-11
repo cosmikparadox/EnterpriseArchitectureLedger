@@ -441,6 +441,42 @@ call site does and asserts the two agree exactly for every platform, and asserts
 that the old per-call-site seeds did in fact disagree, so the test would fail if
 the seeding were quietly reintroduced.
 
+### 24. One Graph3D shared across views was proposed and not built
+
+The tour brief asked for a single Graph3D instance kept mounted across views 1,
+2, 3, 4 and 6, so the camera does not jump when the tour walks between them. It
+is not built, by agreement with the owner, and the alternative in the same brief
+was built instead: the force layout is seeded, so every view settles into the
+same shape and a walk between views lands on a graph that looks the same even
+though it is a different instance.
+
+The reason is what sharing would cost. Each of those five views drives the scene
+differently: view 2 supplies a ring accessor per node, view 3 supplies a failed
+node, a lit link set and a dim set, view 4 dims by adoption month, view 6 recolours
+by boundary move. Shared, all of those become props on one instance whose
+lifetime matches no view, so every view has to remember to clear the props it
+does not use and the next view has to trust that it did. View 5 is the part that
+makes it worse: it mounts two more graphs alongside the shared one, so the saving
+is three instances rather than six, for the cost of a scene whose state belongs
+to nobody.
+
+What is lost is real and worth naming: switching views still rebuilds the scene,
+so the camera returns to the framed default rather than staying where it was.
+
+### 25. The force simulation is stopped by tick count, not by elapsed time
+
+Not in the spec either way. `3d-force-graph` stops the simulation after 15
+seconds of wall time by default, which means how far it settled depends on the
+frame rate of the machine it ran on, and two loads of the same estate produce
+two different shapes. Seeding the starting positions, which is what A4 asked
+for, fixes half of it and leaves the other half moving.
+
+The cooldown is now 300 ticks with no time limit, 300 being where d3's default
+alpha decay reaches its floor. With both halves fixed the settled layout is
+byte-identical across loads: three loads in a row hash to `e79b104d`. The digest
+is published on the document root after the graph comes to rest, which is how
+that is checked.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two

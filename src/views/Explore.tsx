@@ -1,11 +1,14 @@
 // View 1, Explore. Spec section 4.1.
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
+import { Legend } from '../components/Legend'
 import { DetailPanel } from '../components/DetailPanel'
 import { buildGraph, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
 import type { AllocationRule, Estate } from '../model/types'
 import type { Index } from '../model/ledger'
+import { useLedger } from '../app/store'
+import { useLayoutReport } from '../app/layoutReport'
 
 export interface ExploreProps {
   estate: Estate
@@ -16,15 +19,20 @@ export interface ExploreProps {
 
 export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
-  const [showHulls, setShowHulls] = useState(true)
+  // Shared, so the tour and the other views can drive them.
+  const showHulls = useLedger((s) => s.showHulls)
+  const setShowHulls = useLedger((s) => s.setShowHulls)
+  const selectedId = useLedger((s) => s.selectedId)
+  const setSelectedId = useLedger((s) => s.setSelectedId)
+  const flyTo = useLedger((s) => s.flyToId)
+  const setFlyTo = useLedger((s) => s.setFlyToId)
+  // Local, because nothing outside this view has an opinion about them.
   const [labelMode, setLabelMode] = useState<LabelMode>('all')
   const [isolated, setIsolated] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedLink, setSelectedLink] = useState<GLink | null>(null)
   const [query, setQuery] = useState('')
-  const [flyTo, setFlyTo] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
-  const flyNonce = useRef(0)
+  const onSettle = useLayoutReport()
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -36,8 +44,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     setSelectedLink(null)
     setSelectedId(id)
     setCollapsed(false)
-    flyNonce.current++
-    setFlyTo(id + '#' + flyNonce.current)
+    setFlyTo(id)
   }
 
   return (
@@ -65,7 +72,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           )}
         </div>
 
-        <button className="ctl" aria-pressed={showHulls} onClick={() => setShowHulls((v) => !v)}>
+        <button className="ctl" aria-pressed={showHulls} onClick={() => setShowHulls(!showHulls)}>
           Boundaries
         </button>
         <button className="ctl" onClick={() =>
@@ -91,13 +98,14 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           labelMode={labelMode}
           selectedId={selectedId}
           isolatedSubdomain={isolated}
-          flyToId={flyTo ? flyTo.split('#')[0]! : null}
+          flyToId={flyTo}
+          onSettle={onSettle}
           onSelectNode={(id) => { setSelectedLink(null); setSelectedId(id); setCollapsed(false) }}
           onSelectLink={(l) => { setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
           onBackground={() => { setSelectedId(null); setSelectedLink(null) }}
         />
 
-        <div className="legend">
+        <Legend>
           <div><span className="glyph">O</span> platform, size is fan-in</div>
           <div><span className="glyph">&#9670;</span> integration node</div>
           <div><span className="glyph">.</span> use case, coloured by subdomain</div>
@@ -115,7 +123,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
               </span>
             ))}
           </div>
-        </div>
+        </Legend>
 
         <DetailPanel
           estate={estate}
