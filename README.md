@@ -76,8 +76,8 @@ things stop moving together exactly where you need them to. Use a Student-t or
 another tail-dependent family and declare it."
 
 The canon wins. Dependence is drawn from a Student-t copula with four degrees
-of freedom, declared on screen. The rho slider and its plain-English endpoints
-are unchanged.
+of freedom, declared on screen. The rho slider itself is unchanged; one of its
+endpoint labels had to change, for the reason given below.
 
 One consequence is worth stating because it changes what an endpoint means.
 Spec section 6 reads "rho = 0 independent, rho = 1 comonotonic", which is true
@@ -85,9 +85,9 @@ of a Gaussian copula. Under a Student-t copula the platforms share a single
 chi-square denominator, and that shared term is precisely the tail dependence
 canon 9.3.8 asks for. At rho = 0 the platforms are therefore UNCORRELATED but
 NOT INDEPENDENT: they still fail together in the tail more often than chance.
-The slider's low endpoint reads "platforms fail on their own", which remains a
-fair plain-English description of the direction of travel, but the tool does not
-claim independence anywhere.
+The slider's low endpoint was relabelled because of this, and now reads
+"platforms fail without correlation". See deviation 13. The tool does not claim
+independence anywhere.
 
 ### 2. The by-headcount allocation rule is prohibited, and ships as a counter-example
 
@@ -249,7 +249,9 @@ Canon 9.3.1 corrects the FAIR loss magnitude to `LM = LM_primary + (SLEF * SLM)`
 where the secondary loss event frequency is a conditional probability that the
 knock-on happens at all. The spec's section 6 risk model carries only a primary
 direct loss per platform and a business-interruption loss per use case. No
-secondary term is modelled. **Scope note.** The secondary term is absent, and the loss figures this tool
+secondary term is modelled.
+
+**Scope note.** The secondary term is absent, and the loss figures this tool
 reports are therefore UNDERSTATED relative to the structure canon 9.3.1
 specifies. This is a simplification of the canon rather than a contradiction of
 it. It will not be modelled: the exhibit view 3 exists to show is the
@@ -286,20 +288,7 @@ simulations. This tool applies no ceiling, so nothing is censored and the rule
 has nothing to bind on. The censoring rate that canon 9.8.2 lists as a required
 reported field is therefore reported as not applicable rather than as zero.
 
-### 16. three.js r185 rather than the pinned r160
-
-The build plan pinned three.js 0.160. `3d-force-graph` 1.73.4 depends on
-`three: ">=0.118 <1"` and npm resolved it a NESTED copy at 0.185.1, so two
-copies of three were live at once: objects built against r160 were handed to
-r185's renderer, which called `matrixWorld.determinantAffine()`, a method r160
-does not have, and the view failed on every frame. Two copies of three in one
-page is a known trap and there is no version of it that works.
-
-The top-level three is now 0.185.1, matching what the graph library brings, and
-`vite.config.ts` carries `resolve.dedupe: ['three']` so a second copy cannot
-reappear. `@types/three` moved to 0.185.0 with it.
-
-### 17. The two footprint lines are two charts, not two lines on one axis
+### 18. The two footprint lines are two charts, not two lines on one axis
 
 Spec section 4.4 asks for a chart showing "what the bill showed" against "what
 it committed you to" as two lines on the same time axis. Those two quantities
@@ -314,7 +303,7 @@ ratification marker and the scrubber, each labelled with its own unit. The
 spec's two labels are kept verbatim. The lesson is unchanged and the chart no
 longer implies a comparison the units do not support.
 
-### 18. View 4 plots the execution component, not the exit cost
+### 19. View 4 plots the execution component, not the exit cost
 
 Spec section 4.4's third readout is "Exit cost: execution + option". Canon 9.5.7
 and 9.9 refuse the option component without an evidenced counterfactual, and the
@@ -328,7 +317,7 @@ with its W(K) curve. The ratification sentence quotes the execution component as
 its only hard figure and states the other half in words: "plus an option
 component the ledger would refuse to state without an evidenced counterfactual".
 
-### 19. View 5's expectations are reported, not asserted, and two of them do not hold
+### 20. View 5's expectations are reported, not asserted, and two of them do not hold
 
 Spec section 4.5 predicts what the side-by-side readouts will show. Three of its
 five predictions hold on the generated estates and two do not. The view reports
@@ -375,7 +364,7 @@ thing that drives the tail into the integration layer, which is the view's
 lesson stated more sharply than the spec expected. Nothing was tuned to produce
 this.
 
-### 20. View 6 moves use cases by selection, and does not split subdomains
+### 21. View 6 moves use cases by selection, and does not split subdomains
 
 Spec section 4.6 asks the user to "drag use cases from one subdomain hull to
 another, or merge two subdomains, or split one".
