@@ -11,6 +11,7 @@ import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
 import SpriteText from 'three-spritetext'
 import { NEUTRAL, NEUTRAL_DIM, SUBDOMAIN_COLOUR, type GLink, type GNode, type GraphData } from '../app/graph'
 import { ringTexture, type RingSplit } from './rings'
+import { reportSelectedScreenPos } from '../app/layoutReport'
 
 export type LabelMode = 'all' | 'selected' | 'none'
 
@@ -119,7 +120,11 @@ export function Graph3D(props: Graph3DProps) {
       // Frame the whole estate once, rather than leaving it small in the middle
       // of the canvas. Only on the first settle, so it does not yank the camera
       // back after the user has moved it.
-      if (!framed) { framed = true; g.zoomToFit(600, 70) }
+      if (!framed) {
+        framed = true
+        const ms = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600
+        g.zoomToFit(ms, 70)
+      }
     })
 
     const ro = new ResizeObserver(() => {
@@ -254,6 +259,25 @@ export function Graph3D(props: Graph3DProps) {
       const obj = new THREE.Object3D()
       obj.add(new THREE.Mesh(geom, mat))
 
+      // The selected node wears a halo, not just a brighter face. Emissive
+      // alone reads as "slightly paler grey" on a grey platform in daylight,
+      // and the tour's first step says "the lit one", so the lit one has to be
+      // obvious from across the room. A back-faced shell renders as a rim of
+      // light around the silhouette at any camera angle.
+      if (isSel && !dim) {
+        const halo = new THREE.Mesh(
+          new THREE.SphereGeometry(r * 1.85, 22, 16),
+          new THREE.MeshBasicMaterial({
+            color: dark ? '#9ccbf5' : '#1f4e79',
+            transparent: true,
+            opacity: 0.26,
+            side: THREE.BackSide,
+            depthWrite: false,
+          }),
+        )
+        obj.add(halo)
+      }
+
       // View 2's donut. A sprite, so it always faces the viewer: spec section
       // 4.2 asks for the ring in screen space.
       const split = props.nodeRing?.(n) ?? null
@@ -355,6 +379,34 @@ export function Graph3D(props: Graph3DProps) {
       props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks, props.dimNodes,
       props.dashedLinks])
 
+  // ---- where the selected node is on screen ----
+  //
+  // Published so the tour's promise that its card never covers the node under
+  // discussion can be measured rather than asserted. Sampled on a slow loop
+  // rather than per frame, and only while something is selected, because it
+  // exists for a check and must not cost anything when nobody is looking.
+  useEffect(() => {
+    const id = props.selectedId
+    if (!id) { reportSelectedScreenPos(null); return }
+    let raf = 0
+    let frame = 0
+    const tick = () => {
+      raf = requestAnimationFrame(tick)
+      if (frame++ % 10 !== 0) return
+      const g = gRef.current
+      if (!g) return
+      const n = (g.graphData().nodes as (GNode & Positioned)[]).find((x) => x.id === id)
+      if (!n || n.x === undefined) return
+      const holderBox = holder.current?.getBoundingClientRect()
+      const p = g.graph2ScreenCoords(n.x, n.y ?? 0, n.z ?? 0)
+      // graph2ScreenCoords is relative to the canvas, and the card's rectangle
+      // is in viewport space, so the canvas offset has to be added back.
+      reportSelectedScreenPos({ x: p.x + (holderBox?.left ?? 0), y: p.y + (holderBox?.top ?? 0) })
+    }
+    raf = requestAnimationFrame(tick)
+    return () => { cancelAnimationFrame(raf); reportSelectedScreenPos(null) }
+  }, [props.selectedId])
+
   // ---- search flies the camera. Spec section 4.1 ----
   //
   // flyToId carries a nonce after a '#', because the request is an event and not
@@ -373,12 +425,18 @@ export function Graph3D(props: Graph3DProps) {
     const extent = Math.max(...all.map((m) => Math.hypot(m.x ?? 0, m.y ?? 0, m.z ?? 0)), 1)
     const d = Math.max(120, extent * 0.85)
     const r = Math.hypot(n.x, n.y ?? 0, n.z ?? 0) || 1
+    // Under prefers-reduced-motion the camera cuts rather than travels. The
+    // tour flies to a node at almost every step, and a viewer who has asked for
+    // less motion should still arrive there, just without the trip.
+    const travelMs = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900
     g.cameraPosition(
       { x: (n.x * (r + d)) / r, y: ((n.y ?? 0) * (r + d)) / r, z: ((n.z ?? 0) * (r + d)) / r },
       { x: n.x, y: n.y ?? 0, z: n.z ?? 0 },
-      900,
+      travelMs,
     )
   }, [props.flyToId])
 
-  return <div ref={holder} style={{ position: 'absolute', inset: 0 }} />
+  // The inset is set in CSS rather than here, so the tour can pull the canvas
+  // clear of its card without this component knowing the tour exists.
+  return <div ref={holder} className="graph-holder" />
 }

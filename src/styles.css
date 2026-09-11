@@ -154,6 +154,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .graphwrap { flex: 1; position: relative; background: var(--graph-bg); min-height: 0; }
 .graphwrap canvas { display: block; touch-action: none; }
+.graph-holder { position: absolute; inset: 0; }
 
 .legend {
   position: absolute; left: 10px; bottom: 10px; z-index: 5;
@@ -246,6 +247,81 @@ button, input, select { font: inherit; color: inherit; }
   background: none; border-color: var(--line); color: var(--ink-2);
 }
 .cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- the guided tour card ----
+   Right-anchored on wide screens, bottom-anchored otherwise. The canvas is
+   inset by the card's footprint rather than drawn under it, so the node a step
+   is talking about cannot end up behind the card. That is acceptance T2, and it
+   holds by construction rather than by arithmetic at each step. */
+:root {
+  --tour-card-w: 330px;
+  --tour-card-h: 46vh;
+  --tour-gap: 12px;
+}
+.tour-card {
+  position: absolute; z-index: 60;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 34px rgba(0,0,0,0.20);
+  padding: 10px 13px 12px;
+  display: flex; flex-direction: column; gap: 2px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.tour-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.tour-count {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.tour-tick { font-size: 11px; color: var(--accent); }
+.tour-skip {
+  margin-left: auto; background: none; border: 0; cursor: pointer;
+  color: var(--ink-3); font-size: 11px; padding: 2px 0;
+}
+.tour-skip:hover { color: var(--ink); }
+.tour-body p { margin: 0 0 7px; font-size: 13px; line-height: 1.5; }
+.tour-body .tour-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tour-body h3 {
+  font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--ink-3); margin: 8px 0 4px; font-weight: 600;
+}
+.tour-body .tour-built { font-size: 11.5px; color: var(--ink-2); }
+.tour-more {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--accent); font-size: 11.5px; text-decoration: underline;
+}
+.tour-more-body {
+  font-size: 11.5px; color: var(--ink-2);
+  border-left: 2px solid var(--line); padding-left: 8px; margin-top: 6px;
+}
+.tour-foot { display: flex; gap: 8px; margin-top: 10px; }
+.tour-foot .cta { padding: 5px 14px; }
+
+@media (min-width: 1100px) {
+  .tour-card {
+    top: var(--tour-gap); right: var(--tour-gap); bottom: var(--tour-gap);
+    width: var(--tour-card-w);
+  }
+  /* The detail panel steps aside rather than sitting under the card. */
+  .app.tour-open .panel { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  .app.tour-open .panel-tab { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  .app.tour-open .graph-holder {
+    right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3);
+  }
+}
+
+@media (max-width: 1099px) {
+  .tour-card {
+    left: 0; right: 0; bottom: 0;
+    max-height: var(--tour-card-h);
+    border-radius: 12px 12px 0 0;
+    border-left: 0; border-right: 0; border-bottom: 0;
+  }
+  .app.tour-open .graph-holder { bottom: var(--tour-card-h); }
+  /* The legend has the sheet and the card to clear on a phone. */
+  .app.tour-open .legend { bottom: calc(var(--tour-card-h) + 8px); }
+}
 
 /* ---- narrow viewports: rail becomes a bottom tab strip, panel slides up ---- */
 @media (max-width: 720px) {

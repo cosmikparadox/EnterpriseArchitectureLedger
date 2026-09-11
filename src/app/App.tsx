@@ -20,6 +20,7 @@ import { Footprint } from '../views/Footprint'
 import { TwoShapes } from '../views/TwoShapes'
 import { Boundaries } from '../views/Boundaries'
 import { Landing } from '../views/Landing'
+import { TourCard } from '../tour/TourCard'
 
 const estate = estateJson as unknown as Estate
 const bestOfBreed = bestOfBreedJson as unknown as Estate
@@ -53,6 +54,17 @@ function useDark(): boolean {
   return dark
 }
 
+// A development-only handle on the store.
+//
+// Acceptance T3 has to perform each step's asked-for action by script, and two
+// of those actions, selecting a node and failing a node, exist only as clicks on
+// a WebGL canvas with no addressable target. Rather than guess at pixels, the
+// check drives the same actions the canvas would. Guarded by import.meta.env.DEV
+// so it is a test seam in the dev server and not a global in the shipped file.
+if (import.meta.env.DEV) {
+  ;(window as unknown as { __ledger?: unknown }).__ledger = useLedger
+}
+
 export function App() {
   useHashRoute()
   const view = useLedger((s) => s.view)
@@ -67,9 +79,13 @@ export function App() {
   // The front page is the four things the brief lists and nothing else, so the
   // view rail is not on it. The two buttons are the way in.
   const onLanding = view === 'landing'
+  const tourStep = useLedger((s) => s.tourStep)
+  const classes = ['app']
+  if (onLanding) classes.push('landing-mode')
+  if (tourStep !== null) classes.push('tour-open')
 
   return (
-    <div className={onLanding ? 'app landing-mode' : 'app'}>
+    <div className={classes.join(' ')}>
       {!onLanding && (
       <nav className="rail" aria-label="Views">
         <div className="rail-mark">Ledger</div>
@@ -96,6 +112,7 @@ export function App() {
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
+        {tourStep !== null && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}
       </main>
 
       <footer className="footer">

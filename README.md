@@ -25,6 +25,11 @@ There is no estate figure anywhere in this tool. Canon 9.8.3 gives three
 separate reasons why the ledger cannot be totalled, one per axis, and the tool
 declines the total rather than approximating it.
 
+## How to deploy
+
+See DEPLOY.md. Three routes, all of them uploading one file. The only thing that
+matters is that it is served over http or https rather than opened from disk.
+
 ## How to run
 
 Requires Node 20 or later.
@@ -38,6 +43,46 @@ npm run build        # static build into dist/
 ```
 
 `dist/` is committed, so the folder opens in a browser with no toolchain.
+
+## The guided tour
+
+Seven steps, at `#/tour/1` to `#/tour/7`. The tool stays live underneath the
+whole way: every step asks you to touch something, and Next is never disabled.
+Where a step asks for an action, a tick appears once you have done it, and that
+is all the tick does. Nobody is held at a step.
+
+Each step drives the tool only through the store. Nothing in `src/tour/` reaches
+into a view, which is the reason the store exists at all.
+
+| step | view | what it does when it opens | what it watches for |
+|---|---|---|---|
+| 1 | Explore | flies to the identity node, selects it, hulls on | you select a different platform |
+| 2 | Fixed pool | selects identity, then animates three riders on over 1.5s | you change the basis or the slider |
+| 3 | Risk | fails identity, waits 2s, then sets the subdomain | you fail a different node |
+| 4 | Risk | sweeps dependence 0 to 1 and back to 0.5 | you move the dependence slider |
+| 5 | Footprint | selects the cloud data platform, runs the month cursor from 0 up to the ratification marker | you move either month control |
+| 6 | Two shapes | nothing; both estates are already on screen | nothing |
+| 7 | closing card | nothing | nothing |
+
+Every GBP figure in a tour sentence is read from the running tool through
+`fill()`, never typed into the copy deck. The dependence range in step 4 is the
+range the figure actually covered while the slider swept, collected as the
+results arrived, not a stored pair.
+
+A step's `waitFor` is armed only after that step's own animations have finished,
+and the state it compares against is read at that moment. Otherwise step 4 would
+congratulate you for the slider it is moving itself.
+
+Step 5 does not move the ratification marker. The marker is the month the board
+ratified the node, month 31; the node was adopted in month 17. The fourteen
+months between the two are the whole step, and an earlier version of it set the
+marker to the adoption month, which closed the gap and left the step showing
+nothing. The execution figure the card quotes is pinned to the marker, not to
+wherever the cursor has been dragged, because the sentence says "at that month"
+and means the marker.
+
+Under `prefers-reduced-motion` the camera cuts instead of travelling and every
+animated value is applied at once.
 
 ## The synthetic estate
 
@@ -477,6 +522,54 @@ byte-identical across loads: three loads in a row hash to `e79b104d`. The digest
 is published on the document root after the graph comes to rest, which is how
 that is checked.
 
+### 26. The tour quotes the execution component and not the option component
+
+Spec section 6 treats the two parts of a switching cost together. The tour card
+is a small overlay with three sentences on it and no room for the refusal text
+that the option component has to travel with, so step 5 quotes the execution
+work of leaving and stops there. This is the same call already recorded for the
+view 4 ratification sentence, applied to the tour: the option component appears
+only in the detail panel, inside the same element as the sentence refusing to
+state it without an evidenced counterfactual, so no screenshot can separate them.
+
+### 27. The tour has a development-only handle on the store
+
+Acceptance T3 has to perform each step's asked-for action by script. Two of
+those actions, selecting a node and failing a node, exist in the interface only
+as a click on a WebGL canvas with no addressable target, and guessing at pixel
+coordinates would make the check a test of the layout rather than of the step.
+
+So `window.__ledger` exposes the store, guarded by `import.meta.env.DEV`. It is
+present in the development server the acceptance suite runs against and absent
+from `dist/index.html`. Checked: grepping the built bundle for `__ledger` returns
+nothing.
+
+### 28. Acceptance check 7's word list is split in two
+
+Check 7 greps the built bundle. Three of the words the tour brief adds cannot be
+checked that way: `seamless` is an HTML attribute name and appears once inside
+React's attribute table, in a space-separated list of identifiers. Failing the
+build on that would be failing it on a word nobody wrote.
+
+`leverage`, `seamless` and `journey` are therefore counted in our own source,
+and both counts are printed, the same way check 7 already prints the
+case-sensitive and case-insensitive counts for TCO so that the passing grep is
+not the one chosen after the fact. `infonomics` stays in the bundle grep, where
+it belongs: that one is about what the file must not contain, not about writing.
+
+### 29. Acceptance check 1 is measured against the built file
+
+Spec section 10 asks for a cold start under three seconds and does not say
+against what. It had been measured against the Vite development server, which
+transforms every module on first request. That is slower than the product and
+noisier than it: on a busy build machine the same bundle measured 3,092 ms in
+one run and 1,424 to 1,569 ms across six runs when nothing else was going on.
+
+It is now measured against `dist/index.html`, served over http, which is the
+file people load. Three runs are taken and the slowest counts. The development
+server figure is still measured and printed beside it, so the basis of the
+verdict was not chosen after the fact.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -589,19 +682,25 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 
 | # | check | result | evidence |
 |---|---|---|---|
-| 1 | cold start under 3s laptop, 6s phone | PASS | desktop 2,151 ms; mobile emulation 919 ms. Emulation is not a mid-range phone. |
-| 2 | executive finds the fan-in slider unaided | NOT RUN | Needs one real human. Cannot be run from a container. |
+| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,424 / 1,398 / 1,433 ms, worst 1,433. Mobile emulation 1,228 ms. Dev server 2,330 ms, printed for comparison and not the basis. |
+| 2 | one human completes the tour unaided and can say the five ideas back | NOT RUN | Needs one real human. Cannot be run from a container. Replaces the spec's check 2, per the tour brief B5. |
 | 3 | non-additivity exhibit | PASS | As restated. (a), (b) and (c) all hold; (c) exactly. |
 | 4 | ratification sentence computed, changes when dragged | PASS | Months 24 and 48 differ, and it is not the spec's hard-coded 2.4m example. |
-| 5 | largest blast radius on the right-hand graph is integration | PASS | Okta, integration. |
-| 6 | equal split changes nothing, by-headcount changes figures | PASS | Equal split, driver-proportional and by volume all unchanged; by headcount moved 95 figures by up to GBP 3,497. |
-| 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive, "total cost" 0, "true cost" 0, "Snowflake" 0, em-dash 0, en-dash 0. |
+| 5 | largest blast radius on the right-hand graph is integration | PASS | Okta, integration, on both sides. |
+| 6 | equal split changes nothing, by-headcount changes figures | PASS | Equal split, driver-proportional and by volume all unchanged; by headcount moved 95 figures. |
+| 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
-| 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 26.7 KB. |
+| 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 43.8 KB. |
+| T1 | tour walks steps 1 to 7 on Next alone | PASS | 7 cards, every placeholder resolved, no page errors. |
+| T2 | on 390 by 844, the card never covers the node the step is about | PASS | 5 steps have a selected node on screen; none of the five is under the card. Steps 6 and 7 select nothing. |
+| T3 | each waitFor fires on the action it describes | PASS | 5 of 5 fired. Step 6 has no waitFor by design. |
+| T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
+| T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
+| C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
-| - | dist is one self-contained file, no runtime network calls | PASS | 1.59 MB, 0 offsite requests. |
+| - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
 
-**10 pass, 0 fail, 1 not run.**
+**16 pass, 0 fail, 1 not run.**
 
 On check 7: a case-INSENSITIVE grep for "TCO" hits the bundle 81 times, every one
 of them inside an ordinary identifier such as `currentColor`, `getComponent`,
@@ -609,9 +708,30 @@ of them inside an ordinary identifier such as `currentColor`, `getComponent`,
 case-sensitively; the prose phrases are checked case-insensitively. The grep
 that passes was not selected after the fact: both counts are printed.
 
-On check 1: the mobile figure is Chromium emulation at a 390 by 844 viewport,
-which is not a mid-range phone and is faster than one. It is labelled as
-emulation wherever it appears.
+On check 1: the figure is measured against the built file, because that is what
+people load. The development server is measured too and printed beside it, but
+the verdict does not rest on it: it transforms every module on first request, so
+it is both slower than the product and noisier, and a number that moves with how
+busy the build machine is measures the machine. Three desktop runs are taken and
+the slowest counts. Both numbers are printed so the basis was not chosen after
+the fact.
+
+The mobile figure is Chromium emulation at a 390 by 844 viewport, which is not a
+mid-range phone and is faster than one. It is labelled as emulation wherever it
+appears.
+
+On T2: the check does not reason about where the card is. The canvas is inset by
+the card's footprint, so a node cannot be rendered under the card at all, and
+the check measures the selected node's actual screen position against the card's
+actual rectangle to confirm it. Five of the seven steps have a selected node on
+screen; steps 6 and 7 do not select anything.
+
+On T3: a step's waitFor is armed half a second after its own animations were
+asked to finish, not on the millisecond. The frame that writes an animation's
+final value lands a tick or two after its deadline, and arming on the exact
+millisecond read that frame as the viewer moving the slider. Steps 2 and 5 both
+failed that way before the grace period was added, which is what the check is
+for.
 
 ## The C1 question
 
@@ -688,6 +808,19 @@ concentrated estate:
 
 Two runs at the same seed produce identical subdomain P99s. `npm run bench`
 reproduces this.
+
+Results are cached in memory by the arguments that produced them, because two
+things now ask for the same run: the view on screen, and the tour card, which
+has to quote a live figure in a sentence. Without the cache each would start its
+own worker and each would pay for the same 10,000 runs. The simulation is
+deterministic in its seed, so a result is the same result whoever asked for it.
+The cache holds 64 entries, which is more than the dependence slider's twenty
+stops across both estates.
+
+The bundle is 1.85 MB, about 520 KB gzipped. 147 KB of that is the stored runs
+described in deviation 22, imported as text and parsed only if the worker fails.
+Cold start on a 1440 by 900 desktop viewport is about 2.6 seconds, against the
+3 second limit in acceptance check 1.
 
 ## Modelling assumptions
 

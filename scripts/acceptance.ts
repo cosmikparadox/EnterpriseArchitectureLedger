@@ -1,7 +1,7 @@
 // Spec section 10, run end to end against the built bundle and a real browser.
 // Every check prints PASS, FAIL or NOT RUN with the evidence behind it.
 
-import { readFileSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { createServer as createHttp } from 'node:http'
 import { createServer } from 'vite'
 import { launch } from './browser.ts'
@@ -12,7 +12,7 @@ const add = (n: string, verdict: 'PASS' | 'FAIL' | 'NOT RUN', detail: string) =>
 // ---- 7. grep the built bundle -------------------------------------------
 const dist = readFileSync('dist/index.html', 'utf8')
 const caseSensitive = (dist.match(/TCO/g) ?? []).length
-const phrases = ['total cost', 'true cost', 'snowflake'].map((p) => ({
+const phrases = ['total cost', 'true cost', 'snowflake', 'infonomics'].map((p) => ({
   p, n: (dist.toLowerCase().match(new RegExp(p, 'g')) ?? []).length,
 }))
 const emDash = (dist.match(/—/g) ?? []).length
@@ -22,6 +22,28 @@ add('7 forbidden strings in the bundle', grepTotal === 0 ? 'PASS' : 'FAIL',
   `TCO ${caseSensitive} (case-sensitive), ` + phrases.map((x) => `"${x.p}" ${x.n}`).join(', ') +
   `, em-dash ${emDash}, en-dash ${enDash}`)
 
+// ---- T5. Three words the writing must not reach for ---------------------
+//
+// Checked against our own source rather than the built bundle, and both counts
+// are printed so the passing grep is not the one chosen after the fact. The
+// bundle is not the right place to look for these: "seamless" is an HTML
+// attribute name and appears once inside React's attribute table, in a
+// space-separated list of identifiers, which is not writing. Same reason check 7
+// tests TCO case-sensitively.
+const ownSource = readdirSync('src', { recursive: true, encoding: 'utf8' })
+  .filter((f) => /\.(ts|tsx|css)$/.test(f))
+  .map((f) => readFileSync(`src/${f}`, 'utf8'))
+  .join('\n')
+const t5 = ['leverage', 'seamless', 'journey'].map((w) => ({
+  w,
+  own: (ownSource.toLowerCase().match(new RegExp(w, 'g')) ?? []).length,
+  bundle: (dist.toLowerCase().match(new RegExp(w, 'g')) ?? []).length,
+}))
+const t5Own = t5.reduce((a, b) => a + b.own, 0)
+add('T5 forbidden words in our own writing', t5Own === 0 ? 'PASS' : 'FAIL',
+  t5.map((x) => `"${x.w}" ours ${x.own}, bundle ${x.bundle}`).join('; ') +
+  '. Bundle hits are library identifiers, not prose.')
+
 // ---- browser checks ------------------------------------------------------
 const server = await createServer({ server: { port: 5190 }, logLevel: 'error' })
 await server.listen()
@@ -30,33 +52,53 @@ const browser = await launch()
 const VIEWS = ['1 Explore', '2 Fixed pool', '3 Risk', '4 Footprint', '5 Two shapes', '6 Boundaries']
 
 // 1. cold start to interactive graph
+//
+// Measured against the BUILT FILE, because that is the thing people load. The
+// development server is also measured and reported, but it is not what the
+// check turns on: it transforms every module on first request, so it is both
+// slower than the product and noisier, and a figure that moves with how busy
+// the build machine is measures the machine.
+//
+// Both numbers are printed, so the one the verdict rests on was not chosen
+// after the fact. Three runs, and the slowest is the one that counts.
 {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
-  const page = await ctx.newPage()
-  const t0 = Date.now()
-  await page.goto('http://localhost:5190/', { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('canvas')
-  await page.waitForFunction(() => {
-    const c = document.querySelector('canvas') as HTMLCanvasElement | null
-    return !!c && c.width > 0
-  })
-  const desktopMs = Date.now() - t0
-  await ctx.close()
+  const built = readFileSync('dist/index.html')
+  const srv = createHttp((_q, r) => { r.setHeader('content-type', 'text/html'); r.end(built) })
+  await new Promise<void>((res) => srv.listen(5192, res))
 
-  const m = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
-  const mp = await m.newPage()
-  const t1 = Date.now()
-  await mp.goto('http://localhost:5190/', { waitUntil: 'domcontentloaded' })
-  await mp.waitForSelector('canvas')
-  const mobileMs = Date.now() - t1
-  await m.close()
+  const timeTo = async (url: string, mobile: boolean) => {
+    const ctx = await browser.newContext(mobile
+      ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }
+      : { viewport: { width: 1440, height: 900 } })
+    const page = await ctx.newPage()
+    const t0 = Date.now()
+    await page.goto(url, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('canvas')
+    await page.waitForFunction(() => {
+      const c = document.querySelector('canvas') as HTMLCanvasElement | null
+      return !!c && c.width > 0
+    })
+    const ms = Date.now() - t0
+    await ctx.close()
+    return ms
+  }
+
+  const desktopRuns: number[] = []
+  for (let i = 0; i < 3; i++) desktopRuns.push(await timeTo('http://localhost:5192/#/explore', false))
+  const desktopMs = Math.max(...desktopRuns)
+  const mobileMs = await timeTo('http://localhost:5192/#/explore', true)
+  const devMs = await timeTo('http://localhost:5190/#/explore', false)
+  srv.close()
 
   add('1 cold start under 3s laptop, 6s phone', desktopMs < 3000 && mobileMs < 6000 ? 'PASS' : 'FAIL',
-    `desktop ${desktopMs} ms, mobile EMULATION ${mobileMs} ms. Emulation is not a mid-range phone.`)
+    `built file: desktop ${desktopRuns.join('/')} ms, worst ${desktopMs}; mobile EMULATION ${mobileMs} ms. ` +
+    `Dev server for comparison: ${devMs} ms, not the basis of this check. Emulation is not a mid-range phone.`)
 }
 
-// 2. requires a human
-add('2 executive finds the fan-in slider unaided', 'NOT RUN',
+// 2. requires a human. Replaced by the tour brief B5: the old check asked
+// whether one person could find one slider; the new one asks whether the tour
+// teaches, which is the thing that now has to be true.
+add('2 one human completes the tour unaided and can say the five ideas back', 'NOT RUN',
   'Requires one real human. Cannot be run from a container. Owner will run and record it.')
 
 // 3, 4, 5, 6, 8 in one pass
@@ -65,7 +107,7 @@ add('2 executive finds the fan-in slider unaided', 'NOT RUN',
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/', { waitUntil: 'load' })
+  await page.goto('http://localhost:5190/#/explore', { waitUntil: 'load' })
   await page.waitForSelector('canvas')
   await page.waitForTimeout(3500)
 
@@ -179,13 +221,187 @@ add('3 non-additivity, as restated', 'PASS',
   const page = await ctx.newPage()
   const offsite: string[] = []
   page.on('request', (r) => { if (!r.url().startsWith('http://localhost:5191')) offsite.push(r.url()) })
-  await page.goto('http://localhost:5191/', { waitUntil: 'load' })
+  await page.goto('http://localhost:5191/#/explore', { waitUntil: 'load' })
   await page.waitForSelector('canvas')
   await page.waitForTimeout(2500)
   add('11 dist is one self-contained file, no runtime network calls',
     offsite.length === 0 ? 'PASS' : 'FAIL',
     `${(statSync('dist/index.html').size / 1024 / 1024).toFixed(2)} MB, offsite requests ${offsite.length}`)
   await ctx.close(); srv.close()
+}
+
+// ---- T1 to T4, the guided tour ------------------------------------------
+//
+// T1 walks the whole tour with Next only. T2 repeats it on a phone and checks
+// the card never covers the node the step is about. T3 performs each step's
+// asked-for action by script and waits for the tick. T4 cold-loads one step.
+
+const TOUR_STEPS_N = 7
+
+// Long enough for each step's own animations to finish before the card is read:
+// step 2 animates over 1.5s, step 3 waits 2s, step 4 sweeps for about 4s.
+const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
+
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/tour/1', { waitUntil: 'load' })
+  await page.waitForSelector('.tour-card')
+
+  const unresolved: string[] = []
+  const missing: string[] = []
+  for (let n = 1; n <= TOUR_STEPS_N; n++) {
+    await page.waitForTimeout(STEP_SETTLE[n - 1] ?? 2000)
+    const visible = await page.locator('.tour-card').isVisible()
+    if (!visible) missing.push(`step ${n}`)
+    const text = await page.locator('.tour-card').innerText()
+    // Every GBP placeholder resolved: no braces and no ellipsis left in a
+    // sentence that should be carrying a number.
+    if (text.includes('{') || text.includes('...')) unresolved.push(`step ${n}: ${text.replace(/\n/g, ' ').slice(0, 90)}`)
+    const counter = await page.locator('.tour-count').innerText()
+    // innerText returns the text as rendered, and the card small-caps the
+    // counter, so this compares what was written rather than how it is drawn.
+    if (counter.trim().toLowerCase() !== `${n} of ${TOUR_STEPS_N}`) missing.push(`counter at ${n} read "${counter.trim()}"`)
+    if (n < TOUR_STEPS_N) {
+      await page.getByRole('button', { name: 'Next', exact: true }).click()
+    }
+  }
+  const t1ok = errors.length === 0 && unresolved.length === 0 && missing.length === 0
+  add('T1 tour walks 1 to 7 on Next alone', t1ok ? 'PASS' : 'FAIL',
+    t1ok
+      ? `7 cards, every placeholder resolved, no page errors`
+      : `errors ${errors.length}; unresolved ${unresolved.join(' | ')}; missing ${missing.join(', ')}`)
+  await ctx.close()
+}
+
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/tour/1', { waitUntil: 'load' })
+  await page.waitForSelector('.tour-card')
+
+  const overlaps: string[] = []
+  let measured = 0
+  for (let n = 1; n <= TOUR_STEPS_N; n++) {
+    await page.waitForTimeout(STEP_SETTLE[n - 1] ?? 2000)
+    const card = await page.locator('.tour-card').boundingBox()
+    const pos = await page.evaluate(() => document.documentElement.dataset.selectedScreen ?? null)
+    if (card && pos) {
+      measured++
+      const [x, y] = pos.split(',').map(Number) as [number, number]
+      // The node is a disc, not a point. Half the largest node's on-screen
+      // radius is well inside the margin the inset gives, so a plain point test
+      // with a pad is honest here.
+      const pad = 24
+      const inside = x > card.x - pad && x < card.x + card.width + pad &&
+                     y > card.y - pad && y < card.y + card.height + pad
+      if (inside) overlaps.push(`step ${n}: node at ${x},${y} under card at ${Math.round(card.y)}`)
+    }
+    if (n < TOUR_STEPS_N) await page.getByRole('button', { name: 'Next', exact: true }).click()
+  }
+  const t2ok = overlaps.length === 0 && errors.length === 0
+  add('T2 on 390x844 the card never covers the node', t2ok ? 'PASS' : 'FAIL',
+    t2ok ? `${measured} steps had a selected node on screen, none under the card`
+         : overlaps.join(' | '))
+  await ctx.close()
+}
+
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  // Each step's waitFor, and the action that should satisfy it. Performed
+  // through the same controls a person would use where there is one, and
+  // through the store where the action is "select a different node in 3D".
+  const actions: { step: number; what: string; run: () => Promise<void> }[] = [
+    { step: 1, what: 'select a different platform', run: async () => {
+      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
+    } },
+    { step: 2, what: 'change the allocation basis', run: async () => {
+      await page.getByLabel('Allocation basis for the fixed pool').selectOption('driver')
+    } },
+    { step: 3, what: 'fail a different node', run: async () => {
+      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { failIt: (s: string) => void } } }).__ledger?.getState().failIt('meridian'))
+    } },
+    { step: 4, what: 'move the dependence slider', run: async () => {
+      await page.getByLabel('Dependence between platform failures, rho').fill('0.35')
+    } },
+    { step: 5, what: 'move the month cursor', run: async () => {
+      await page.getByLabel('Month the platform was ratified as strategic').fill('40')
+    } },
+  ]
+  const fired: string[] = []
+  const silent: string[] = []
+  for (const a of actions) {
+    await page.goto(`http://localhost:5190/#/tour/${a.step}`, { waitUntil: 'load' })
+    await page.waitForSelector('.tour-card')
+    await page.waitForTimeout(STEP_SETTLE[a.step - 1] ?? 2000)
+    if (await page.locator('.tour-tick').count() > 0) { silent.push(`step ${a.step} ticked before the action`); continue }
+    await a.run()
+    await page.waitForTimeout(900)
+    const ticked = await page.locator('.tour-tick').count() > 0
+    if (ticked) fired.push(`${a.step} ${a.what}`)
+    else silent.push(`step ${a.step} did not tick on ${a.what}`)
+  }
+  add('T3 each waitFor fires on the action it describes', silent.length === 0 ? 'PASS' : 'FAIL',
+    silent.length === 0 ? `${fired.length} of 5 fired; step 6 has no waitFor by design` : silent.join(' | '))
+  await ctx.close()
+}
+
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/tour/5', { waitUntil: 'load' })
+  await page.waitForSelector('.tour-card')
+  await page.waitForTimeout(4500)
+  const counter = (await page.locator('.tour-count').innerText()).trim()
+  const view = (await page.locator('.rail button[aria-current="true"] .t').innerText()).trim()
+  const selected = (await page.locator('.panel h2').first().innerText()).trim()
+  const ok = counter.toLowerCase() === '5 of 7' && view === 'Footprint' && selected === 'Meridian Data Cloud' && errors.length === 0
+  add('T4 deep link to one step cold-loads into it', ok ? 'PASS' : 'FAIL',
+    `counter "${counter}", view "${view}", selected "${selected}", page errors ${errors.length}`)
+  await ctx.close()
+}
+
+// ---- C3. The site points at nothing else ---------------------------------
+//
+// The rule is that this page must not link to, mention, or share navigation
+// with any other site of the owner's. Two things are checked: the bundle carries
+// no mention of the other property (that is the "infonomics" line in check 7),
+// and nothing the page actually renders is a link off this origin.
+//
+// The bundle does contain a handful of URLs, all of them inside vendored
+// libraries: three.js issue links, a React error-decoder address, a shader
+// citation. None is reachable from the interface. They are listed here rather
+// than filtered silently.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const offsiteLinks: string[] = []
+  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/7']) {
+    await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
+    await page.waitForTimeout(hash === '#/' ? 400 : 2000)
+    const hrefs = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('a[href]')).map((a) => (a as HTMLAnchorElement).href))
+    for (const h of hrefs) {
+      if (!h.startsWith('http://localhost:5190')) offsiteLinks.push(`${hash}: ${h}`)
+    }
+  }
+  const bundleHosts = Array.from(new Set(
+    (dist.match(/https?:\/\/[a-zA-Z0-9.-]+/g) ?? [])
+      .filter((u) => !u.includes('w3.org')),
+  ))
+  add('C3 nothing on the page links to another site',
+    offsiteLinks.length === 0 ? 'PASS' : 'FAIL',
+    offsiteLinks.length === 0
+      ? `0 offsite links across 8 routes. Bundle mentions ${bundleHosts.length} host(s), none rendered: ${bundleHosts.join(', ')}. All are vendored library internals except example.invalid, which is the unset Medium placeholder and is why the Medium line is not drawn.`
+      : offsiteLinks.join(' | '))
+  await ctx.close()
 }
 
 await browser.close()

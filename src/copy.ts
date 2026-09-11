@@ -158,7 +158,7 @@ export const copy = {
   tour_did_it: 'You did that.',
 
   tour_1_do:
-    'Drag to turn the graph, then click one of the small nodes joined to the ' +
+    'Drag to turn the graph, then tap one of the small nodes joined to the ' +
     'lit one.',
   tour_1_see:
     'Everything joined to the lit node needs that node working before it can ' +
@@ -185,8 +185,8 @@ export const copy = {
   tour_3_see:
     'One node stopping takes work out across several teams at the same time.',
   tour_3_cost:
-    'Priced one use case at a time {sub} comes to GBP {sum}, together GBP ' +
-    '{joint}.',
+    'Priced one use case at a time, {sub} comes to GBP {sum}. Priced ' +
+    'together, GBP {joint}.',
   tour_3_more:
     'The first figure sums the per use case P99s. The second is the P99 of ' +
     'the joint loss. See 9.8.3.',
@@ -199,8 +199,8 @@ export const copy = {
   tour_4_cost:
     'Across the full range the {sub} figure ran from GBP {lo} to GBP {hi}.',
   tour_4_more:
-    'The slider is rho under a Student t copula at four degrees of freedom. ' +
-    'Nothing here measures it.',
+    'The slider is rho under a Student t copula, four degrees of freedom. It ' +
+    'is a declared input, not a measurement.',
 
   tour_5_do:
     'Drag the month handle back and forth across the marked month.',
@@ -215,7 +215,8 @@ export const copy = {
     'ratified the node.',
 
   tour_6_do:
-    'Compare the two estates, and look at the largest single node on each side.',
+    'Compare the two estates. On each side, find the node that would take the ' +
+    'most work down with it.',
   tour_6_see:
     'Splitting the estate into specialists did not remove the shared node, it ' +
     'moved it.',
@@ -229,14 +230,17 @@ export const copy = {
   // Closing card.
   tour_7_h_what: 'What this is',
   tour_7_what:
-    'A synthetic estate and a way of measuring it. It is not a product and ' +
-    'not a measurement.',
+    'An invented insurer and a way of pricing its architecture. Nothing here ' +
+    'is a real measurement.',
   tour_7_h_not: 'What it does not do',
   tour_7_not:
     'It will not add your estate up to one number. It cannot say where a ' +
     'boundary belongs, or what leaving would really cost.',
   tour_7_h_read: 'Read the argument',
-  tour_7_read: 'Part 1 of the written argument. Archived at DOI {doi}.',
+  // Two lines. The DOI line always shows; the Medium line is gated on the URL
+  // being real, so the placeholder is never rendered as a link.
+  tour_7_read: 'Archived at DOI {doi}.',
+  tour_7_read_link: 'Part 1 of the written argument.',
   tour_7_built:
     'Built with heavy AI assistance, under a written specification and an ' +
     'acceptance suite. Every deviation from the source document is listed in ' +
@@ -244,8 +248,11 @@ export const copy = {
   tour_7_explore: 'Explore on your own',
   tour_7_restart: 'Start again',
 
-  // Placeholder. The owner supplies the real address before the site is served.
+  // Placeholder. The owner supplies the real address before the site is
+  // served, and until then the Medium line is not rendered at all: a link to
+  // example.invalid is worse than no link.
   tour_medium_url: 'https://example.invalid/the-architecture-ledger-part-1',
+  tour_medium_placeholder_host: 'example.invalid',
   tour_doi: '10.5281/zenodo.21863761',
 } as const
 

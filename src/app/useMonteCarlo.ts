@@ -35,6 +35,35 @@ function precomputedIndex(): PrecomputedIndex {
 /** How long to wait for the worker to answer a ping before giving up on it. */
 const HANDSHAKE_MS = 2500
 
+/**
+ * Results already computed, keyed by the arguments that produced them.
+ *
+ * Two things ask for the same run: the view on screen, and the tour card, which
+ * has to quote a live figure in a sentence. Without this they would each start a
+ * worker and each pay for the same 10,000 runs. The simulation is deterministic
+ * in its seed, so a result for a given set of arguments is the same result
+ * whoever asked for it.
+ *
+ * Bounded because the dependence slider steps in twentieths and a long session
+ * would otherwise keep every run it ever made.
+ */
+const CACHE_LIMIT = 64
+const cache = new Map<string, McResult>()
+
+function cacheKey(estate: Estate, rho: number, runs: number, nu: number, seed: number): string {
+  return `${estate.provenance.graph_version}|${rho}|${runs}|${nu}|${seed}`
+}
+
+function remember(key: string, result: McResult): void {
+  cache.delete(key)
+  cache.set(key, result)
+  while (cache.size > CACHE_LIMIT) {
+    const oldest = cache.keys().next().value
+    if (oldest === undefined) break
+    cache.delete(oldest)
+  }
+}
+
 export interface McState {
   result: McResult | null
   running: boolean
@@ -50,6 +79,9 @@ export function useMonteCarlo(estate: Estate, rho: number, runs: number, nu = 4,
   const worker = useRef<Worker | null>(null)
   const nextId = useRef(0)
   const pending = useRef<number | null>(null)
+  // The key the in-flight request was made under, so the answer is filed where
+  // the next asker will look for it.
+  const pendingKey = useRef('')
   const [workerOk, setWorkerOk] = useState<boolean | null>(null)
   const [state, setState] = useState<McState>({
     result: null, running: true, elapsedMs: 0, offline: false, snappedRho: null,
@@ -71,6 +103,7 @@ export function useMonteCarlo(estate: Estate, rho: number, runs: number, nu = 4,
       if (ev.data.pong) { clearTimeout(timer); setWorkerOk(true); return }
       if (ev.data.requestId !== pending.current || !ev.data.result) return
       const result = ev.data.result
+      remember(pendingKey.current, result)
       setState({ result, running: false, elapsedMs: result.elapsedMs, offline: false, snappedRho: null })
     }
     w.postMessage({ ping: true })
@@ -82,11 +115,18 @@ export function useMonteCarlo(estate: Estate, rho: number, runs: number, nu = 4,
     if (workerOk !== true) return
     const w = worker.current
     if (!w) return
+    const key = cacheKey(estate, rho, runs, nu, seed)
+    const hit = cache.get(key)
+    if (hit) {
+      setState({ result: hit, running: false, elapsedMs: hit.elapsedMs, offline: false, snappedRho: null })
+      return
+    }
     setState((s) => ({ ...s, running: true }))
     // Coalesce slider drags: only the last request in a burst is sent.
     const t = setTimeout(() => {
       const id = ++nextId.current
       pending.current = id
+      pendingKey.current = key
       const req: McRequest & { requestId: number } = { requestId: id, estate, rho, nu, runs, seed }
       w.postMessage(req)
     }, 90)

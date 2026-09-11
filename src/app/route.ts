@@ -93,16 +93,16 @@ export function useHashRoute(): void {
 
   const first = useRef(true)
   useEffect(() => {
+    // The first pass is skipped deliberately. On mount this effect's view and
+    // tourStep are the store's defaults, captured before the effect above has
+    // had a chance to read the address bar, so acting on them would overwrite
+    // the hash the page was opened on with #/ and throw away the deep link.
+    // apply() has already normalised the hash by the time this runs.
+    if (first.current) { first.current = false; return }
     const want = hashFor(view, tourStep)
     // Compare through the parser so #/explore and #explore are not a loop.
     const here = parseHash(location.hash)
-    if (hashFor(here.view, here.tourStep) === want && location.hash !== '') return
-    if (first.current) {
-      // Normalising the hash the page was opened on is not navigation.
-      first.current = false
-      history.replaceState(null, '', want)
-      return
-    }
+    if (hashFor(here.view, here.tourStep) === want) return
     // Assigning the hash pushes an entry, so the browser back button walks the
     // views and the tour steps. The hashchange this raises is absorbed by the
     // guards in the listener above.

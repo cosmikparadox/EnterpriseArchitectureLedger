@@ -28,3 +28,18 @@ export function useLayoutReport(): (nodes: { id: string; x: number; y: number; z
     document.documentElement.dataset.layout = layoutDigest(nodes)
   }, [])
 }
+
+/**
+ * Where the selected node currently is on screen, in viewport pixels, published
+ * the same way and for the same reason.
+ *
+ * The tour promises that the card never covers the node a step is talking about.
+ * The canvas is inset by the card's footprint so that holds by construction, but
+ * a promise nothing checks is a promise that quietly stops being true, and this
+ * is what acceptance T2 measures against the card's own rectangle.
+ */
+export function reportSelectedScreenPos(pos: { x: number; y: number } | null): void {
+  const root = document.documentElement
+  if (!pos) { delete root.dataset.selectedScreen; return }
+  root.dataset.selectedScreen = `${Math.round(pos.x)},${Math.round(pos.y)}`
+}
