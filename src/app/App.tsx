@@ -19,6 +19,7 @@ import { Risk } from '../views/Risk'
 import { Footprint } from '../views/Footprint'
 import { TwoShapes } from '../views/TwoShapes'
 import { Boundaries } from '../views/Boundaries'
+import { Landing } from '../views/Landing'
 
 const estate = estateJson as unknown as Estate
 const bestOfBreed = bestOfBreedJson as unknown as Estate
@@ -63,14 +64,19 @@ export function App() {
   const ix = useMemo(() => buildIndex(estate), [])
   const p = estate.provenance
 
+  // The front page is the four things the brief lists and nothing else, so the
+  // view rail is not on it. The two buttons are the way in.
+  const onLanding = view === 'landing'
+
   return (
-    <div className="app">
+    <div className={onLanding ? 'app landing-mode' : 'app'}>
+      {!onLanding && (
       <nav className="rail" aria-label="Views">
         <div className="rail-mark">Ledger</div>
         {VIEWS.map((v) => (
           <button
             key={v.n}
-            aria-current={view === v.n || (v.n === 1 && view === 'landing')}
+            aria-current={view === v.n}
             disabled={!v.ready}
             onClick={() => setView(v.n as View)}
             title={v.ready ? v.t : v.t + ' is not built yet'}
@@ -80,10 +86,11 @@ export function App() {
           </button>
         ))}
       </nav>
+      )}
 
       <main className="main">
-        {/* The landing page is Part B. Until it lands, #/ shows view 1. */}
-        {(view === 1 || view === 'landing') && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
+        {view === 'landing' && <Landing />}
+        {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}

@@ -9,6 +9,16 @@ export const copy = {
   // Spec hard rule E. Every screen carries this.
   footer: 'Illustrative data. Synthetic estate. Not a measurement.',
 
+  // ---- the front page, tour brief B1. Title and sentence are the owner's,
+  // reproduced unchanged.
+  landing_title: 'The Architecture Ledger',
+  landing_sentence:
+    'An interactive model of one invented insurer, built to show what ' +
+    'architecture decisions cost when you price them in money instead of ' +
+    'colours.',
+  landing_start: 'Start the tour',
+  landing_explore: 'Just explore',
+
   intro:
     'A platform is a shared node. Use cases plug into it. Part of what each ' +
     'use case is told it costs is a rule, not a meter reading. Risk travels ' +
@@ -122,6 +132,121 @@ export const copy = {
     'page is opened straight off disk. The figures below are a stored run of ' +
     '{runs} at rho {rho}, the nearest stored point. Serve the folder over ' +
     'http to move the slider freely.',
+
+  // -------------------------------------------------------------------------
+  // The guided tour. Brief B3 and B4.
+  //
+  // Three sentences a step, in a fixed order and never labelled: what to do,
+  // what you are looking at, what it costs. Every cost sentence carries a GBP
+  // figure filled in from the running tool through fill(), never a number typed
+  // in here. Each sentence is under twenty words.
+  //
+  // The do and see sentences use no jargon. "Fan-in", "copula", "P99" and
+  // "comonotonic" appear only in the optional more line, which is closed until
+  // somebody asks for it.
+  //
+  // Step 7 is not three sentences. It is the closing card, and the brief sets
+  // its shape: four blocks and two buttons.
+  // -------------------------------------------------------------------------
+
+  // Card chrome.
+  tour_counter: '{n} of {total}',
+  tour_back: 'Back',
+  tour_next: 'Next',
+  tour_skip: 'Skip tour',
+  tour_more: 'More detail',
+  tour_did_it: 'You did that.',
+
+  tour_1_do:
+    'Drag to turn the graph, then click one of the small nodes joined to the ' +
+    'lit one.',
+  tour_1_see:
+    'Everything joined to the lit node needs that node working before it can ' +
+    'do anything.',
+  tour_1_cost:
+    'The work plugged into this one node is billed GBP {spend} a month.',
+  tour_1_more:
+    'Fan-in is how many use cases ride one node. This one carries {riders}.',
+
+  tour_2_do:
+    'Watch three use cases arrive on this node, then move the slider yourself.',
+  tour_2_see:
+    'The use case you were reading did nothing different, and its number ' +
+    'moved anyway.',
+  tour_2_cost:
+    'Its monthly figure went from GBP {before} to GBP {after} with its own ' +
+    'usage flat.',
+  tour_2_more:
+    'The part that moved is the rule share, allocated on a declared basis. ' +
+    'See 9.2.8.',
+
+  tour_3_do:
+    'Press Fail it on a different node and watch which use cases go dark.',
+  tour_3_see:
+    'One node stopping takes work out across several teams at the same time.',
+  tour_3_cost:
+    'Priced one use case at a time {sub} comes to GBP {sum}, together GBP ' +
+    '{joint}.',
+  tour_3_more:
+    'The first figure sums the per use case P99s. The second is the P99 of ' +
+    'the joint loss. See 9.8.3.',
+
+  tour_4_do:
+    'Move the dependence slider yourself, from one end to the other and back.',
+  tour_4_see:
+    'How often platforms fail together changes the answer, and nothing here ' +
+    'measures that.',
+  tour_4_cost:
+    'Across the full range the {sub} figure ran from GBP {lo} to GBP {hi}.',
+  tour_4_more:
+    'The slider is rho under a Student t copula at four degrees of freedom. ' +
+    'Nothing here measures it.',
+
+  tour_5_do:
+    'Drag the month handle back and forth across the marked month.',
+  tour_5_see:
+    'By the time this node reached the board, the estate was already built ' +
+    'on it.',
+  tour_5_cost:
+    'At that month the execution work of leaving had already reached about ' +
+    'GBP {exec}.',
+  tour_5_more:
+    'Riders attach in adoption order. The marker is the month the board ' +
+    'ratified the node.',
+
+  tour_6_do:
+    'Compare the two estates, and look at the largest single node on each side.',
+  tour_6_see:
+    'Splitting the estate into specialists did not remove the shared node, it ' +
+    'moved it.',
+  tour_6_cost:
+    'The same subdomain sits at GBP {left} on one side and GBP {right} on the ' +
+    'other.',
+  tour_6_more:
+    'Both figures are the joint P99 loss for {sub} at the dependence ' +
+    'currently set.',
+
+  // Closing card.
+  tour_7_h_what: 'What this is',
+  tour_7_what:
+    'A synthetic estate and a way of measuring it. It is not a product and ' +
+    'not a measurement.',
+  tour_7_h_not: 'What it does not do',
+  tour_7_not:
+    'It will not add your estate up to one number. It cannot say where a ' +
+    'boundary belongs, or what leaving would really cost.',
+  tour_7_h_read: 'Read the argument',
+  tour_7_read: 'Part 1 of the written argument. Archived at DOI {doi}.',
+  tour_7_built:
+    'Built with heavy AI assistance, under a written specification and an ' +
+    'acceptance suite. Every deviation from the source document is listed in ' +
+    'the README.',
+  tour_7_explore: 'Explore on your own',
+  tour_7_restart: 'Start again',
+
+  // Placeholder. The owner supplies the real address before the site is served.
+  tour_medium_url: 'https://example.invalid/the-architecture-ledger-part-1',
+  tour_doi: '10.5281/zenodo.21863761',
 } as const
 
 export type CopyKey = keyof typeof copy
