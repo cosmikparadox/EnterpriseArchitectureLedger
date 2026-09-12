@@ -345,9 +345,10 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 /* ---- the intro, tour step 0 ----
-   The working interface fades out around the graph and the title card sits
-   over the canvas while the estate assembles behind it. The footer stays: it
-   is on every screen by rule, and this is a screen. */
+   The working interface fades out around the graph. The card takes the column
+   the panel normally has, and the canvas ends where the card begins, so the
+   estate assembling is never behind it. The footer stays: it is on every
+   screen by rule, and this is a screen. */
 .app.intro-open .rail,
 .app.intro-open .topbar,
 .app.intro-open .panel,
@@ -355,37 +356,43 @@ button, input, select { font: inherit; color: inherit; }
 .app.intro-open .legend { opacity: 0; pointer-events: none; }
 .rail, .topbar, .panel, .panel-tab, .legend { transition: opacity 600ms ease; }
 .intro {
-  position: absolute; inset: 0; z-index: 30;
-  display: flex; align-items: center; justify-content: center;
-  padding: 24px;
-  pointer-events: none;
+  position: absolute; z-index: 30;
+  background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 10px 34px rgba(0,0,0,0.20);
+  overflow: auto; overscroll-behavior: contain;
   transition: opacity 700ms ease;
 }
 .intro-leaving { opacity: 0; }
-.intro-card {
-  pointer-events: auto;
-  max-width: 520px; width: 100%;
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-  backdrop-filter: blur(6px);
-  border: 1px solid var(--line); border-radius: 10px;
-  padding: 22px 24px 18px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+.intro h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 10px; }
+.intro-layer {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 6px; font-variant-numeric: tabular-nums;
 }
-.intro-card h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 12px; }
-.intro-line { margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: var(--ink-2); min-height: 3.1em; animation: intro-in 500ms ease; }
+.intro-line { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--ink); animation: intro-in 400ms ease; }
+.intro-see { margin: 0 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); animation: intro-in 400ms ease; }
 @keyframes intro-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.intro-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.intro-beats { display: flex; gap: 5px; margin-top: 16px; }
+.intro-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.intro-actions .tour-skip { margin-left: auto; }
+.intro-beats { display: flex; gap: 5px; margin-top: 14px; }
 .intro-beats span { width: 22px; height: 3px; border-radius: 2px; background: var(--line); transition: background 300ms; }
 .intro-beats span.on { background: var(--accent); }
+@media (min-width: 900px) {
+  .intro { top: var(--tour-gap); right: var(--tour-gap); bottom: var(--tour-gap); width: var(--tour-card-w); }
+  /* Panel is hidden during the intro, so only the card takes room, whatever
+     panel-open says. */
+  .app.intro-open .graphwrap,
+  .app.intro-open .graphwrap.panel-open { --chrome-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+}
+@media (max-width: 899px) {
+  .intro { left: 0; right: 0; bottom: 0; max-height: var(--tour-card-h); border-radius: 12px 12px 0 0; border-left: 0; border-right: 0; border-bottom: 0; }
+  .app.intro-open .graphwrap,
+  .app.intro-open .graphwrap.panel-open { --chrome-right: 0px; --chrome-bottom: var(--tour-card-actual-h, var(--tour-card-h)); }
+}
 @media (prefers-reduced-motion: reduce) {
   .rail, .topbar, .panel, .panel-tab, .legend, .intro { transition: none; }
-  .intro-line { animation: none; }
-}
-@media (max-width: 720px) {
-  .intro { align-items: flex-start; padding-top: 10vh; }
-  .intro-card h1 { font-size: 20px; }
-  .intro-line { font-size: 14px; }
+  .intro-line, .intro-see { animation: none; }
 }
 
 /* ---- the guided tour card ----

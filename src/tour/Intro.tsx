@@ -8,20 +8,19 @@
 // in around the same graph, which has been there the whole time.
 //
 // It runs inside view 1, on view 1's own Graph3D, so nothing is laid out
-// twice. What this file owns is which nodes are lit at each beat, the sentence
-// for the beat, and the clock. Skip and Continue are always available; under
-// prefers-reduced-motion there is no clock at all and the estate is shown whole
-// with the last sentence.
+// twice. What this file owns is which nodes are lit at each beat and the words
+// for the beat. There is no clock: the viewer builds the estate a layer at a
+// time on Next, and can go Back, because a graph filling in on its own was not
+// self explaining and could not be paused. Under prefers-reduced-motion the
+// estate is shown whole with the last beat's words.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { copy, fill } from '../copy'
 import { useLedger } from '../app/store'
 import { usePrefersReducedMotion } from '../app/useNarrow'
 import type { Estate } from '../model/types'
 import type { Index } from '../model/ledger'
 
-/** How long each beat holds before the next, when nobody presses Continue. */
-const BEAT_MS = 3400
 /** How long the card takes to dissolve before the tour proper begins. */
 const DISSOLVE_MS = 700
 const LAST_BEAT = 5
@@ -35,6 +34,7 @@ export interface IntroState {
   hideLinksOf: Set<string>
   leaving: boolean
   advance: () => void
+  back: () => void
   skip: () => void
 }
 
@@ -69,14 +69,6 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     setShowHulls(true)
   }, [active, reduced, setSelectedId, setShowHulls])
 
-  // The clock. Cleared whenever the beat changes by hand, so Continue does not
-  // race the timer.
-  useEffect(() => {
-    if (!active || reduced || leaving) return
-    const t = setTimeout(() => setBeat((b) => Math.min(LAST_BEAT, b + 1)), BEAT_MS)
-    return () => clearTimeout(t)
-  }, [active, reduced, leaving, beat])
-
   // The last beat aims the camera at the busiest node and lights it.
   useEffect(() => {
     if (!active || beat < LAST_BEAT) return
@@ -110,13 +102,27 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     if (beat >= LAST_BEAT) setLeaving(true)
     else setBeat((b) => b + 1)
   }
+  const back = () => setBeat((b) => Math.max(0, b - 1))
   const skip = () => setLeaving(true)
 
-  return { active, beat, dimNodes, hideLinksOf, leaving, advance, skip }
+  return { active, beat, dimNodes, hideLinksOf, leaving, advance, back, skip }
 }
 
 export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Estate; ix: Index }) {
-  const { beat, leaving, advance, skip } = intro
+  const { beat, leaving, advance, back, skip } = intro
+  // Publish the card's real height so the canvas ends where the card begins
+  // when it is anchored to the bottom, the same way the tour card does.
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const root = document.documentElement
+    const publish = () => root.style.setProperty('--tour-card-actual-h', `${Math.ceil(el.getBoundingClientRect().height)}px`)
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h') }
+  }, [beat])
   const ridersOf = (id: string) => ix.ridersOf.get(id)?.length ?? 0
   const top = estate.platforms.reduce((a, p) => (ridersOf(p.id) > ridersOf(a.id) ? p : a), estate.platforms[0]!)
   const values = {
@@ -128,21 +134,28 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
     top_riders: ridersOf(top.id),
   }
   const lines = [copy.intro_1, copy.intro_2, copy.intro_3, copy.intro_4, copy.intro_5]
+  const layers = [copy.intro_1_layer, copy.intro_2_layer, copy.intro_3_layer, copy.intro_4_layer, copy.intro_5_layer]
+  const sees = [copy.intro_1_see, copy.intro_2_see, copy.intro_3_see, copy.intro_4_see, copy.intro_5_see]
   const line = beat === 0 ? copy.landing_sentence : fill(lines[beat - 1]!, values)
 
   return (
-    <div className={leaving ? 'intro intro-leaving' : 'intro'} role="dialog" aria-label="Introduction">
-      <div className="intro-card">
-        <h1>{copy.landing_title}</h1>
-        <p key={beat} className="intro-line">{line}</p>
-        <div className="intro-actions">
-          <button className="cta" onClick={advance} autoFocus>{copy.intro_continue}</button>
-          <button className="cta secondary" onClick={skip}>{copy.intro_skip}</button>
-        </div>
-        <div className="intro-beats" aria-hidden="true">
-          {[1, 2, 3, 4, 5].map((b) => <span key={b} className={b <= beat ? 'on' : ''} />)}
-        </div>
+    <aside className={leaving ? 'intro intro-leaving' : 'intro'} aria-label="Introduction" ref={cardRef}>
+      <h1>{copy.landing_title}</h1>
+      {beat > 0 && (
+        <div className="intro-layer">{beat} of {LAST_BEAT}, {layers[beat - 1]}</div>
+      )}
+      <p key={`l${beat}`} className="intro-line">{line}</p>
+      {beat > 0 && <p key={`s${beat}`} className="intro-see">{sees[beat - 1]}</p>}
+      <div className="intro-actions">
+        <button className="ctl" onClick={back} disabled={beat === 0}>{copy.intro_back}</button>
+        <button className="cta" onClick={advance} autoFocus>
+          {beat >= LAST_BEAT ? copy.intro_begin : copy.intro_next}
+        </button>
+        <button className="tour-skip" onClick={skip}>{copy.intro_skip}</button>
       </div>
-    </div>
+      <div className="intro-beats" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((b) => <span key={b} className={b <= beat ? 'on' : ''} />)}
+      </div>
+    </aside>
   )
 }

@@ -68,6 +68,47 @@ const HUBS = new Set(['okta', 'meridian', 'lakehouse'])
 
 interface Positioned { x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number }
 
+/** Everything built for one node, so state can be set on it without rebuilding. */
+interface NodeObjs {
+  mesh: THREE.Mesh
+  solid: THREE.MeshLambertMaterial
+  wire: THREE.MeshBasicMaterial
+  halo: THREE.Mesh
+  ring: THREE.Mesh
+  fail: THREE.Mesh
+  label: SpriteText | null
+  ringSprite: THREE.Sprite | null
+  colour: string
+}
+
+function disposeMesh(m: THREE.Mesh): void {
+  m.geometry.dispose()
+  const mat = m.material
+  if (Array.isArray(mat)) mat.forEach((x) => x.dispose())
+  else mat.dispose()
+}
+
+/** GPU resources do not go with the garbage collector. Every texture, geometry
+ *  and material made for a node is released here when the node is rebuilt or
+ *  the graph unmounts. */
+function disposeNode(o: NodeObjs): void {
+  o.mesh.geometry.dispose()
+  o.solid.dispose()
+  o.wire.dispose()
+  disposeMesh(o.halo)
+  disposeMesh(o.ring)
+  disposeMesh(o.fail)
+  if (o.label) {
+    const lm = o.label.material as THREE.SpriteMaterial
+    lm.map?.dispose()
+    lm.dispose()
+  }
+  if (o.ringSprite) {
+    o.ringSprite.material.map?.dispose()
+    o.ringSprite.material.dispose()
+  }
+}
+
 export function Graph3D(props: Graph3DProps) {
   const holder = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,6 +123,14 @@ export function Graph3D(props: Graph3DProps) {
     if (!el) return
     const g = ForceGraph3D()(el)
     gRef.current = g
+
+    // Broad device support. A 3x display pays nine times the fill for a graph
+    // that does not need it; 1.5 is where the edge of a sphere stops looking
+    // stepped and the cost stops climbing. And a hidden tab renders nothing:
+    // the loop is paused until it is looked at again.
+    g.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
+    const onVisibility = () => { document.hidden ? g.pauseAnimation() : g.resumeAnimation() }
+    document.addEventListener('visibilitychange', onVisibility)
 
     g.backgroundColor('rgba(0,0,0,0)')
       .showNavInfo(false)
@@ -164,7 +213,14 @@ export function Graph3D(props: Graph3DProps) {
     ro.observe(el)
     g.width(el.clientWidth).height(el.clientHeight)
 
-    return () => { clearTimeout(refit); ro.disconnect(); g._destructor() }
+    return () => {
+      clearTimeout(refit)
+      ro.disconnect()
+      document.removeEventListener('visibilitychange', onVisibility)
+      for (const o of objs.current.values()) disposeNode(o)
+      objs.current.clear()
+      g._destructor()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -229,8 +285,128 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.data])
 
-  // ---- appearance, re-applied when any display state changes ----
+  // ---- appearance ----
+  //
+  // Two effects, not one, and the split is the point.
+  //
+  // The BUILD effect creates every node's objects once: the mesh, both of its
+  // materials, the halo, the two rings, the label and the view 2 donut, all of
+  // them present and most of them hidden. It runs when the graph data, the
+  // theme, the label mode or the ring accessor changes, and it disposes what it
+  // replaces.
+  //
+  // The STATE effect runs on everything else: selection, dimming, a failure,
+  // lit links, hidden links. It walks the registry and sets opacity, emissive,
+  // visibility and which material is on the mesh. Nothing is allocated.
+  //
+  // Before the split there was one effect that re-issued nodeThreeObject for
+  // every change, and the library rebuilt every node from scratch each time:
+  // 46 geometries, 46 materials, 46 label canvases, none of them disposed. The
+  // intro changes the dim set five times, so five spikes and five garbage
+  // collections, which is what read as choppy. Selection in view 1 did the
+  // same on every click.
+  const objs = useRef(new Map<string, NodeObjs>())
+
   useEffect(() => {
+    const g = gRef.current
+    if (!g) return
+    const { dark, labelMode } = props
+
+    for (const o of objs.current.values()) disposeNode(o)
+    objs.current.clear()
+
+    g.nodeThreeObject((raw: object) => {
+      const n = raw as GNode
+      const stale = objs.current.get(n.id)
+      if (stale) disposeNode(stale)
+
+      const colour = n.kind === 'use_case'
+        ? (SUBDOMAIN_COLOUR[n.subdomain ?? ''] ?? NEUTRAL)
+        : (dark ? NEUTRAL : NEUTRAL_DIM)
+      const r = n.val
+
+      // Shape carries node type independently of colour. Spec section 2.
+      //   platform     sphere
+      //   integration  octahedron, a distinct silhouette
+      //   use case     small sphere
+      const geom = n.kind === 'integration'
+        ? new THREE.OctahedronGeometry(r * 1.25)
+        : new THREE.SphereGeometry(r, 20, 14)
+      const solid = new THREE.MeshLambertMaterial({ color: colour, transparent: true, opacity: 1 })
+      // Spec section 4.3: affected use cases take a distinct SHAPE STATE, not
+      // just a colour. Wireframe is the state, so the change survives greyscale.
+      const wire = new THREE.MeshBasicMaterial({ color: colour, wireframe: true })
+      const mesh = new THREE.Mesh(geom, solid)
+      const group = new THREE.Object3D()
+      group.add(mesh)
+
+      // The selected node wears a halo, not just a brighter face. Emissive
+      // alone reads as "slightly paler grey" on a grey platform in daylight,
+      // and the tour's first step says "the lit one". A back-faced shell
+      // renders as a rim of light around the silhouette at any camera angle.
+      const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(r * 1.85, 22, 16),
+        new THREE.MeshBasicMaterial({
+          color: dark ? '#9ccbf5' : '#1f4e79', transparent: true, opacity: 0.26,
+          side: THREE.BackSide, depthWrite: false,
+        }),
+      )
+      halo.visible = false
+      group.add(halo)
+
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(r * 1.9, r * 0.13, 8, 40),
+        new THREE.MeshBasicMaterial({ color: dark ? '#ffffff' : '#111111' }),
+      )
+      ring.visible = false
+      group.add(ring)
+
+      const fail = new THREE.Mesh(
+        new THREE.TorusGeometry(r * 2.4, r * 0.16, 8, 44),
+        new THREE.MeshBasicMaterial({ color: '#d05a6a' }),
+      )
+      fail.rotation.x = Math.PI / 2
+      fail.visible = false
+      group.add(fail)
+
+      // View 2's donut. A sprite, so it always faces the viewer: spec section
+      // 4.2 asks for the ring in screen space.
+      let ringSprite: THREE.Sprite | null = null
+      const split = props.nodeRing?.(n) ?? null
+      if (split) {
+        ringSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: ringTexture(split, dark), transparent: true, depthWrite: false,
+        }))
+        const sz = r * 5.4
+        ringSprite.scale.set(sz, sz, 1)
+        group.add(ringSprite)
+      }
+
+      // The label is built whenever the mode could ever want it, and shown or
+      // hidden by state. A canvas per label, once, rather than once per change.
+      let label: SpriteText | null = null
+      if (labelMode !== 'none') {
+        label = new SpriteText(n.name)
+        label.color = dark ? '#e7eaef' : '#20242b'
+        // Hub labels are the only text on that screen and they carry the
+        // comparison, so they are set larger than on a screen where everything
+        // is named.
+        label.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 2.8 : 4.2
+        label.position.set(0, r + 3.4, 0)
+        label.visible = false
+        group.add(label)
+      }
+
+      objs.current.set(n.id, { mesh, solid, wire, halo, ring, fail, label, ringSprite, colour })
+      return group
+    })
+
+    // Fresh objects need the current state put on them.
+    applyState()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.data, props.dark, props.labelMode, props.nodeRing])
+
+  const applyState = () => {
     const g = gRef.current
     if (!g) return
     const { dark, labelMode, selectedId, isolatedSubdomain, data } = props
@@ -243,7 +419,8 @@ export function Graph3D(props: Graph3DProps) {
         if (l.platformId === selectedId) neighbours.add(l.ucId)
       }
     }
-
+    const subdomainOf = new Map(data.nodes.map((n) => [n.id, n.subdomain]))
+    const isIn = (ucId: string) => subdomainOf.get(ucId) === isolatedSubdomain
     const dimmed = (n: GNode) => {
       if (props.dimNodes?.has(n.id)) return true
       if (!isolatedSubdomain) return false
@@ -252,120 +429,69 @@ export function Graph3D(props: Graph3DProps) {
       if (n.kind !== 'use_case') return !data.links.some((l) => l.platformId === n.id && isIn(l.ucId))
       return n.subdomain !== isolatedSubdomain
     }
-    const isIn = (ucId: string) => data.nodes.find((n) => n.id === ucId)?.subdomain === isolatedSubdomain
 
-    const maxSpend = Math.max(...data.links.map((l) => l.spend), 1)
-
-    g.nodeThreeObject((raw: object) => {
-      const n = raw as GNode
+    for (const n of data.nodes) {
+      const o = objs.current.get(n.id)
+      if (!o) continue
       const dim = dimmed(n)
       const isSel = selectedId === n.id
       const isNeighbour = neighbours.has(n.id)
-      const colour = n.kind === 'use_case'
-        ? (SUBDOMAIN_COLOUR[n.subdomain ?? ''] ?? NEUTRAL)
-        : (dark ? NEUTRAL : NEUTRAL_DIM)
-
-      // Shape carries node type independently of colour. Spec section 2.
-      //   platform     sphere
-      //   integration  octahedron, a distinct silhouette
-      //   use case     small sphere
-      const r = n.val
-      const geom = n.kind === 'integration'
-        ? new THREE.OctahedronGeometry(r * 1.25)
-        : new THREE.SphereGeometry(r, 20, 14)
-      // Spec section 4.3: affected use cases take a distinct SHAPE STATE, not
-      // just a colour. Wireframe is the state, so the change survives greyscale.
       const affected = props.affectedUseCases?.has(n.id) === true
       const failed = props.failedNodeId === n.id
-      const mat = affected
-        ? new THREE.MeshBasicMaterial({ color: colour, wireframe: true })
-        : new THREE.MeshLambertMaterial({
-          color: colour,
-          transparent: true,
-          opacity: dim ? 0.12 : 1,
-          emissive: failed ? new THREE.Color('#d05a6a') : isSel ? new THREE.Color(colour) : new THREE.Color('#000000'),
-          emissiveIntensity: failed ? 0.9 : isSel ? 0.55 : 0,
-        })
-      const obj = new THREE.Object3D()
-      obj.add(new THREE.Mesh(geom, mat))
 
-      // The selected node wears a halo, not just a brighter face. Emissive
-      // alone reads as "slightly paler grey" on a grey platform in daylight,
-      // and the tour's first step says "the lit one", so the lit one has to be
-      // obvious from across the room. A back-faced shell renders as a rim of
-      // light around the silhouette at any camera angle.
-      if (isSel && !dim) {
-        const halo = new THREE.Mesh(
-          new THREE.SphereGeometry(r * 1.85, 22, 16),
-          new THREE.MeshBasicMaterial({
-            color: dark ? '#9ccbf5' : '#1f4e79',
-            transparent: true,
-            opacity: 0.26,
-            side: THREE.BackSide,
-            depthWrite: false,
-          }),
-        )
-        obj.add(halo)
+      o.mesh.material = affected ? o.wire : o.solid
+      o.solid.opacity = dim ? 0.12 : 1
+      o.solid.emissive.set(failed ? '#d05a6a' : isSel ? o.colour : '#000000')
+      o.solid.emissiveIntensity = failed ? 0.9 : isSel ? 0.55 : 0
+      o.halo.visible = isSel && !dim
+      o.ring.visible = isSel
+      o.fail.visible = failed
+      if (o.ringSprite) o.ringSprite.visible = !dim
+      if (o.label) {
+        o.label.visible =
+          labelMode === 'all' ? !dim
+          : labelMode === 'selected' ? (isSel || isNeighbour)
+          : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
+          : false
       }
+    }
 
-      // View 2's donut. A sprite, so it always faces the viewer: spec section
-      // 4.2 asks for the ring in screen space.
-      const split = props.nodeRing?.(n) ?? null
-      if (split && !dim) {
-        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-          map: ringTexture(split, dark), transparent: true, depthWrite: false,
-        }))
-        const s = r * 5.4
-        sprite.scale.set(s, s, 1)
-        obj.add(sprite)
-      }
-
-      if (failed) {
-        const halo = new THREE.Mesh(
-          new THREE.TorusGeometry(r * 2.4, r * 0.16, 8, 44),
-          new THREE.MeshBasicMaterial({ color: '#d05a6a' }),
-        )
-        halo.rotation.x = Math.PI / 2
-        obj.add(halo)
-      }
-
-      if (isSel) {
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(r * 1.9, r * 0.13, 8, 40),
-          new THREE.MeshBasicMaterial({ color: dark ? '#ffffff' : '#111111' }),
-        )
-        obj.add(ring)
-      }
-
-      const wantLabel =
-        labelMode === 'all' ? !dim
-        : labelMode === 'selected' ? (isSel || isNeighbour)
-        : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
-        : false
-      if (wantLabel) {
-        const t = new SpriteText(n.name)
-        t.color = dark ? '#e7eaef' : '#20242b'
-        // Hub labels are the only text on that screen and they carry the
-        // comparison, so they are set larger than the labels on a screen where
-        // everything is named.
-        t.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 2.8 : 4.2
-        t.position.set(0, r + 3.4, 0)
-        obj.add(t)
-      }
-      return obj
+    // Links. The library updates colour and visibility on the existing
+    // objects; only a width change rebuilds their geometry, and width only
+    // moves when a failure lights a link.
+    g.linkVisibility((raw: object) => {
+      const l = raw as GLink
+      const h = props.hideLinksOf
+      return !(h && (h.has(l.ucId) || h.has(l.platformId)))
     })
+    g.linkColor((raw: object) => {
+      const l = raw as GLink
+      if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'
+      if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
+      if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
+      return dark ? '#7d848e' : '#9aa0a8'
+    })
+    rebuildHulls()
+  }
 
+  useEffect(() => {
+    applyState()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.failedNodeId,
+      props.affectedUseCases, props.litLinks, props.hideLinksOf])
+
+  // Link width and the dashed treatment rebuild link geometry, so they are
+  // re-issued only when their own inputs change.
+  useEffect(() => {
+    const g = gRef.current
+    if (!g) return
+    const { dark, data } = props
+    const maxSpend = Math.max(...data.links.map((l) => l.spend), 1)
     g.linkWidth((raw: object) => {
       const l = raw as GLink
       const lit = props.litLinks?.has(`${l.ucId}>${l.platformId}`) === true
       return (lit ? 1.6 : 0) + 0.25 + 2.6 * Math.sqrt(l.spend / maxSpend)
     })
-    g.linkOpacity(0.3)
-
-    // Spec section 4.6: boundary-crossing edges are rendered distinctly, dashed.
-    // The library has no dash accessor, so the links are drawn as custom
-    // three.js lines with a dashed material. Dash pattern rather than colour, so
-    // the distinction is not carried by colour alone.
     if (props.dashedLinks) {
       const dashed = props.dashedLinks
       g.linkThreeObject(((raw: object) => {
@@ -400,23 +526,8 @@ export function Graph3D(props: Graph3DProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g.linkPositionUpdate(null as any)
     }
-    g.linkVisibility((raw: object) => {
-      const l = raw as GLink
-      const h = props.hideLinksOf
-      return !(h && (h.has(l.ucId) || h.has(l.platformId)))
-    })
-    g.linkColor((raw: object) => {
-      const l = raw as GLink
-      if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'
-      if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
-      if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
-      return dark ? '#7d848e' : '#9aa0a8'
-    })
-    rebuildHulls()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data,
-      props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks, props.dimNodes,
-      props.dashedLinks, props.hideLinksOf])
+  }, [props.data, props.dark, props.litLinks, props.dashedLinks])
 
   // ---- where the selected node is on screen ----
   //

@@ -258,7 +258,22 @@ export const copy = {
   intro_5:
     'Pull it tight and one node carries {top_riders} of the {n_uc}. ' +
     'Everything after this is about that.',
-  intro_continue: 'Continue',
+  // Each layer is named, and a second line says what just appeared, because
+  // a graph filling in beat by beat is not self explaining to somebody who has
+  // never seen one. The viewer builds it a layer at a time on Next.
+  intro_1_layer: 'The business',
+  intro_1_see: 'Each dot is one thing the business does. Colour is which part of the business it belongs to.',
+  intro_2_layer: 'The platforms',
+  intro_2_see: 'Each grey circle is a system. Bigger means more of the business rides on it.',
+  intro_3_layer: 'The lines',
+  intro_3_see: 'A line means depends on. Thicker means more money flows along it each month.',
+  intro_4_layer: 'The connectors',
+  intro_4_see: 'The diamonds are identity, a gateway, a bus and an integration hub. Nearly everything touches them.',
+  intro_5_layer: 'The busiest node',
+  intro_5_see: 'The lit one. The tour starts here.',
+  intro_back: 'Back',
+  intro_next: 'Next',
+  intro_begin: 'Begin the tour',
   intro_skip: 'Skip the intro',
 
   // Spotlight labels. One short phrase beside each highlighted element, so

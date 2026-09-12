@@ -759,6 +759,41 @@ Acceptance T7 walks it on Continue alone and checks the chrome is hidden while
 it runs, every beat resolves its figure, and the last Continue lands on step 1
 with the chrome back and the card on 1 of 7.
 
+### 39. Graph3D updates state in place, disposes what it replaces, and caps pixel ratio
+
+Not in the spec either way. The graph's appearance was one effect that
+re-issued the node builder on every change of selection, dimming, failure or
+lit link, and the library rebuilt every node from scratch each time: 46
+geometries, 46 materials, 46 label canvases, none of them disposed. The intro
+changes the dim set five times, so five allocation spikes and five garbage
+collections, which read as choppy. Every click in view 1 did the same.
+
+Now the objects for a node are built once, with the halo, both rings, the label
+and the view 2 donut all present and mostly hidden, and a second effect walks
+them and sets opacity, emissive, visibility and which material is on the mesh.
+Nothing is allocated on a state change. Rebuilds happen only when the data, the
+theme, the label mode or the ring accessor change, and they dispose the
+geometry, materials and textures they replace, as does unmount; GPU memory
+does not go with the garbage collector.
+
+Two smaller things for a wider range of devices: the renderer's pixel ratio is
+capped at 1.5, because a 3x display pays nine times the fill for a graph that
+does not need it, and the render loop pauses while the tab is hidden.
+
+### 40. The intro takes the side column and is built by hand
+
+The first cut of the intro put the title card in the centre of the canvas, over
+the estate it was describing, and advanced on a clock. Both were wrong. The
+card covered the graph, and on the last beat the camera flew the busiest node
+to exactly where the card was. The clock meant a graph filling in on its own,
+which could not be paused and did not say what had just appeared.
+
+The card now takes the column the panel normally has, with the canvas ending
+where it begins, so the estate assembling is never behind it. There is no
+clock: Next adds a layer, Back removes one, and each layer is named with a line
+on what just appeared. Under 900px the card anchors to the bottom and the
+canvas ends at its measured height, the same mechanism as the tour card.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -886,7 +921,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
-| T7 | the intro assembles the estate and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden; five beats resolved; ended at #/tour/1 with chrome back and the card on 1 of 7. |
+| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden; five layers on Next, Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
