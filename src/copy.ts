@@ -242,39 +242,99 @@ export const copy = {
     'Both figures are the joint P99 loss for {sub} at the dependence ' +
     'currently set.',
 
-  // The intro, tour step 0. The estate assembles behind the title card in
-  // beats, one sentence a beat, every number live. Under twenty words each.
+  // The intro, tour step 0. The estate is built a layer at a time, and each
+  // layer gets two things: the sentence, and a line on what just appeared.
+  //
+  // Written for somebody who has never seen an architecture drawn, so it says
+  // what a dot is, what a circle is, what a line is, and why the diamonds sit in
+  // the middle. Longer than the tour's sentences on purpose; the tour assumes
+  // this has been read. Every figure and every name is live from the estate, so
+  // nothing here is a line about a vendor.
   intro_1:
-    '{org} is invented. {n_sub} parts of a business, and {n_uc} things it ' +
-    'has to do every month.',
+    '{org} is an invented insurer with {n_sub} parts to its business: ' +
+    '{sub_list}.',
+  intro_1_see:
+    'Between them they do {n_uc} things every month, from selling a policy to ' +
+    'paying a claim. Each dot is one of those things, a use case, and its ' +
+    'colour is the part of the business it belongs to. Tap a coloured region ' +
+    'to name it, or a dot to see what it does.',
   intro_2:
-    '{n_platforms} platforms it bought or built to do them.',
+    'None of that work happens by hand. It runs on {n_platforms} systems the ' +
+    'company bought or built, from the policy engine to payroll.',
+  intro_2_see:
+    'Each grey circle is one of those systems, a platform. The bigger the ' +
+    'circle, the more of the {n_uc} use cases depend on it. Tap one to see ' +
+    'what rides on it and what it costs.',
   intro_3:
-    'Each of the {n_uc} plugs into several of the {n_platforms}. That is ' +
-    'the estate.',
+    'No use case runs on one platform. {example_uc} alone touches ' +
+    '{example_n}: {example_list}.',
+  intro_3_see:
+    'Each line is one of those dependencies. The dot at one end cannot happen ' +
+    'without the platform at the other, and the thicker the line the more ' +
+    'money moves along it each month.',
   intro_4:
-    'They reach each other through {n_int} more nodes whose only job is ' +
-    'connecting.',
+    'The platforms do not reach each other on their own. {n_int} more nodes ' +
+    'exist only to carry logins, calls and messages between them.',
+  intro_4_see:
+    'The diamonds are those connectors: {int_list}. Nearly every use case ' +
+    'passes through them, which is why they sit in the middle of everything.',
   intro_5:
-    'Pull it tight and one node carries {top_riders} of the {n_uc}. ' +
-    'Everything after this is about that.',
-  // Each layer is named, and a second line says what just appeared, because
-  // a graph filling in beat by beat is not self explaining to somebody who has
-  // never seen one. The viewer builds it a layer at a time on Next.
+    'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
+    'use cases. If it stops, most of the business stops with it.',
+  intro_5_see:
+    'That is the lit node. The tour starts here, with what this concentration ' +
+    'costs and who is paying for it.',
+
   intro_1_layer: 'The business',
-  intro_1_see: 'Each dot is one thing the business does. Colour is which part of the business it belongs to.',
   intro_2_layer: 'The platforms',
-  intro_2_see: 'Each grey circle is a system. Bigger means more of the business rides on it.',
   intro_3_layer: 'The lines',
-  intro_3_see: 'A line means depends on. Thicker means more money flows along it each month.',
   intro_4_layer: 'The connectors',
-  intro_4_see: 'The diamonds are identity, a gateway, a bus and an integration hub. Nearly everything touches them.',
   intro_5_layer: 'The busiest node',
-  intro_5_see: 'The lit one. The tour starts here.',
   intro_back: 'Back',
   intro_next: 'Next',
   intro_begin: 'Begin the tour',
   intro_skip: 'Skip the intro',
+
+  // The legend that builds as coloured regions are tapped.
+  intro_legend_head: 'Parts of the business',
+  intro_legend_prompt: 'Tap a coloured region to name it.',
+  intro_legend_done: 'All {n_sub} named.',
+  intro_focus_clear: 'Clear',
+
+  // What the card says when a node is tapped. Assembled from data by
+  // src/model/describe.ts; no line here names a product on its own.
+  desc_sd_what: '{name} covers {scope}.',
+  desc_sd_count:
+    '{n_uc} use cases, handling {volume} units of work a month between them, ' +
+    'riding {n_pf} platforms.',
+  desc_sd_shared:
+    '{n_shared} of those platforms are shared with other parts of the ' +
+    'business. That sharing is where the rest of this tool starts.',
+
+  desc_uc_what:
+    '{name} is one of the {n_sub_uc} things {sub} does. It handles {volume} ' +
+    'units a month.',
+  desc_uc_rides:
+    'It depends on {n_edges} platforms: {edge_list}. Take any one away and ' +
+    'it cannot run.',
+  desc_uc_cost:
+    'It is told it costs GBP {reported} a month. GBP {metered} of that is ' +
+    'metered; the rest is its share of pools it does not control.',
+  desc_uc_risk:
+    'Its biggest exposure is {worst}. When that is down, this is down ' +
+    '{worst_pct} times in a hundred.',
+
+  desc_pf_what:
+    '{name}, {category}. {riders} use cases across {n_sub} parts of the ' +
+    'business depend on it.',
+  desc_pf_rides: 'Among them: {rider_list}.',
+  desc_pf_how: 'How it is paid for: {capacity}',
+  desc_pf_cost:
+    'It costs GBP {pool} a month whether anyone uses it or not, plus GBP ' +
+    '{metered} a month metered by {driver}.',
+  desc_pf_rule:
+    '{c1} percent of what its riders are told it costs is set by a rule, not ' +
+    'read off a meter.',
 
   // Spotlight labels. One short phrase beside each highlighted element, so
   // the dimmed screen says what the bright part is.

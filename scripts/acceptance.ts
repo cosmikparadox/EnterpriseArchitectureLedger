@@ -398,6 +398,23 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
     const t = await page.locator('.intro-line').innerText()
     if (t.includes('{')) unresolved.push(`beat ${i}: ${t.slice(0, 60)}`)
   }
+  // A tapped coloured region names itself and joins the legend. The dev seam
+  // says where each hull sits on screen; the click itself is a real one.
+  const hulls = await page.evaluate(() => ((window as unknown as { __hullScreen?: () => { subdomain: string; x: number; y: number }[] }).__hullScreen?.() ?? []))
+  let legendGrew = false
+  if (hulls.length > 0) {
+    await page.mouse.click(hulls[0]!.x, hulls[0]!.y)
+    await page.waitForTimeout(400)
+    const legend = await page.locator('.intro-legend').innerText().catch(() => '')
+    const sd = await page.locator('.intro-focus').innerText().catch(() => '')
+    legendGrew = legend.includes('Tap a coloured region') === false && (await page.locator('.intro-legend-row').count()) === 1 && sd.includes('covers') && !sd.includes('{')
+  }
+  // A tapped platform describes itself on the card, from the data. Node focus
+  // is the store's selection, so the seam can stand in for a click on the canvas.
+  await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('salesforce'))
+  await page.waitForTimeout(400)
+  const focusText = await page.locator('.intro-focus').innerText().catch(() => '')
+  const described = focusText.includes('Salesforce') && focusText.includes('GBP') && !focusText.includes('{')
   await page.getByRole('button', { name: 'Back', exact: true }).click()
   await page.waitForTimeout(400)
   const wentBack = (await page.locator('.intro-beats .on').count()) === 4
@@ -408,10 +425,10 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const hashAtEnd = await page.evaluate(() => location.hash)
   const railBack = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '1')
   const cardUp = (await page.locator('.tour-count').innerText().catch(() => '')).trim().toLowerCase() === '1 of 7'
-  const ok = hashAtStart === '#/tour/0' && railHidden && unresolved.length === 0 && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
+  const ok = hashAtStart === '#/tour/0' && railHidden && unresolved.length === 0 && legendGrew && described && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
   add('T7 the intro builds the estate layer by layer and hands over to step 1', ok ? 'PASS' : 'FAIL',
-    ok ? 'started at #/tour/0 with chrome hidden; five layers on Next, Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
-       : `start ${hashAtStart}, rail hidden ${railHidden}, unresolved ${unresolved.join(' | ') || 'none'}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
+    ok ? 'started at #/tour/0 with chrome hidden; five layers on Next; a real click on a coloured region named it and started the legend; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
+       : `start ${hashAtStart}, rail hidden ${railHidden}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew} (${hulls.length} hulls), described ${described}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
   await ctx.close()
 }
 

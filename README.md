@@ -94,6 +94,21 @@ runs on view 1's own Graph3D, so nothing is laid out twice. Beats advance on
 their own every 3.4 seconds; Continue and Skip are always there; under reduced
 motion there is no clock and the estate is shown whole with the last sentence.
 
+The intro is also where the estate explains itself. Tap a coloured region and
+it names itself and joins a legend that builds as you go; tap a dot and the
+card says what that use case does, what it rides on, what it is told it costs,
+and which single dependency would take it down; tap a circle and the card says
+what rides on that platform, what it costs whether used or not, what it meters,
+and how much of what its riders pay is set by rule. None of that is written by
+hand. `src/model/describe.ts` assembles every line from the estate, because a
+hand written line about a product would be the one place the rule that vendor
+names are furniture slipped. Outside the intro, tapping a region isolates that
+part of the business, the same as the Isolate control. Regions overlap around
+shared platforms, so a click is credited to the region the pointer's ray
+crosses most deeply, not the nearest surface, which is usually a neighbour's
+edge. A node the intro has not yet revealed takes no click and shows no hover
+label until its layer arrives.
+
 Each step dims everything except the parts it is about and puts a short label
 beside each bright part, so the dimmed screen says what it is pointing at. A
 step names its targets by `data-tour` attribute; step 1 asks for the selected
@@ -794,6 +809,27 @@ clock: Next adds a layer, Back removes one, and each layer is named with a line
 on what just appeared. Under 900px the card anchors to the bottom and the
 canvas ends at its measured height, the same mechanism as the tour card.
 
+### 41. The intro's sentences are longer than the tour's, and its descriptions are generated
+
+The tour brief's B4 holds tour sentences under twenty words. The intro's run
+longer, deliberately: the owner's review found "each of the 30 plugs into
+several of the 12" told a newcomer nothing, and the intro is the one place the
+tool assumes nothing. It now says what a dot is, what a circle is, what a line
+is and why the diamonds sit in the middle, in two sentences a layer.
+
+The descriptions the card gives for a tapped node are not copy at all. They are
+templates filled from the estate by `src/model/describe.ts`: a use case's
+volume, its platforms in order, what it is told it costs and how much of that
+is metered, and the edge with the highest conditional failure probability. A
+platform's riders, fixed pool, metered spend, capacity note and rule share. A
+subdomain's scope, use cases, platforms, and how many of those it shares. This
+is where the numbers the tour later prices are first met, one node at a time,
+so they are familiar by the time the tour puts a figure on them.
+
+Nothing here comes from a vendor. There is no vendor framework in the data and
+none is implied; every figure is synthetic and declared, as the footer on every
+screen says.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -921,7 +957,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
-| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden; five layers on Next, Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
+| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden; five layers on Next; a real click on a coloured region named it and started the legend; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |

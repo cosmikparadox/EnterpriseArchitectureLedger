@@ -108,9 +108,18 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           onSettle={onSettle}
           dimNodes={intro.active ? intro.dimNodes : undefined}
           hideLinksOf={intro.active ? intro.hideLinksOf : undefined}
-          onSelectNode={(id) => { setSelectedLink(null); setSelectedId(id); setCollapsed(false) }}
-          onSelectLink={(l) => { setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
-          onBackground={() => { setSelectedId(null); setSelectedLink(null) }}
+          onSelectNode={(id) => {
+            if (intro.active) { intro.tapNode(id); return }
+            setSelectedLink(null); setSelectedId(id); setCollapsed(false)
+          }}
+          onSelectLink={(l) => { if (intro.active) return; setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
+          onBackground={() => { if (intro.active) { intro.clearFocus(); return } setSelectedId(null); setSelectedLink(null) }}
+          // A coloured region is a subdomain. In the intro it names itself on
+          // the card; in the working view it does what the Isolate control does.
+          onSelectHull={(sub) => {
+            if (intro.active) { intro.tapSub(sub); return }
+            setIsolated((cur) => (cur === sub ? null : sub))
+          }}
         />
 
         <Legend>

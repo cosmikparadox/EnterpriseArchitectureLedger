@@ -58,6 +58,12 @@ export interface Graph3DProps {
   onSelectNode: (id: string) => void
   onSelectLink: (link: GLink) => void
   onBackground: () => void
+  /**
+   * A click on a subdomain hull. The library only knows about nodes and links,
+   * so a click that hits neither reaches onBackgroundClick, and the hulls are
+   * raycast there before the click is called background.
+   */
+  onSelectHull?: (subdomainId: string) => void
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -136,14 +142,23 @@ export function Graph3D(props: Graph3DProps) {
       .showNavInfo(false)
       .nodeRelSize(4)
       .nodeVal((n: object) => (n as GNode).val)
-      .nodeLabel((n: object) => (n as GNode).name)
+      // A node not yet revealed by the intro has no hover label and no click.
+      .nodeLabel((n: object) => (propsRef.current.dimNodes?.has((n as GNode).id) ? '' : (n as GNode).name))
+      .onNodeClick((n: object) => {
+        const id = (n as GNode).id
+        if (propsRef.current.dimNodes?.has(id)) return
+        propsRef.current.onSelectNode(id)
+      })
       .linkLabel((l: object) => {
         const k = l as GLink
         return `${Math.round(k.units).toLocaleString('en-GB')} units, GBP ${Math.round(k.spend).toLocaleString('en-GB')}/month`
       })
-      .onNodeClick((n: object) => propsRef.current.onSelectNode((n as GNode).id))
       .onLinkClick((l: object) => propsRef.current.onSelectLink(l as GLink))
-      .onBackgroundClick(() => propsRef.current.onBackground())
+      .onBackgroundClick((ev: MouseEvent) => {
+        const hit = hullUnderPointer(ev)
+        if (hit && propsRef.current.onSelectHull) propsRef.current.onSelectHull(hit)
+        else propsRef.current.onBackground()
+      })
       .enableNodeDrag(false)
       // A4. Seeding the starting positions is only half of a reproducible
       // layout. By default the simulation stops after 15 seconds of wall time,
@@ -171,6 +186,23 @@ export function Graph3D(props: Graph3DProps) {
     const group = new THREE.Group()
     hullGroup.current = group
     g.scene().add(group)
+    // Dev-only seam for the acceptance script: where each hull sits on screen,
+    // so a test can click a coloured region the way a viewer would.
+    if (import.meta.env.DEV) {
+      ;(window as unknown as { __hullScreen?: unknown }).__hullScreen = () => {
+        const el = holder.current
+        if (!el) return []
+        const box = el.getBoundingClientRect()
+        const cam = g.camera()
+        return group.children
+          .filter((c): c is THREE.Mesh => (c as THREE.Mesh).isMesh)
+          .map((m) => {
+            m.geometry.computeBoundingBox()
+            const c = m.geometry.boundingBox!.getCenter(new THREE.Vector3()).project(cam)
+            return { subdomain: m.userData.subdomain as string, x: box.left + ((c.x + 1) / 2) * box.width, y: box.top + ((1 - c.y) / 2) * box.height }
+          })
+      }
+    }
 
     let ticks = 0
     let framed = false
@@ -225,6 +257,38 @@ export function Graph3D(props: Graph3DProps) {
   }, [])
 
   // ---- hulls ----
+  // Which hull, if any, is under a pointer event. Only the solid meshes are
+  // tested; the wireframe edges would make a hairline the target.
+  const raycaster = useRef(new THREE.Raycaster())
+  function hullUnderPointer(ev: MouseEvent): string | null {
+    const g = gRef.current
+    const group = hullGroup.current
+    const el = holder.current
+    if (!g || !group || !el) return null
+    const box = el.getBoundingClientRect()
+    const ndc = new THREE.Vector2(
+      ((ev.clientX - box.left) / box.width) * 2 - 1,
+      -((ev.clientY - box.top) / box.height) * 2 + 1,
+    )
+    raycaster.current.setFromCamera(ndc, g.camera())
+    const meshes = group.children.filter((c): c is THREE.Mesh => (c as THREE.Mesh).isMesh)
+    const hits = raycaster.current.intersectObjects(meshes, false)
+    // Hulls overlap around shared platforms, so the nearest surface is often
+    // the edge of a neighbour. The ray enters and leaves each hull it passes
+    // through; the one it crosses most deeply is the one the pointer is over.
+    const chord = new Map<string, { near: number; far: number }>()
+    for (const h of hits) {
+      const sub = h.object.userData.subdomain as string
+      const c = chord.get(sub)
+      if (!c) chord.set(sub, { near: h.distance, far: h.distance })
+      else { c.near = Math.min(c.near, h.distance); c.far = Math.max(c.far, h.distance) }
+    }
+    let best: string | null = null
+    let bestLen = -1
+    for (const [sub, c] of chord) if (c.far - c.near > bestLen) { bestLen = c.far - c.near; best = sub }
+    return best
+  }
+
   function rebuildHulls() {
     const g = gRef.current
     const group = hullGroup.current
@@ -268,7 +332,9 @@ export function Graph3D(props: Graph3DProps) {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       })
-      group.add(new THREE.Mesh(geom, mat))
+      const hull = new THREE.Mesh(geom, mat)
+      hull.userData.subdomain = sub
+      group.add(hull)
       const wire = new THREE.LineSegments(
         new THREE.EdgesGeometry(geom, 24),
         new THREE.LineBasicMaterial({ color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: 0.3 }),
