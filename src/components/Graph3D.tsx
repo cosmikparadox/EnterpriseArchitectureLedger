@@ -47,6 +47,12 @@ export interface Graph3DProps {
   litLinks?: Set<string>
   /** View 4. Nodes not yet attached at the current month, drawn faint. */
   dimNodes?: Set<string>
+  /**
+   * Links touching any of these nodes are not drawn at all. The intro reveals
+   * the estate in beats and a line to a node that has not arrived yet would
+   * give the node away; dimming alone leaves the lines.
+   */
+  hideLinksOf?: Set<string>
   /** View 6. Edges that cross a declared boundary, drawn dashed. */
   dashedLinks?: Set<string>
   onSelectNode: (id: string) => void
@@ -394,6 +400,11 @@ export function Graph3D(props: Graph3DProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g.linkPositionUpdate(null as any)
     }
+    g.linkVisibility((raw: object) => {
+      const l = raw as GLink
+      const h = props.hideLinksOf
+      return !(h && (h.has(l.ucId) || h.has(l.platformId)))
+    })
     g.linkColor((raw: object) => {
       const l = raw as GLink
       if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'
@@ -405,7 +416,7 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.dark, props.labelMode, props.selectedId, props.isolatedSubdomain, props.showHulls, props.data,
       props.nodeRing, props.failedNodeId, props.affectedUseCases, props.litLinks, props.dimNodes,
-      props.dashedLinks])
+      props.dashedLinks, props.hideLinksOf])
 
   // ---- where the selected node is on screen ----
   //

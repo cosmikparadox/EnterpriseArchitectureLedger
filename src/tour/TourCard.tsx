@@ -46,7 +46,7 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
   // is moving itself, so waitFor is armed only after enter()'s own animations
   // have finished, and the state it compares against is read at that moment.
   useEffect(() => {
-    if (step === null) return
+    if (step === null || step === 0) return
     const def = STEPS[step - 1]
     if (!def) return
     const timeline = new Timeline()
@@ -85,7 +85,7 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
     return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h') }
   }, [step])
 
-  if (step === null) return null
+  if (step === null || step === 0) return null
   const def = STEPS[step - 1]
   if (!def) return null
 

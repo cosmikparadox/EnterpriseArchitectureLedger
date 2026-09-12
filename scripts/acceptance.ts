@@ -371,7 +371,44 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   await ctx.close()
 }
 
-// ---- T6. The canvas fills the space it is given ---------------------------
+// ---- T7. The intro assembles the estate and hands over to step 1 ----------
+//
+// Step 0 is the title card over an empty canvas, with the estate arriving in
+// beats behind it. This walks it on Continue alone: the working chrome must be
+// hidden while it runs, every beat must resolve its figure, and the last
+// Continue must land on step 1 with the chrome back and the tour card up.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/', { waitUntil: 'load' })
+  await page.waitForSelector('.landing')
+  await page.getByRole('button', { name: 'Start the tour' }).click()
+  await page.waitForSelector('.intro')
+  await page.waitForTimeout(900)
+  const hashAtStart = await page.evaluate(() => location.hash)
+  const railHidden = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '0')
+  const unresolved: string[] = []
+  for (let i = 1; i <= 5; i++) {
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await page.waitForTimeout(650)
+    const t = await page.locator('.intro-line').innerText()
+    if (t.includes('{')) unresolved.push(`beat ${i}: ${t.slice(0, 60)}`)
+  }
+  await page.getByRole('button', { name: 'Continue', exact: true }).click()
+  await page.waitForTimeout(1500)
+  const hashAtEnd = await page.evaluate(() => location.hash)
+  const railBack = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '1')
+  const cardUp = (await page.locator('.tour-count').innerText().catch(() => '')).trim().toLowerCase() === '1 of 7'
+  const ok = hashAtStart === '#/tour/0' && railHidden && unresolved.length === 0 && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
+  add('T7 the intro assembles the estate and hands over to step 1', ok ? 'PASS' : 'FAIL',
+    ok ? 'started at #/tour/0 with chrome hidden; five beats resolved; ended at #/tour/1 with chrome back and the card on 1 of 7'
+       : `start ${hashAtStart}, rail hidden ${railHidden}, unresolved ${unresolved.join(' | ') || 'none'}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
+  await ctx.close()
+}
+
+
 //
 // Three layout regressions in a row reached the owner by screenshot: a panel
 // covering the graph, a split half collapsed to nothing, and a dead band half a

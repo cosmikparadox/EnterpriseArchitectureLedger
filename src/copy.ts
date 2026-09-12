@@ -242,6 +242,25 @@ export const copy = {
     'Both figures are the joint P99 loss for {sub} at the dependence ' +
     'currently set.',
 
+  // The intro, tour step 0. The estate assembles behind the title card in
+  // beats, one sentence a beat, every number live. Under twenty words each.
+  intro_1:
+    '{org} is invented. {n_sub} parts of a business, and {n_uc} things it ' +
+    'has to do every month.',
+  intro_2:
+    '{n_platforms} platforms it bought or built to do them.',
+  intro_3:
+    'Each of the {n_uc} plugs into several of the {n_platforms}. That is ' +
+    'the estate.',
+  intro_4:
+    'They reach each other through {n_int} more nodes whose only job is ' +
+    'connecting.',
+  intro_5:
+    'Pull it tight and one node carries {top_riders} of the {n_uc}. ' +
+    'Everything after this is about that.',
+  intro_continue: 'Continue',
+  intro_skip: 'Skip the intro',
+
   // Spotlight labels. One short phrase beside each highlighted element, so
   // the dimmed screen says what the bright part is.
   tour_1_spot_node: 'the lit node',

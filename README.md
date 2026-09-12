@@ -46,8 +46,9 @@ npm run build        # static build into dist/
 
 ## The guided tour
 
-Seven steps, at `#/tour/1` to `#/tour/7`. The tool stays live underneath the
-whole way: every step asks you to touch something, and Next is never disabled.
+Seven steps, at `#/tour/1` to `#/tour/7`, with an intro before them at
+`#/tour/0`. The tool stays live underneath the whole way: every step asks you
+to touch something, and Next is never disabled.
 Where a step asks for an action, a tick appears once you have done it, and that
 is all the tick does. Nobody is held at a step.
 
@@ -56,6 +57,7 @@ into a view, which is the reason the store exists at all.
 
 | step | view | what it does when it opens | what it watches for |
 |---|---|---|---|
+| 0 | Explore | the title card over an empty canvas; the estate assembles in five beats behind it | nothing; Continue and Skip |
 | 1 | Explore | flies to the identity node, selects it, hulls on | you select a different platform |
 | 2 | Fixed pool | selects identity, then animates three riders on over 1.5s | you change the basis or the slider |
 | 3 | Risk | fails identity, waits 2s, then sets the subdomain | you fail a different node |
@@ -80,6 +82,17 @@ marker to the adoption month, which closed the gap and left the step showing
 nothing. The execution figure the card quotes is pinned to the marker, not to
 wherever the cursor has been dragged, because the sentence says "at that month"
 and means the marker.
+
+The intro is step 0. "Start the tour" opens view 1 with the rail, top bar and
+panel faded out and the whole estate dimmed to nothing behind the title card.
+Five beats follow, each a sentence with a live figure: the business and its use
+cases light up, coloured by subdomain with the hulls on; then the platforms;
+then the lines between them; then the connector nodes; then the camera flies
+to the busiest node and its halo lights. The card dissolves, the chrome fades
+in, and step 1 begins on the same graph, which has been there throughout. It
+runs on view 1's own Graph3D, so nothing is laid out twice. Beats advance on
+their own every 3.4 seconds; Continue and Skip are always there; under reduced
+motion there is no clock and the estate is shown whole with the last sentence.
 
 Each step dims everything except the parts it is about and puts a short label
 beside each bright part, so the dimmed screen says what it is pointing at. A
@@ -728,6 +741,24 @@ controls, the charts and the dimming are continuous across adoption; the
 figures say "not adopted yet" instead of disappearing, and the option block
 appears only once there is something to hold an option on.
 
+### 38. The tour opens with an intro at step 0
+
+The tour brief's B1 sends "Start the tour" to `#/tour/1`. It now goes to
+`#/tour/0`, an intro in which the estate assembles behind the title card before
+step 1 begins. Requested by the owner after the first walk through.
+
+Two things were needed to do it without a second layout. The intro runs inside
+view 1 on view 1's own Graph3D, driven by the existing `dimNodes` prop and a
+new `hideLinksOf` prop that keeps a line from giving away a node that has not
+arrived yet; dimming alone leaves the lines. And the store gained nothing: step
+0 is `tourStep === 0`, which App reads to hide the chrome and the tour card
+reads to render nothing. The relaunch control in the rail also starts at 0,
+since the intro is the opening of the tour, and it is one press to skip.
+
+Acceptance T7 walks it on Continue alone and checks the chrome is hidden while
+it runs, every beat resolves its figure, and the last Continue lands on step 1
+with the chrome back and the card on 1 of 7.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -855,11 +886,12 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
+| T7 | the intro assembles the estate and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden; five beats resolved; ended at #/tour/1 with chrome back and the card on 1 of 7. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
 
-**17 pass, 0 fail, 1 not run.**
+**18 pass, 0 fail, 1 not run.**
 
 On check 7: a case-INSENSITIVE grep for "TCO" hits the bundle 81 times, every one
 of them inside an ordinary identifier such as `currentColor`, `getComponent`,

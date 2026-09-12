@@ -18,7 +18,7 @@ export function Landing() {
         <h1>{copy.landing_title}</h1>
         <p>{copy.landing_sentence}</p>
         <div className="landing-actions">
-          <button className="cta" onClick={() => setTourStep(1)}>
+          <button className="cta" onClick={() => setTourStep(0)}>
             {copy.landing_start}
           </button>
           <button className="cta secondary" onClick={() => setView(1)}>

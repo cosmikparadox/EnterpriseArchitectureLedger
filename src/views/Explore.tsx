@@ -9,6 +9,7 @@ import { buildGraph, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
 import type { AllocationRule, Estate } from '../model/types'
 import type { Index } from '../model/ledger'
 import { useLedger } from '../app/store'
+import { IntroCard, useIntro } from '../tour/Intro'
 import { useLayoutReport } from '../app/layoutReport'
 
 export interface ExploreProps {
@@ -37,6 +38,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // nothing is picked, so the canvas yields to it whenever it is not collapsed.
   const panelOpen = !collapsed
   const onSettle = useLayoutReport()
+  const intro = useIntro(estate, ix)
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -104,6 +106,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           isolatedSubdomain={isolated}
           flyToId={flyTo}
           onSettle={onSettle}
+          dimNodes={intro.active ? intro.dimNodes : undefined}
+          hideLinksOf={intro.active ? intro.hideLinksOf : undefined}
           onSelectNode={(id) => { setSelectedLink(null); setSelectedId(id); setCollapsed(false) }}
           onSelectLink={(l) => { setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
           onBackground={() => { setSelectedId(null); setSelectedLink(null) }}
@@ -128,6 +132,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
             ))}
           </div>
         </Legend>
+
+        {intro.active && <IntroCard intro={intro} estate={estate} ix={ix} />}
 
         <DetailPanel
           estate={estate}

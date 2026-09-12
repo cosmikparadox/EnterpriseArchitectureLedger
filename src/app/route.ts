@@ -41,7 +41,8 @@ export function parseHash(hash: string): Route {
   const tour = /^tour\/(\d+)$/.exec(path)
   if (tour) {
     const n = Number(tour[1])
-    if (n >= 1 && n <= TOUR_STEPS) return { view: 'landing', tourStep: n }
+    // Step 0 is the intro: the estate assembling behind the title card.
+    if (n >= 0 && n <= TOUR_STEPS) return { view: 'landing', tourStep: n }
     return { view: 'landing', tourStep: null }
   }
   const view = SLUG_TO_VIEW.get(path)

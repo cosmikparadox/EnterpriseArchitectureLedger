@@ -81,9 +81,18 @@ export function App() {
   const onLanding = view === 'landing'
   const tourStep = useLedger((s) => s.tourStep)
   const setTourStep = useLedger((s) => s.setTourStep)
+  // Steps 1 to 7 each pick their view in enter(). Step 0 has no enter(); it
+  // runs inside view 1, so it has to be put there, and a deep link to #/tour/0
+  // arrives with the view still on the front page.
+  useEffect(() => {
+    if (tourStep === 0 && view !== 1) setView(1)
+  }, [tourStep, view, setView])
   const classes = ['app']
   if (onLanding) classes.push('landing-mode')
-  if (tourStep !== null) classes.push('tour-open')
+  // Step 0 is the intro: chrome hidden, no card, no canvas inset. The card and
+  // its inset belong to steps 1 to 7.
+  if (tourStep === 0) classes.push('intro-open')
+  if (tourStep !== null && tourStep > 0) classes.push('tour-open')
 
   return (
     <div className={classes.join(' ')}>
@@ -106,7 +115,7 @@ export function App() {
             had started exploring there was no way back to it. */}
         <button
           className="rail-tour"
-          onClick={() => setTourStep(1)}
+          onClick={() => setTourStep(0)}
           // aria-pressed, not aria-current. aria-current marks the current item
           // in a set, and the set here is the six views: marking the tour that
           // way says two rail items are the current view at once, which is both
@@ -128,7 +137,7 @@ export function App() {
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
-        {tourStep !== null && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}
+        {tourStep !== null && tourStep > 0 && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}
       </main>
 
       <footer className="footer">

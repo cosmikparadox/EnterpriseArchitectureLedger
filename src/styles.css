@@ -344,6 +344,50 @@ button, input, select { font: inherit; color: inherit; }
   stroke: rgba(16, 19, 26, 0.85); stroke-width: 3px; stroke-linejoin: round;
 }
 
+/* ---- the intro, tour step 0 ----
+   The working interface fades out around the graph and the title card sits
+   over the canvas while the estate assembles behind it. The footer stays: it
+   is on every screen by rule, and this is a screen. */
+.app.intro-open .rail,
+.app.intro-open .topbar,
+.app.intro-open .panel,
+.app.intro-open .panel-tab,
+.app.intro-open .legend { opacity: 0; pointer-events: none; }
+.rail, .topbar, .panel, .panel-tab, .legend { transition: opacity 600ms ease; }
+.intro {
+  position: absolute; inset: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+  transition: opacity 700ms ease;
+}
+.intro-leaving { opacity: 0; }
+.intro-card {
+  pointer-events: auto;
+  max-width: 520px; width: 100%;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 22px 24px 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.intro-card h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 12px; }
+.intro-line { margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: var(--ink-2); min-height: 3.1em; animation: intro-in 500ms ease; }
+@keyframes intro-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.intro-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.intro-beats { display: flex; gap: 5px; margin-top: 16px; }
+.intro-beats span { width: 22px; height: 3px; border-radius: 2px; background: var(--line); transition: background 300ms; }
+.intro-beats span.on { background: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .rail, .topbar, .panel, .panel-tab, .legend, .intro { transition: none; }
+  .intro-line { animation: none; }
+}
+@media (max-width: 720px) {
+  .intro { align-items: flex-start; padding-top: 10vh; }
+  .intro-card h1 { font-size: 20px; }
+  .intro-line { font-size: 14px; }
+}
+
 /* ---- the guided tour card ----
    Right-anchored on wide screens, bottom-anchored otherwise. The canvas is
    inset by the card's footprint rather than drawn under it, so the node a step
