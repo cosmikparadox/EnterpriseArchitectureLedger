@@ -306,6 +306,11 @@ button, input, select { font: inherit; color: inherit; }
    holds by construction rather than by arithmetic at each step. */
 :root {
   --tour-card-w: 330px;
+  /* The card's ceiling. What the layout actually clears is --tour-card-actual-h,
+     which the card measures and publishes as it renders; this is only the
+     fallback until it has, and the cap on how tall it may grow. Reserving the
+     ceiling instead of the measurement left a dead band the height of half a
+     screen between the graph and a card three lines tall. */
   --tour-card-h: 46vh;
   --tour-gap: 12px;
 }
@@ -373,9 +378,9 @@ button, input, select { font: inherit; color: inherit; }
     border-radius: 12px 12px 0 0;
     border-left: 0; border-right: 0; border-bottom: 0;
   }
-  .app.tour-open .graphwrap { --chrome-bottom: var(--tour-card-h); }
+  .app.tour-open .graphwrap { --chrome-bottom: var(--tour-card-actual-h, var(--tour-card-h)); }
   /* The legend has the sheet and the card to clear on a phone. */
-  .app.tour-open .legend { bottom: calc(var(--tour-card-h) + 8px); }
+  .app.tour-open .legend { bottom: calc(var(--tour-card-actual-h, var(--tour-card-h)) + 8px); }
 }
 
 /* ---- narrow viewports: rail becomes a bottom tab strip, panel slides up ---- */

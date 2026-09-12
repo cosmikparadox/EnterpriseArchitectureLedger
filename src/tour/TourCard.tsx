@@ -9,7 +9,7 @@
 // canvas is inset by the card's footprint rather than drawn underneath it, so a
 // node the card is talking about cannot end up behind the card.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { copy, fill } from '../copy'
 import { useLedger, TOUR_STEPS } from '../app/store'
 import { usePrefersReducedMotion } from '../app/useNarrow'
@@ -69,6 +69,21 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
     return () => { timeline.cancel(); unsubscribe?.() }
   }, [step, reduced])
 
+  // Publish the card's real height, so the layout clears exactly the card and
+  // not the ceiling it is allowed to grow to. Cleared on unmount so a finished
+  // tour gives the space back.
+  const cardRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const root = document.documentElement
+    const publish = () => root.style.setProperty('--tour-card-actual-h', `${Math.ceil(el.getBoundingClientRect().height)}px`)
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h') }
+  }, [step])
+
   if (step === null) return null
   const def = STEPS[step - 1]
   if (!def) return null
@@ -91,7 +106,7 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
   const mediumReady = !copy.tour_medium_url.includes(copy.tour_medium_placeholder_host)
 
   return (
-    <aside className="tour-card" aria-label="Guided tour">
+    <aside className="tour-card" aria-label="Guided tour" ref={cardRef}>
       <div className="tour-head">
         <span className="tour-count">
           {fill(copy.tour_counter, { n: step, total: TOUR_STEPS })}

@@ -657,6 +657,21 @@ item in a set, and the set in that rail is the six views; marking the tour that
 way announced two rail items as the current view at once. The acceptance suite
 found it, as a query for the current view that matched two elements.
 
+### 35. The layout clears the tour card's measured height, not its ceiling
+
+Below 1400px the tour card anchors to the bottom, and the canvas and panel end
+where it begins. They were ending where it was *allowed* to begin: the layout
+reserved `--tour-card-h`, which is the card's maximum height at 46 percent of
+the window, rather than the height it actually had. On a tall window a card
+three lines high left a dead band the height of half a screen between the graph
+and the card.
+
+The card now measures itself and publishes `--tour-card-actual-h` as it
+renders, the same way the bottom sheet publishes its height. The layout clears
+that, falling back to the ceiling only until the first measurement lands. The
+ceiling stays as the cap on how tall the card may grow; it is no longer what
+anything else is laid out against.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -769,7 +784,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 
 | # | check | result | evidence |
 |---|---|---|---|
-| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,446 / 1,395 / 1,491 ms, worst 1,491. Mobile emulation 1,269 ms. Dev server 2,383 ms, printed for comparison and not the basis. |
+| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,536 / 1,392 / 1,424 ms, worst 1,536. Mobile emulation 1,278 ms. Dev server printed for comparison and not the basis. |
 | 2 | one human completes the tour unaided and can say the five ideas back | NOT RUN | Needs one real human. Cannot be run from a container. Replaces the spec's check 2, per the tour brief B5. |
 | 3 | non-additivity exhibit | PASS | As restated. (a), (b) and (c) all hold; (c) exactly. |
 | 4 | ratification sentence computed, changes when dragged | PASS | Months 24 and 48 differ, and it is not the spec's hard-coded 2.4m example. |
