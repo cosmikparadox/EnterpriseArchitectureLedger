@@ -4,7 +4,8 @@
 // label under the picker says which is which, ON SCREEN, not only in the README.
 
 import type { AllocationRule } from '../model/types'
-import { copy } from '../copy'
+import { copy, glossary } from '../copy'
+import { Hint } from './Hint'
 
 const LABEL: Record<AllocationRule, string> = {
   equal: 'Equal split',
@@ -23,6 +24,7 @@ const STATUS: Record<AllocationRule, string> = {
 export function RuleSelect({ rule, setRule }: { rule: AllocationRule; setRule: (r: AllocationRule) => void }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <Hint tip={glossary.allocation_basis.tip}>
       <select
         className="ctl"
         value={rule}
@@ -33,6 +35,7 @@ export function RuleSelect({ rule, setRule }: { rule: AllocationRule; setRule: (
           <option key={r} value={r}>{LABEL[r]}</option>
         ))}
       </select>
+      </Hint>
       <span
         style={{ fontSize: 10.5, opacity: 0.85, maxWidth: 260 }}
         className={rule === 'by_head' ? 'prohibited' : undefined}

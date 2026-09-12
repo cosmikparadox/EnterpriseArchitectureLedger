@@ -6,6 +6,7 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { gbp } from '../components/DetailPanel'
@@ -95,7 +96,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
     <>
       <div className="topbar">
         <h1>Ledger Explorer</h1>
-        <span className="sub">Boundaries</span>
+        <ViewName n={6}>Boundaries</ViewName>
         <RuleSelect rule={rule} setRule={setRule} />
         <button className="ctl" onClick={() => { setMoved({}); setPicked(null) }} disabled={moves === 0}>
           Reset boundaries
@@ -103,7 +104,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
         <span className="sub">{moves} use case{moves === 1 ? '' : 's'} moved</span>
       </div>
 
-      <div className="graphwrap">
+      <div className={`graphwrap${collapsed ? '' : ' panel-open'}`}>
         <Graph3D
           data={data}
           dark={dark}
@@ -195,7 +196,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           </section>
 
           <section>
-            <h3>What moved, by allocation basis</h3>
+            <h3>What moved, by <Term k="allocation_basis">allocation basis</Term></h3>
             {drift.map((d) => (
               <div className="row" key={d.rule}>
                 <span className="l">

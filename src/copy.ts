@@ -117,6 +117,16 @@ export const copy = {
     'Under the t copula the extremes still move together even at zero ' +
     'correlation. That is deliberate. See 9.3.8.',
 
+  // View 5 opened as two grey clouds that look alike, with no labels and no
+  // instruction. This says what to compare before anything else is read.
+  view5_look_for:
+    'Same thirty use cases, wired two ways. Compare the named nodes: how many ' +
+    'there are, and how much rides on the busiest one.',
+
+  rank_tip:
+    'Order the nodes by how much of their bill is handed out by rule rather ' +
+    'than measured.',
+
   // View 5 now shares the dependence slider with view 3, so the comparison can
   // be read at any rho. 0.5 is the midpoint the two shapes were first compared
   // at and the one the README tables are dated to, which is the only claim the
@@ -255,6 +265,93 @@ export const copy = {
   tour_medium_placeholder_host: 'example.invalid',
   tour_doi: '10.5281/zenodo.21863761',
 } as const
+
+/**
+ * Plain definitions for the words on screen.
+ *
+ * Every one of these is a term of art that the tool used without ever saying
+ * what it meant. Somebody landing on view 2 cold was reading "fixed pool",
+ * "rule share" and "C1 annotation" with nothing to go on.
+ *
+ * Rules for writing one: no jargon inside the definition, no sentence over
+ * twenty words, two sentences at most, and say what it means for the reader
+ * rather than how it is computed. These are hover hints, not documentation.
+ * The narrated tour is where the argument gets made.
+ */
+export const glossary = {
+  fixed_pool: {
+    label: 'Fixed pool',
+    tip: 'What this node costs whether anyone uses it or not. Licences, support, the team that runs it.',
+  },
+  metered_spend: {
+    label: 'Metered spend',
+    tip: 'The part of the bill that follows actual use. It moves when volume moves.',
+  },
+  rule_share: {
+    label: 'Rule share',
+    tip: 'The part of the bill handed out by a rule rather than measured. It moves when other people arrive or leave.',
+  },
+  reported_cost: {
+    label: 'Reported cost',
+    tip: 'What a use case is told it costs here. Metered spend plus its share of the fixed pool.',
+  },
+  c1: {
+    label: 'C1',
+    tip: 'How much of a bill came from a rule rather than a meter. Higher means less of it was measured.',
+  },
+  fan_in: {
+    label: 'Fan-in',
+    tip: 'How many use cases depend on one node. High fan-in means one outage reaches a lot of work.',
+  },
+  blast_radius: {
+    label: 'Blast radius',
+    tip: 'The work that stops if this node stops, counted in monthly volume.',
+  },
+  allocation_basis: {
+    label: 'Allocation basis',
+    tip: 'The rule that hands out the fixed pool. Change it and everyone\u2019s number moves, though nobody used more.',
+  },
+  joint_p99: {
+    label: 'Joint P99 loss',
+    tip: 'A bad year for the whole group taken together. Worse than this in about one year in a hundred.',
+  },
+  sum_of_p99: {
+    label: 'Sum of P99s',
+    tip: 'Each use case\u2019s bad year added up. It counts the same outage once per use case, so it overstates.',
+  },
+  execution_component: {
+    label: 'Execution component',
+    tip: 'The part of leaving you can price: migration, rewiring, running both for a while.',
+  },
+  integration_node: {
+    label: 'Integration node',
+    tip: 'A node whose job is connecting other nodes. Gateways, buses, identity. Drawn as a diamond.',
+  },
+  subdomain: {
+    label: 'Subdomain',
+    tip: 'A group of use cases belonging to one part of the business.',
+  },
+  conditional_failure: {
+    label: 'Conditional failure probability',
+    tip: 'If this node is down, how likely this use case is down with it.',
+  },
+  volume: {
+    label: 'Volume',
+    tip: 'How much work a use case does in a month. Policies, claims, payments, whatever it handles.',
+  },
+} as const
+
+export type GlossaryKey = keyof typeof glossary
+
+/** One line on what each screen is for, shown on hover over the screen name. */
+export const viewPurpose: Record<number, string> = {
+  1: 'Turn the estate around. Click any node to see what it costs and what rides on it.',
+  2: 'Part of every bill is handed out by a rule. Move the slider and watch a number change that nobody chose.',
+  3: 'Break a node and see what stops. Then see why adding the damage up overstates it.',
+  4: 'Watch things pile onto one node month by month, and what leaving would have taken by the time anyone decided.',
+  5: 'The same thirty use cases wired two ways. Concentration does not go away when you diversify. It moves.',
+  6: 'Move a use case into another group and watch the reported numbers move with it.',
+}
 
 export type CopyKey = keyof typeof copy
 

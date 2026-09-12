@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Hint, Term, ViewName } from '../components/Hint'
 import { PanelShell } from '../components/PanelShell'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
@@ -94,6 +95,9 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   const resetRho = useLedger((s) => s.resetRho)
   const [collapsed, setCollapsed] = useState(false)
   const [which, setWhich] = useState<'left' | 'right'>('left')
+  // Side by side reads better for shape; stacked gives each estate the full
+  // width, which is what you want when the labels are what you are comparing.
+  const [stacked, setStacked] = useState(false)
 
   const mcLeft = useMonteCarlo(concentrated, rho, 10_000)
   const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000, 4, 20260906)
@@ -109,6 +113,20 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
     </div>
   )
 
+  /**
+   * The one sentence difference between the two pictures. Without it the
+   * comparison is two grey clouds that look alike, and the lesson is invisible.
+   */
+  const headline = (shape: Shape) => {
+    const ranked = shape.estate.platforms
+      .map((pl) => ({ pl, n: shape.ix.ridersOf.get(pl.id)?.length ?? 0 }))
+      .sort((a, b) => b.n - a.n)
+    const top = ranked[0]
+    const busy = ranked.filter((r) => r.n >= 8).length
+    return { topName: top?.pl.name ?? '', topRiders: top?.n ?? 0, busy }
+  }
+  const hl = { left: headline(left), right: headline(right) }
+
   const p99 = (mc: typeof mcLeft, id: string) =>
     mc.result?.subdomains.find((s) => s.id === id)?.jointP99 ?? null
 
@@ -116,10 +134,10 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
     <>
       <div className="topbar">
         <h1>Ledger Explorer</h1>
-        <span className="sub">Two shapes</span>
+        <ViewName n={5}>Two shapes</ViewName>
         <RuleSelect rule={rule} setRule={setRule} />
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-          <span title={copy.dependence_low_tip}>{copy.dependence_low}</span>
+          <Hint tip={copy.dependence_low_tip}><span className="term">{copy.dependence_low}</span></Hint>
           <input
             type="range" min={0} max={1} step={0.05} value={rho}
             onChange={(e) => setRho(Number(e.target.value))}
@@ -141,21 +159,38 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         <button className="ctl" onClick={() => setWhich((w) => (w === 'left' ? 'right' : 'left'))}>
           Show: {which === 'left' ? 'Concentrated' : 'Best of breed'}
         </button>
+        <button className="ctl" aria-pressed={stacked} onClick={() => setStacked((v) => !v)}>
+          {stacked ? 'Split: stacked' : 'Split: side by side'}
+        </button>
       </div>
 
-      <div className={`graphwrap split${collapsed ? '' : ' panel-open'}`}>
+      <div className="stripe">{copy.view5_look_for}</div>
+
+      <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}`}>
         <div className="half">
-          <div className="half-title">Concentrated</div>
+          <div className="half-title">
+            Concentrated
+            <span className="half-note">
+              busiest node {hl.left.topName}, {hl.left.topRiders} use cases ride it
+              {' | '}{hl.left.busy} nodes carry eight or more
+            </span>
+          </div>
           <Graph3D
-            data={leftData} dark={dark} showHulls={false} labelMode="none"
+            data={leftData} dark={dark} showHulls={false} labelMode="hubs"
             selectedId={null} isolatedSubdomain={null} flyToId={null}
             onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
           />
         </div>
         <div className="half">
-          <div className="half-title">Best of breed</div>
+          <div className="half-title">
+            Best of breed
+            <span className="half-note">
+              busiest node {hl.right.topName}, {hl.right.topRiders} use cases ride it
+              {' | '}{hl.right.busy} nodes carry eight or more
+            </span>
+          </div>
           <Graph3D
-            data={rightData} dark={dark} showHulls={false} labelMode="none"
+            data={rightData} dark={dark} showHulls={false} labelMode="hubs"
             selectedId={null} isolatedSubdomain={null} flyToId={null}
             onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
           />
@@ -183,7 +218,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           </section>
 
           <section>
-            <h3>Rule share of reported cost, by subdomain</h3>
+            <h3>Rule share of <Term k="reported_cost">reported cost</Term>, by subdomain</h3>
             <Row l="" a="concentrated" b="best of breed" />
             {sl.perSubdomain.map((s, i) => (
               <Row key={s.id} l={s.name}

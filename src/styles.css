@@ -156,6 +156,15 @@ button, input, select { font: inherit; color: inherit; }
 .graphwrap canvas { display: block; touch-action: none; }
 .graph-holder { position: absolute; inset: 0; }
 
+/* The panel used to sit on top of the canvas, so a third of the estate was
+   behind it and the picture could never be seen whole. Above the phone
+   breakpoint the canvas now ends where the panel begins. Below it the panel is
+   a bottom sheet that can be dragged and collapsed, and resizing a WebGL canvas
+   on every frame of a drag is not worth the pixels it would return. */
+@media (min-width: 721px) {
+  .graphwrap.panel-open .graph-holder { right: 330px; }
+}
+
 .legend {
   position: absolute; left: 10px; bottom: 10px; z-index: 5;
   background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
@@ -248,6 +257,28 @@ button, input, select { font: inherit; color: inherit; }
 }
 .cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* ---- hover explanations ----
+   The dotted underline is the only thing that says a word can be asked about,
+   so it has to be visible without being loud. The tooltip itself is rendered on
+   the body, clear of the panel's overflow. */
+.hint { display: inline; }
+.hint-block { display: block; }
+.term {
+  border-bottom: 1px dotted var(--ink-3);
+  cursor: help;
+}
+.term:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.tip {
+  position: fixed; z-index: 200;
+  display: block;
+  background: var(--ink); color: var(--bg);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 11.5px; line-height: 1.45;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+  pointer-events: none;
+}
+
 /* ---- the guided tour card ----
    Right-anchored on wide screens, bottom-anchored otherwise. The canvas is
    inset by the card's footprint rather than drawn under it, so the node a step
@@ -306,7 +337,8 @@ button, input, select { font: inherit; color: inherit; }
   /* The detail panel steps aside rather than sitting under the card. */
   .app.tour-open .panel { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
   .app.tour-open .panel-tab { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .graph-holder {
+  .app.tour-open .graph-holder,
+  .app.tour-open .graphwrap.panel-open .graph-holder {
     right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3);
   }
 }
@@ -348,6 +380,11 @@ button, input, select { font: inherit; color: inherit; }
   .sheet-handle { display: block; }
   .topbar { padding: 6px 8px; }
   .search input { width: 130px; }
+  /* The caption is two lines of context on a screen that is mostly graph, so
+     it wraps rather than being cut, and the stripe tightens up. */
+  .half-title { font-size: 10.5px; }
+  .half-note { font-size: 10px; }
+  .stripe { padding: 5px 10px; font-size: 11px; }
   .landing { padding: 18px 16px; align-items: flex-start; padding-top: 12vh; }
   .landing h1 { font-size: 22px; }
   .landing p { font-size: 14px; }
@@ -408,15 +445,36 @@ button, input, select { font: inherit; color: inherit; }
 
 /* View 5: two graphs side by side. On narrow viewports they stack. */
 .graphwrap.split { display: grid; grid-template-columns: 1fr 1fr; }
+/* Stacked gives each estate the full width, which is what you want when the
+   node names are the thing being compared rather than the overall shape. */
+.graphwrap.split.stacked { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+.graphwrap.split.stacked .half { border-right: 0; border-bottom: 1px solid var(--line); }
+.graphwrap.split.stacked .half:last-of-type { border-bottom: 0; }
+/* The caption is the difference between two pictures that otherwise look alike,
+   so it sits on the graph rather than in the panel. */
+.half-note {
+  display: block; font-weight: 400; color: var(--ink-3);
+  font-size: 10.5px; margin-top: 1px;
+}
+
+/* A single line under the top bar, for the screens where landing cold with no
+   instruction leaves you looking at something abstract. */
+.stripe {
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink-2);
+  font-size: 11.5px;
+}
 /* When the panel is open it must take room rather than cover the right graph. */
 .graphwrap.split.panel-open { padding-right: 330px; }
 .graphwrap.split .half { position: relative; border-right: 1px solid var(--line); }
 .graphwrap.split .half:last-of-type { border-right: 0; }
 .half-title {
-  position: absolute; z-index: 6; top: 8px; left: 10px;
+  position: absolute; z-index: 6; top: 8px; left: 10px; right: 10px;
   font-size: 11px; font-weight: 600; color: var(--ink-2);
   background: var(--panel); border: 1px solid var(--line);
-  border-radius: 5px; padding: 2px 7px;
+  border-radius: 5px; padding: 3px 8px;
 }
 @media (max-width: 720px) {
   .graphwrap.split, .graphwrap.split.panel-open { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; padding-right: 0; }

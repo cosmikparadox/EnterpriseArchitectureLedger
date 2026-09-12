@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Hint, Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { ExceedanceCurve } from '../components/ExceedanceCurve'
@@ -105,13 +106,13 @@ export function Risk({ estate, ix, dark }: RiskProps) {
     <>
       <div className="topbar">
         <h1>Ledger Explorer</h1>
-        <span className="sub">Risk</span>
+        <ViewName n={3}>Risk</ViewName>
         <button className="ctl" onClick={() => platform && requestFail(platform.id)} disabled={!platform}>
           Fail it
         </button>
         {failure && <button className="ctl" onClick={() => { setFailure(null); setPhase(0); clearFailRequest() }}>Clear</button>}
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-          <span title={copy.dependence_low_tip}>{copy.dependence_low}</span>
+          <Hint tip={copy.dependence_low_tip}><span className="term">{copy.dependence_low}</span></Hint>
           <input
             type="range" min={0} max={1} step={0.05} value={rho}
             onChange={(e) => setRho(Number(e.target.value))}
@@ -131,7 +132,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
         <span className="sub">{mc.offline ? 'stored' : mc.running ? 'running' : `${mc.elapsedMs} ms`}</span>
       </div>
 
-      <div className="graphwrap">
+      <div className={`graphwrap${collapsed ? '' : ' panel-open'}`}>
         <Graph3D
           data={data}
           dark={dark}
@@ -174,8 +175,8 @@ export function Risk({ estate, ix, dark }: RiskProps) {
 
           {failure && (
             <section>
-              <h3>Blast radius, this run</h3>
-              <div className="row"><span className="l">Use cases affected</span><span className="v">{failure.affected.size}</span></div>
+              <h3><Term k="blast_radius">Blast radius</Term>, this run</h3>
+              <div className="row"><span className="l"><Term k="conditional_failure">Use cases affected</Term></span><span className="v">{failure.affected.size}</span></div>
               <div className="row"><span className="l">Subdomains crossed</span><span className="v">{failure.subdomains.size}</span></div>
               <div className="row"><span className="l">Volume interrupted</span><span className="v">{failure.volume.toLocaleString('en-GB')} /month</span></div>
               <div className="note">
@@ -211,11 +212,11 @@ export function Risk({ estate, ix, dark }: RiskProps) {
             {sub ? (
               <>
                 <div className="row">
-                  <span className="l">Sum of per-use-case P99 losses</span>
+                  <span className="l"><Term k="sum_of_p99">Sum of per-use-case P99 losses</Term></span>
                   <span className="v">{gbp(sub.sumOfP99s)}</span>
                 </div>
                 <div className="row">
-                  <span className="l">P99 of the subdomain&apos;s joint loss</span>
+                  <span className="l"><Term k="joint_p99">P99 of the subdomain&apos;s joint loss</Term></span>
                   <span className="v">{gbp(sub.jointP99)}</span>
                 </div>
                 <div className="callout">{copy.view3_nonadd}</div>

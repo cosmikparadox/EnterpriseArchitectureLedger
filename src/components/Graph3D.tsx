@@ -13,7 +13,15 @@ import { NEUTRAL, NEUTRAL_DIM, SUBDOMAIN_COLOUR, type GLink, type GNode, type Gr
 import { ringTexture, type RingSplit } from './rings'
 import { reportSelectedScreenPos } from '../app/layoutReport'
 
-export type LabelMode = 'all' | 'selected' | 'none'
+export type LabelMode = 'all' | 'selected' | 'hubs' | 'none'
+
+/**
+ * A node is a hub for labelling purposes once this many use cases ride it.
+ * View 5 shows two whole estates at once, where every label would be a smear
+ * and no label leaves two abstract blobs that look identical. Naming only the
+ * nodes the comparison is about is what makes the difference readable.
+ */
+const HUB_RIDERS = 8
 
 export interface Graph3DProps {
   data: GraphData
@@ -127,14 +135,30 @@ export function Graph3D(props: Graph3DProps) {
       }
     })
 
+    // Re-frame the estate when the canvas changes size, until the viewer takes
+    // the camera. Opening a panel or turning the split narrows the canvas, and
+    // without this the graph stays framed for a box that no longer exists and
+    // drifts off to one side. Once somebody has orbited, their camera is theirs.
+    let userMovedCamera = false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const controls = g.controls() as any
+    controls?.addEventListener?.('start', () => { userMovedCamera = true })
+
+    let refit: ReturnType<typeof setTimeout> | undefined
     const ro = new ResizeObserver(() => {
       g.width(el.clientWidth)
       g.height(el.clientHeight)
+      // Only once the layout has settled. Fitting while the simulation is still
+      // spreading the nodes frames an estate a fraction of its final size, and
+      // the graph ends up zoomed into the middle of itself.
+      if (userMovedCamera || !framed) return
+      clearTimeout(refit)
+      refit = setTimeout(() => { if (!userMovedCamera && framed) g.zoomToFit(300, 70) }, 300)
     })
     ro.observe(el)
     g.width(el.clientWidth).height(el.clientHeight)
 
-    return () => { ro.disconnect(); g._destructor() }
+    return () => { clearTimeout(refit); ro.disconnect(); g._destructor() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -310,11 +334,15 @@ export function Graph3D(props: Graph3DProps) {
       const wantLabel =
         labelMode === 'all' ? !dim
         : labelMode === 'selected' ? (isSel || isNeighbour)
+        : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
         : false
       if (wantLabel) {
         const t = new SpriteText(n.name)
         t.color = dark ? '#e7eaef' : '#20242b'
-        t.textHeight = n.kind === 'use_case' ? 2.8 : 4.2
+        // Hub labels are the only text on that screen and they carry the
+        // comparison, so they are set larger than the labels on a screen where
+        // everything is named.
+        t.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 2.8 : 4.2
         t.position.set(0, r + 3.4, 0)
         obj.add(t)
       }

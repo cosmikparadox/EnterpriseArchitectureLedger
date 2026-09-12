@@ -5,12 +5,13 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Hint, Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph, withSyntheticRiders, type GNode } from '../app/graph'
 import { buildIndex, c1, edgeSpend, meteredSpend, reportedCost, ruleShare } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
-import { copy } from '../copy'
+import { copy, glossary } from '../copy'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
 import { RuleSelect } from '../components/RuleSelect'
@@ -71,17 +72,21 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
     <>
       <div className="topbar">
         <h1>Ledger Explorer</h1>
-        <span className="sub">Fixed pool</span>
+        <ViewName n={2}>Fixed pool</ViewName>
         <RuleSelect rule={rule} setRule={setRule} />
-        <button className="ctl" aria-pressed={showC1} onClick={() => setShowC1((v) => !v)}>
-          C1 annotation
-        </button>
-        <button className="ctl" aria-pressed={showRank} onClick={() => setShowRank((v) => !v)}>
-          Rank nodes by rule share
-        </button>
+        <Hint tip={glossary.c1.tip}>
+          <button className="ctl" aria-pressed={showC1} onClick={() => setShowC1((v) => !v)}>
+            C1 annotation
+          </button>
+        </Hint>
+        <Hint tip={copy.rank_tip}>
+          <button className="ctl" aria-pressed={showRank} onClick={() => setShowRank((v) => !v)}>
+            Rank nodes by rule share
+          </button>
+        </Hint>
       </div>
 
-      <div className="graphwrap">
+      <div className={`graphwrap${collapsed ? '' : ' panel-open'}`}>
         <Graph3D
           data={data}
           dark={dark}
@@ -114,7 +119,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
               <div className="kind">{platform.category}</div>
 
               <section>
-                <h3>Fan-in</h3>
+                <h3><Term k="fan_in" /></h3>
                 <label style={{ display: 'block', marginBottom: 4 }}>
                   Add use cases riding this node: <strong>{added}</strong>
                   <input
@@ -125,11 +130,11 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
                   />
                 </label>
                 <div className="row"><span className="l">Use cases riding</span><span className="v">{riders.length}</span></div>
-                <div className="row"><span className="l">Fixed pool</span><span className="v">{gbp(platform.fixed_pool_gbp_month)} /month</span></div>
-                <div className="row"><span className="l">Metered spend</span><span className="v">{gbp(meteredSpend(ix, platform.id))} /month</span></div>
+                <div className="row"><span className="l"><Term k="fixed_pool" /></span><span className="v">{gbp(platform.fixed_pool_gbp_month)} /month</span></div>
+                <div className="row"><span className="l"><Term k="metered_spend" /></span><span className="v">{gbp(meteredSpend(ix, platform.id))} /month</span></div>
                 {showC1 && (
                   <div className="row">
-                    <span className="l">Rule share of reported cost</span>
+                    <span className="l"><Term k="c1">Rule share of reported cost</Term></span>
                     <span className="v">{(c1(ix, platform.id) * 100).toFixed(1)} percent</span>
                   </div>
                 )}

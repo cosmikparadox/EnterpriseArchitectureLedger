@@ -10,6 +10,7 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
+import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { FootprintChart, type Series } from '../components/FootprintChart'
@@ -107,7 +108,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
     <>
       <div className="topbar">
         <h1>Ledger Explorer</h1>
-        <span className="sub">Footprint</span>
+        <ViewName n={4}>Footprint</ViewName>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
           Ratified as strategic at month
           <input
@@ -120,7 +121,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
         </label>
       </div>
 
-      <div className="graphwrap">
+      <div className={`graphwrap${collapsed ? '' : ' panel-open'}`}>
         <Graph3D
           data={data}
           dark={dark}
@@ -199,7 +200,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
               )}
 
               <section>
-                <h3>Switching cost</h3>
+                <h3><Term k="execution_component">Switching cost</Term></h3>
                 <div className="note">{copy.switching_split}</div>
                 {/* Canon 9.5.7 and 9.9. The option component appears only here,
                     inside the same element as the refusal, so a screenshot

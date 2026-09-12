@@ -2,7 +2,8 @@
 // sections shown or hidden by type.
 
 import { useMemo } from 'react'
-import { copy } from '../copy'
+import { copy , type GlossaryKey } from '../copy'
+import { Term } from './Hint'
 import type { AllocationRule, Estate } from '../model/types'
 import { optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
 import { platformView, useCaseView, type GLink } from '../app/graph'
@@ -17,8 +18,14 @@ export const gbp = (n: number, dp = 0) =>
 
 const pct = (n: number, dp = 0) => (n * 100).toFixed(dp) + ' percent'
 
-function Row({ l, v }: { l: string; v: string }) {
-  return <div className="row"><span className="l">{l}</span><span className="v">{v}</span></div>
+/** A label and a figure. Pass k to make the label an explainable term. */
+function Row({ l, v, k }: { l: string; v: string; k?: GlossaryKey }) {
+  return (
+    <div className="row">
+      <span className="l">{k ? <Term k={k}>{l}</Term> : l}</span>
+      <span className="v">{v}</span>
+    </div>
+  )
 }
 
 export interface DetailPanelProps {
@@ -66,19 +73,19 @@ export function DetailPanel(props: DetailPanelProps) {
 
         <section>
           <h3>Metered</h3>
-          <Row l="Fixed pool" v={gbp(v.fixedPool) + ' /month'} />
+          <Row k="fixed_pool" l="Fixed pool" v={gbp(v.fixedPool) + ' /month'} />
           <Row l="Driver" v={v.driverName} />
           <Row l="Unit cost" v={gbp(v.unitCost, 4)} />
-          <Row l="Metered spend" v={gbp(v.meteredSpend) + ' /month'} />
+          <Row k="metered_spend" l="Metered spend" v={gbp(v.meteredSpend) + ' /month'} />
           <div className="note">{v.capacityNote}</div>
         </section>
 
         <section>
           <h3>Riders and the rule</h3>
-          <Row l="Use cases riding" v={String(v.riders)} />
-          <Row l="Subdomains" v={String(v.subdomains)} />
-          <Row l="Allocated by rule" v={gbp(v.ruleShareTotal) + ' /month'} />
-          <Row l="Rule share of reported cost" v={pct(v.c1, 1)} />
+          <Row k="fan_in" l="Use cases riding" v={String(v.riders)} />
+          <Row k="subdomain" l="Subdomains" v={String(v.subdomains)} />
+          <Row k="rule_share" l="Allocated by rule" v={gbp(v.ruleShareTotal) + ' /month'} />
+          <Row k="c1" l="Rule share of reported cost" v={pct(v.c1, 1)} />
           <div className="callout">{copy.fixed_share_warning}</div>
         </section>
 
@@ -89,13 +96,13 @@ export function DetailPanel(props: DetailPanelProps) {
           <Row l="Direct loss, P90" v={gbp(v.lossP90)} />
           <Row l="Use cases affected" v={String(v.blastUseCases)} />
           <Row l="Subdomains crossed" v={String(v.blastSubdomains)} />
-          <Row l="Volume at risk" v={Math.round(v.blastVolume).toLocaleString('en-GB') + ' /month'} />
+          <Row k="blast_radius" l="Volume at risk" v={Math.round(v.blastVolume).toLocaleString('en-GB') + ' /month'} />
         </section>
 
         <section>
           <h3>Switching cost</h3>
           <div className="note">{copy.switching_split}</div>
-          <Row l="Execution component" v={gbp(v.executionComponent)} />
+          <Row k="execution_component" l="Execution component" v={gbp(v.executionComponent)} />
           <div className="note">
             What it costs to actually move: migration effort, dual running, retraining.
           </div>
@@ -125,7 +132,7 @@ export function DetailPanel(props: DetailPanelProps) {
 
         <section>
           <h3>Volume</h3>
-          <Row l="Business volume" v={v.volume.toLocaleString('en-GB') + ' /month'} />
+          <Row k="volume" l="Business volume" v={v.volume.toLocaleString('en-GB') + ' /month'} />
         </section>
 
         <section>

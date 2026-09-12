@@ -84,6 +84,23 @@ and means the marker.
 Under `prefers-reduced-motion` the camera cuts instead of travelling and every
 animated value is applied at once.
 
+## Reading the words on screen
+
+Every term of art on a screen is marked with a dotted underline and gives a one
+line definition on hover or keyboard focus. They live in `glossary` in
+`src/copy.ts` under the same rules as the rest of the deck: no jargon inside a
+definition, no sentence over twenty words, two sentences at most, and say what
+it means for the reader rather than how it is computed.
+
+The screen's name in the top bar carries a line on what that screen is for, from
+`viewPurpose`. That is the first thing somebody landing cold needs, and the top
+bar is the one place on every screen where it fits without taking room from the
+graph.
+
+These are hover hints, not documentation, and they are not the tour. The tour
+makes the argument; this is so the words mean something to somebody who opened
+the tool without one.
+
 ## The synthetic estate
 
 Harbourline Insurance, an invented mid-size UK general insurer of roughly 4,000
@@ -570,6 +587,45 @@ file people load. Three runs are taken and the slowest counts. The development
 server figure is still measured and printed beside it, so the basis of the
 verdict was not chosen after the fact.
 
+### 30. The detail panel takes layout space rather than covering the graph
+
+The panel was absolutely positioned over the canvas, so on every screen with a
+panel open about a third of the estate sat behind it and the picture could never
+be seen whole. Above the phone breakpoint the canvas now ends where the panel
+begins, and the graph re-frames itself into the space it actually has.
+
+Below 720px the panel is still a bottom sheet that overlays, because it is
+draggable there and resizing a WebGL canvas on every frame of a drag costs more
+than the pixels it returns. The sheet collapses to a tab instead.
+
+### 31. The graph re-frames on resize, until the viewer takes the camera
+
+Framing happened once, on the first settle. Opening a panel or turning the split
+then left the graph framed for a box that no longer existed, drifting off to one
+side. It now re-frames when the canvas changes size, with two conditions: the
+force simulation must have settled already, and nobody must have orbited yet.
+
+The first condition is not caution. Fitting while the simulation is still
+spreading the nodes frames an estate a fraction of its final size, and the graph
+ends up zoomed deep into the middle of itself. That is what the first attempt
+did. The second condition is the rule that once somebody has moved the camera,
+the camera is theirs.
+
+### 32. View 5 names its hub nodes and states its own headline
+
+View 5 drew both estates with `labelMode="none"`, which left two grey clouds
+that looked alike, with nothing on screen saying what to compare. A reader could
+not tell whether they were looking at a comparison or a bug.
+
+Three changes. A `hubs` label mode names any node carrying eight or more use
+cases, so the difference is readable without naming all forty-six. Each half
+carries its own headline, computed rather than written: the busiest node, how
+many use cases ride it, and how many nodes carry eight or more. And a line under
+the top bar says what to compare before anything else is read.
+
+The split also turns: side by side for shape, stacked when the node names are
+the thing being compared and each estate wants the full width.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -682,7 +738,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 
 | # | check | result | evidence |
 |---|---|---|---|
-| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,424 / 1,398 / 1,433 ms, worst 1,433. Mobile emulation 1,228 ms. Dev server 2,330 ms, printed for comparison and not the basis. |
+| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,393 / 1,321 / 1,381 ms, worst 1,393. Mobile emulation 1,206 ms. Dev server 2,249 ms, printed for comparison and not the basis. |
 | 2 | one human completes the tour unaided and can say the five ideas back | NOT RUN | Needs one real human. Cannot be run from a container. Replaces the spec's check 2, per the tour brief B5. |
 | 3 | non-additivity exhibit | PASS | As restated. (a), (b) and (c) all hold; (c) exactly. |
 | 4 | ratification sentence computed, changes when dragged | PASS | Months 24 and 48 differ, and it is not the spec's hard-coded 2.4m example. |
@@ -690,7 +746,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 6 | equal split changes nothing, by-headcount changes figures | PASS | Equal split, driver-proportional and by volume all unchanged; by headcount moved 95 figures. |
 | 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
-| 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 43.8 KB. |
+| 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 47.5 KB. |
 | T1 | tour walks steps 1 to 7 on Next alone | PASS | 7 cards, every placeholder resolved, no page errors. |
 | T2 | on 390 by 844, the card never covers the node the step is about | PASS | 5 steps have a selected node on screen; none of the five is under the card. Steps 6 and 7 select nothing. |
 | T3 | each waitFor fires on the action it describes | PASS | 5 of 5 fired. Step 6 has no waitFor by design. |

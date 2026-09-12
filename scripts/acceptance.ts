@@ -178,7 +178,10 @@ add('2 one human completes the tour unaided and can say the five ideas back', 'N
     await page.waitForTimeout(250)
   }
   await page.waitForTimeout(600)
-  const drift = await page.locator('section:has(h3:text-is("What moved, by allocation basis"))').innerText()
+  // has-text rather than text-is: the heading now carries a hover definition on
+  // "allocation basis", so the words sit in a child span and the h3's own text
+  // nodes no longer spell the whole phrase. has-text matches through descendants.
+  const drift = await page.locator('section:has(h3:has-text("What moved, by allocation basis"))').innerText()
   const equalUnchanged = /Equal split\s*unchanged/.test(drift)
   const headMoved = /By headcount[\s\S]*?\d+ figures/.test(drift)
   add('6 equal split unchanged, by-headcount moves', equalUnchanged && headMoved ? 'PASS' : 'FAIL',

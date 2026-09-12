@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
+import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { DetailPanel } from '../components/DetailPanel'
 import { buildGraph, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
@@ -32,6 +33,9 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [selectedLink, setSelectedLink] = useState<GLink | null>(null)
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState(false)
+  // View 1 draws no panel until something is picked, so the canvas only gives
+  // up the space once there is something in it.
+  const panelOpen = !collapsed && (selectedId !== null || selectedLink !== null)
   const onSettle = useLayoutReport()
 
   const matches = useMemo(() => {
@@ -51,7 +55,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     <>
       <div className="topbar">
         <h1>Ledger Explorer</h1>
-        <span className="sub">Explore</span>
+        <ViewName n={1}>Explore</ViewName>
 
         <div className="search">
           <input
@@ -90,7 +94,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
         </select>
       </div>
 
-      <div className="graphwrap">
+      <div className={`graphwrap${panelOpen ? ' panel-open' : ''}`}>
         <Graph3D
           data={data}
           dark={dark}
@@ -106,8 +110,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
         />
 
         <Legend>
-          <div><span className="glyph">O</span> platform, size is fan-in</div>
-          <div><span className="glyph">&#9670;</span> integration node</div>
+          <div><span className="glyph">O</span> platform, size is <Term k="fan_in" /></div>
+          <div><span className="glyph">&#9670;</span> <Term k="integration_node" /></div>
           <div><span className="glyph">.</span> use case, coloured by subdomain</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>
             Hulls overlap where platforms are shared. The overlap is the point.
