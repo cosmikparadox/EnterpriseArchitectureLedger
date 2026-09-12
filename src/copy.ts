@@ -233,6 +233,21 @@ export const copy = {
     'Both figures are the joint P99 loss for {sub} at the dependence ' +
     'currently set.',
 
+  // Spotlight labels. One short phrase beside each highlighted element, so
+  // the dimmed screen says what the bright part is.
+  tour_1_spot_node: 'the lit node',
+  tour_2_spot_slider: 'the slider',
+  tour_2_spot_list: 'what each rider is told',
+  tour_3_spot_fail: 'Fail it',
+  tour_3_spot_pair: 'one at a time, or together',
+  tour_4_spot_rho: 'how much they fail together',
+  tour_4_spot_gap: 'the gap',
+  tour_5_spot_month: 'the month handle',
+  tour_5_spot_board: 'when the board saw it',
+  tour_6_spot_left: 'one shared point',
+  tour_6_spot_right: 'four of them',
+  tour_6_spot_table: 'a bad year, each side',
+
   // Closing card.
   tour_7_h_what: 'What this is',
   tour_7_what:
@@ -348,6 +363,130 @@ export const viewPurpose: Record<number, string> = {
   5: 'The same thirty use cases wired two ways. Concentration does not go away when you diversify. It moves.',
   6: 'Move a use case into another group and watch the reported numbers move with it.',
 }
+
+/**
+ * The summary at the head of every panel.
+ *
+ * Every screen exists to show one thing, and the panel used to open straight
+ * into the figures without ever saying what that thing was. These three lines
+ * say it: a headline with the live figure in it, then the same point read two
+ * ways. "The number" is the reading for somebody who thinks in money and wants
+ * to know what it costs and what it exposes. "The mechanism" is the reading for
+ * somebody who thinks in structure and wants to know why. Neither is labelled
+ * by who it is for; the lens is named, the reader is not.
+ *
+ * Rules: every figure is live through fill(), never typed here. No sentence
+ * over twenty words. No estate wide total anywhere. The option component is
+ * named only in the same sentence as the refusal to state it.
+ */
+export const summary = {
+  eyebrow_number: 'The number',
+  eyebrow_mechanism: 'The mechanism',
+
+  // View 1, nothing selected.
+  s1_head:
+    '{n_platforms} shared platforms carry {n_uc} pieces of this business. The ' +
+    'busiest, {top}, carries {top_riders} of them.',
+  s1_number:
+    'Every use case is billed part meter, part rule. Across these nodes the ' +
+    'rule part runs from {c1_lo} to {c1_hi} percent.',
+  s1_mechanism:
+    'Each line into a node is a dependency. The more lines, the more work ' +
+    'stops when the node does.',
+
+  // View 1, a platform selected.
+  s1n_head:
+    '{name} meters GBP {metered} a month and hands out another GBP {pool} ' +
+    'by rule.',
+  s1n_number:
+    '{riders} use cases split that pool. {c1} percent of what they are told ' +
+    'it costs was decided by a rule, not read off a meter.',
+  s1n_mechanism:
+    'If this node stops, {blast_uc} use cases across {blast_sub} subdomains ' +
+    'stop with it.',
+
+  // View 1, a use case selected.
+  s1u_head:
+    '{name} rides {n_edges} shared nodes and is told it costs GBP {reported} ' +
+    'a month.',
+  s1u_number:
+    'GBP {metered} of that is metered. The rest is its share of pools it ' +
+    'does not control.',
+  s1u_mechanism:
+    'Its number moves when neighbours arrive or leave, without it doing ' +
+    'anything different.',
+
+  // View 2.
+  s2_head:
+    'GBP {pool} a month on {name} is shared out by a rule, not a meter.',
+  s2_number_idle:
+    '{first} is told GBP {base}. Add riders and that figure moves, though ' +
+    'it uses nothing more.',
+  s2_number_moved:
+    'With {added} added, {first} is told GBP {now} instead of GBP {base}. ' +
+    'It used nothing more.',
+  s2_mechanism:
+    'A rule share changes only when the rule or the crowd changes. Leaving ' +
+    'this node does not release it.',
+
+  // View 3.
+  s3_head_idle:
+    '{name} carries {riders} use cases, each with its own odds of going down ' +
+    'when it does.',
+  s3_head_failed:
+    'Fail {name} and {affected} use cases stop, stalling {volume} units of ' +
+    'monthly work.',
+  s3_number:
+    'A bad year for {sub} looks like GBP {sum} priced one use case at a time. ' +
+    'Taken together it is GBP {joint}.',
+  s3_mechanism:
+    'The first figure counts the same outage once per use case. Shared ' +
+    'platforms fail together, so adding them up overstates.',
+
+  // View 4.
+  s4_head:
+    'By month {ratified}, when {name} was ratified, {n} use cases already ' +
+    'depended on it.',
+  s4_number:
+    'Leaving would already have taken about GBP {exec} of execution work, ' +
+    'plus an option component the ledger declines to state without an ' +
+    'evidenced counterfactual.',
+  s4_head_before:
+    'At month {ratified} {name} had not arrived yet. It was adopted in month ' +
+    '{adopted}.',
+  s4_number_before:
+    'Nothing had been committed to it, so there was nothing to leave.',
+  s4_mechanism:
+    'Dependence arrived one adoption at a time. No single decision created ' +
+    'it, so no single decision undoes it.',
+
+  // View 5.
+  s5_head:
+    'Same {n_uc} use cases, wired two ways. The busiest node carries ' +
+    '{left_top} on one side and {right_top} on the other.',
+  s5_number:
+    'A bad year for {sub} runs GBP {left} on one side and GBP {right} on the ' +
+    'other, at the dependence currently set.',
+  s5_mechanism:
+    'Splitting the estate moved the shared point to the connectors. The ' +
+    'concentration relocated. It did not leave.',
+
+  // View 6.
+  s6_head_none:
+    'Nothing has moved yet. The lines on this screen decide who shares ' +
+    'which pool.',
+  s6_head_moved:
+    '{moved} use cases moved. Metered spend did not change.',
+  s6_number_stable:
+    'Under {basis}, no reported figure moved, because that basis does not ' +
+    'read the lines.',
+  s6_number_moved:
+    'Under {basis}, {changed} reported figures moved by up to GBP {max} a ' +
+    'month, with no change in usage.',
+  s6_mechanism:
+    'A boundary decides who shares which pool. Redrawing it moves money on ' +
+    'paper before anything moves in the estate.',
+} as const
 
 export type CopyKey = keyof typeof copy
 

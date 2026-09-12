@@ -14,7 +14,8 @@ import { useMonteCarlo } from '../app/useMonteCarlo'
 import { makeRng } from '../model/rng'
 import type { Index } from '../model/ledger'
 import type { Estate } from '../model/types'
-import { copy, fill } from '../copy'
+import { copy, fill, summary } from '../copy'
+import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
 
@@ -107,11 +108,11 @@ export function Risk({ estate, ix, dark }: RiskProps) {
       <div className="topbar">
         <h1>Ledger Explorer</h1>
         <ViewName n={3}>Risk</ViewName>
-        <button className="ctl" onClick={() => platform && requestFail(platform.id)} disabled={!platform}>
+        <button className="ctl" onClick={() => platform && requestFail(platform.id)} disabled={!platform} data-tour="fail">
           Fail it
         </button>
         {failure && <button className="ctl" onClick={() => { setFailure(null); setPhase(0); clearFailRequest() }}>Clear</button>}
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11 }} data-tour="rho">
           <Hint tip={copy.dependence_low_tip}><span className="term">{copy.dependence_low}</span></Hint>
           <input
             type="range" min={0} max={1} step={0.05} value={rho}
@@ -163,6 +164,22 @@ export function Risk({ estate, ix, dark }: RiskProps) {
         >
           <h2>{platform ? platform.name : 'Select a platform'}</h2>
           <div className="kind">{platform?.category ?? ''}</div>
+          {platform && (
+            <Summary
+              head={failure ? summary.s3_head_failed : summary.s3_head_idle}
+              number={summary.s3_number}
+              mechanism={summary.s3_mechanism}
+              values={{
+                name: platform.name,
+                riders: ix.ridersOf.get(platform.id)?.length ?? 0,
+                affected: failure?.affected.size ?? 0,
+                volume: Math.round(failure?.volume ?? 0).toLocaleString('en-GB'),
+                sub: subName,
+                sum: sub ? Math.round(sub.sumOfP99s).toLocaleString('en-GB') : '...',
+                joint: sub ? Math.round(sub.jointP99).toLocaleString('en-GB') : '...',
+              }}
+            />
+          )}
 
           {mc.offline && mc.snappedRho !== null && (
             <div className="note" role="status">
@@ -198,7 +215,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
             </section>
           )}
 
-          <section>
+          <section data-tour="nonadd">
             <h3>Does risk add?</h3>
             <select
               className="ctl"
@@ -220,7 +237,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
                   <span className="v">{gbp(sub.jointP99)}</span>
                 </div>
                 <div className="callout">{copy.view3_nonadd}</div>
-                <div className="row">
+                <div className="row" data-tour="gap">
                   <span className="l">Gap at rho {rho.toFixed(2)}</span>
                   <span className="v">{(sub.gap * 100).toFixed(1)} percent</span>
                 </div>

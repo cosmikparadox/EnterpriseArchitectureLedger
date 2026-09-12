@@ -20,6 +20,8 @@ export interface FootprintChartProps {
   height?: number
   /** Only the lower chart of a stacked pair carries the scrubber. */
   showScrubber?: boolean
+  /** data-tour value for the scrubber, so the tour can spotlight it. */
+  scrubberTour?: string
   /** Axis unit, printed on the y axis so the two stacked charts cannot be
    *  mistaken for one another. */
   unit?: string
@@ -30,7 +32,7 @@ const L = 46, R = 10, T = 10, B = 24
 const fmt = (n: number) =>
   n >= 1e6 ? `${(n / 1e6).toFixed(1)}m` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(Math.round(n))
 
-export function FootprintChart({ months, series, cursor, ratified, onCursor, height = 190, showScrubber = true, unit }: FootprintChartProps) {
+export function FootprintChart({ months, series, cursor, ratified, onCursor, height = 190, showScrubber = true, unit, scrubberTour }: FootprintChartProps) {
   const W = 320
   const H = height
   const all = series.flatMap((s) => s.values.filter((v): v is number => v !== null))
@@ -87,7 +89,7 @@ export function FootprintChart({ months, series, cursor, ratified, onCursor, hei
       </svg>
 
       {showScrubber && (
-        <label style={{ display: 'block', fontSize: 11 }}>
+        <label style={{ display: 'block', fontSize: 11 }} data-tour={scrubberTour}>
           Month <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{cursor}</strong>
           <input
             type="range" min={0} max={60} step={1} value={cursor}

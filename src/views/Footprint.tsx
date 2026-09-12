@@ -19,7 +19,8 @@ import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
 import { executionComponent, kCommitted, optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
-import { copy } from '../copy'
+import { copy, summary } from '../copy'
+import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
 
@@ -151,6 +152,20 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
         >
           <h2>{platform?.name ?? 'Select a platform'}</h2>
           <div className="kind">{platform?.category ?? ''}</div>
+          {platform && (
+            <Summary
+              head={atRatified ? summary.s4_head : summary.s4_head_before}
+              number={atRatified ? summary.s4_number : summary.s4_number_before}
+              mechanism={summary.s4_mechanism}
+              values={{
+                name: platform.name,
+                ratified,
+                adopted: platform.adopted_month,
+                n: atRatified?.n ?? 0,
+                exec: Math.round(atRatified?.execution ?? 0).toLocaleString('en-GB'),
+              }}
+            />
+          )}
 
           {platform && now && (
             <>
@@ -162,7 +177,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 />
                 <FootprintChart
                   months={MONTHS} series={oneOff} cursor={cursor} ratified={ratified}
-                  onCursor={setCursor} height={150} unit="GBP, one off"
+                  onCursor={setCursor} height={150} unit="GBP, one off" scrubberTour="month"
                 />
                 <div className="note">
                   Two charts, one time axis. The monthly bill and the cost of leaving are not
@@ -184,7 +199,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
               </section>
 
               {atRatified && (
-                <section>
+                <section data-tour="ratify">
                   <h3>Ratified as strategic</h3>
                   <div className="callout">
                     By the time this platform reached the board, {atRatified.n} use cases in{' '}

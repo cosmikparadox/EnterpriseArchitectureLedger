@@ -11,7 +11,8 @@ import { gbp } from '../components/DetailPanel'
 import { buildGraph, withSyntheticRiders, type GNode } from '../app/graph'
 import { buildIndex, c1, edgeSpend, meteredSpend, reportedCost, ruleShare } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
-import { copy, glossary } from '../copy'
+import { copy, glossary, summary } from '../copy'
+import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
 import { RuleSelect } from '../components/RuleSelect'
@@ -37,6 +38,8 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
 
   const estate = useMemo(() => withSyntheticRiders(base, selected, added), [base, selected, added])
   const ix = useMemo(() => buildIndex(estate), [estate])
+  // The estate as it stands with nothing added, for the summary's before figure.
+  const ixBase = useMemo(() => buildIndex(base), [base])
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
 
   const isPlatform = ix.platformById.has(selected)
@@ -117,10 +120,30 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
             <>
               <h2>{platform.name}</h2>
               <div className="kind">{platform.category}</div>
+              {(() => {
+                const first = ixBase.ridersOf.get(platform.id)?.[0]?.uc
+                const baseFig = first ? reportedCost(ixBase, platform.id, first.id, rule) : 0
+                const nowFig = first ? reportedCost(ix, platform.id, first.id, rule) : 0
+                return (
+                  <Summary
+                    head={summary.s2_head}
+                    number={added > 0 ? summary.s2_number_moved : summary.s2_number_idle}
+                    mechanism={summary.s2_mechanism}
+                    values={{
+                      name: platform.name,
+                      pool: Math.round(platform.fixed_pool_gbp_month).toLocaleString('en-GB'),
+                      first: first?.name ?? '',
+                      base: Math.round(baseFig).toLocaleString('en-GB'),
+                      now: Math.round(nowFig).toLocaleString('en-GB'),
+                      added,
+                    }}
+                  />
+                )
+              })()}
 
               <section>
                 <h3><Term k="fan_in" /></h3>
-                <label style={{ display: 'block', marginBottom: 4 }}>
+                <label style={{ display: 'block', marginBottom: 4 }} data-tour="fanin">
                   Add use cases riding this node: <strong>{added}</strong>
                   <input
                     type="range" min={0} max={24} value={added}
@@ -141,7 +164,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
                 <div className="callout">{copy.view2_hint}</div>
               </section>
 
-              <section>
+              <section data-tour="riders">
                 <h3>What each rider is told it costs here</h3>
                 <div style={{ maxHeight: 260, overflow: 'auto' }}>
                   {riders.map((r) => {

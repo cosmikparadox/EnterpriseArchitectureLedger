@@ -16,6 +16,7 @@ import { usePrefersReducedMotion } from '../app/useNarrow'
 import { STEPS } from './steps'
 import { Timeline } from './animate'
 import { useTourFigures } from './figures'
+import { Spotlight } from './Spotlight'
 import type { Estate } from '../model/types'
 
 export interface TourCardProps {
@@ -106,6 +107,8 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
   const mediumReady = !copy.tour_medium_url.includes(copy.tour_medium_placeholder_host)
 
   return (
+    <>
+    <Spotlight spots={def.spots} />
     <aside className="tour-card" aria-label="Guided tour" ref={cardRef}>
       <div className="tour-head">
         <span className="tour-count">
@@ -170,5 +173,6 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
         </div>
       )}
     </aside>
+    </>
   )
 }

@@ -371,7 +371,52 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   await ctx.close()
 }
 
-// ---- C3. The site points at nothing else ---------------------------------
+// ---- T6. The canvas fills the space it is given ---------------------------
+//
+// Three layout regressions in a row reached the owner by screenshot: a panel
+// covering the graph, a split half collapsed to nothing, and a dead band half a
+// screen deep between the graph and the tour card. Nothing failed, because
+// nothing measured whether the canvas actually filled its space. This does.
+//
+// For every canvas, on every screen, at three widths: it must be at least 260px
+// on each side, it must end where the panel begins rather than run under it, and
+// where the tour card is anchored to the bottom the canvas must end within 2px
+// of the card's top edge, not somewhere above it.
+{
+  const bad: string[] = []
+  let measured = 0
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/2', '#/tour/6']
+  for (const [w, h] of [[1850, 1000], [1233, 1325], [1280, 800]] as const) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h } })
+    const page = await ctx.newPage()
+    for (const r of routes) {
+      await page.goto(`http://localhost:5190/${r}`, { waitUntil: 'load' })
+      await page.waitForSelector('canvas')
+      await page.waitForTimeout(r.startsWith('#/tour') ? 3200 : 1500)
+      const holders = await page.locator('.graph-holder').all()
+      const panel = await page.locator('.panel').boundingBox().catch(() => null)
+      const card = await page.locator('.tour-card').boundingBox().catch(() => null)
+      const cardIsBottom = card !== null && card.width > w * 0.8
+      for (const [i, hd] of holders.entries()) {
+        const box = await hd.boundingBox()
+        if (!box) { bad.push(`${w}x${h} ${r} canvas ${i}: no box`); continue }
+        measured++
+        const tag = `${w}x${h} ${r} canvas ${i}`
+        if (box.width < 260 || box.height < 260) bad.push(`${tag}: ${Math.round(box.width)}x${Math.round(box.height)} is too small`)
+        if (panel && box.x + box.width > panel.x + 1) bad.push(`${tag}: runs ${Math.round(box.x + box.width - panel.x)}px under the panel`)
+        if (cardIsBottom && card) {
+          const gap = card.y - (box.y + box.height)
+          if (Math.abs(gap) > 2) bad.push(`${tag}: ${Math.round(gap)}px between canvas bottom and card top`)
+        }
+      }
+    }
+    await ctx.close()
+  }
+  add('T6 every canvas fills the space it is given', bad.length === 0 ? 'PASS' : 'FAIL',
+    bad.length === 0 ? `${measured} canvases across 8 routes and 3 widths, all sized, none under the panel, none short of the card` : bad.slice(0, 6).join(' | '))
+}
+
+
 //
 // The rule is that this page must not link to, mention, or share navigation
 // with any other site of the owner's. Two things are checked: the bundle carries

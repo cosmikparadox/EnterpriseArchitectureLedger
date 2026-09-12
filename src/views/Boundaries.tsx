@@ -13,7 +13,8 @@ import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
 import { buildIndex, ruleShare } from '../model/ledger'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
-import { copy } from '../copy'
+import { copy, summary } from '../copy'
+import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
 
@@ -131,6 +132,25 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           tabHint="Boundaries"
         >
           <h2>Redraw the lines</h2>
+          {(() => {
+            const movedN = Object.keys(moved).length
+            const d = drift.find((x) => x.rule === rule)
+            const basis = rule === 'equal' ? 'equal split' : rule === 'driver' ? 'driver-proportional'
+              : rule === 'by_volume' ? 'by volume' : 'by headcount'
+            return (
+              <Summary
+                head={movedN === 0 ? summary.s6_head_none : summary.s6_head_moved}
+                number={d && d.changed > 0 ? summary.s6_number_moved : summary.s6_number_stable}
+                mechanism={summary.s6_mechanism}
+                values={{
+                  moved: movedN,
+                  basis,
+                  changed: d?.changed ?? 0,
+                  max: Math.round(d?.maxDelta ?? 0).toLocaleString('en-GB'),
+                }}
+              />
+            )
+          })()}
           <div className="callout">{copy.view6_top}</div>
 
           <section>

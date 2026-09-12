@@ -81,6 +81,13 @@ nothing. The execution figure the card quotes is pinned to the marker, not to
 wherever the cursor has been dragged, because the sentence says "at that month"
 and means the marker.
 
+Each step dims everything except the parts it is about and puts a short label
+beside each bright part, so the dimmed screen says what it is pointing at. A
+step names its targets by `data-tour` attribute; step 1 asks for the selected
+node instead, whose screen position the graph already publishes. The spotlight
+is an SVG mask under the card with `pointer-events: none` throughout, so the
+tool stays live under the dimming, which is the premise of the tour.
+
 Under `prefers-reduced-motion` the camera cuts instead of travelling and every
 animated value is applied at once.
 
@@ -100,6 +107,26 @@ graph.
 These are hover hints, not documentation, and they are not the tour. The tour
 makes the argument; this is so the words mean something to somebody who opened
 the tool without one.
+
+## The summary at the head of every panel
+
+Every screen exists to show one thing, and the panel used to open straight into
+the figures without saying what that thing was. It now opens with three lines:
+a headline with the live figure in it, then the same point read two ways.
+
+"The number" is the reading for somebody who thinks in money and wants to know
+what it costs and what it exposes. "The mechanism" is the reading for somebody
+who thinks in structure and wants to know why. Neither is labelled by who it is
+for. The lens is named; the reader is not.
+
+The deck is `summary` in `src/copy.ts`. Every figure in it is live through
+`fill()`, never typed into the deck. No sentence is over twenty words. There is
+no estate wide total anywhere in it, and the option component is named only in
+the same sentence as the refusal to state it, which is the rule for that figure
+everywhere else in the tool.
+
+View 1 now has a panel with nothing selected, carrying the estate read at a
+glance: counts and a range, never a total.
 
 ## The synthetic estate
 
@@ -672,6 +699,20 @@ that, falling back to the ceiling only until the first measurement lands. The
 ceiling stays as the cap on how tall the card may grow; it is no longer what
 anything else is laid out against.
 
+### 36. Acceptance T6 measures whether the canvas fills its space
+
+Three layout regressions in a row reached the owner by screenshot: a panel
+covering the graph, a split half collapsed to nothing, and a dead band half a
+screen deep between the graph and the tour card. Nothing failed, because
+nothing measured whether the canvas actually filled the space it was given. T2
+checks that the card never covers a node; T1 checks the tour walks; neither
+looks at the canvas itself.
+
+T6 does. For every canvas, on eight routes, at three widths: it must be at least
+260px on each side, it must end where the panel begins rather than run under
+it, and where the tour card is anchored to the bottom the canvas must end within
+2px of the card's top edge.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -798,11 +839,12 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T3 | each waitFor fires on the action it describes | PASS | 5 of 5 fired. Step 6 has no waitFor by design. |
 | T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
+| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
 
-**16 pass, 0 fail, 1 not run.**
+**17 pass, 0 fail, 1 not run.**
 
 On check 7: a case-INSENSITIVE grep for "TCO" hits the bundle 81 times, every one
 of them inside an ordinary identifier such as `currentColor`, `getComponent`,

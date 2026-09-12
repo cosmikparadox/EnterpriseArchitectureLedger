@@ -9,6 +9,8 @@
 
 import { DEFAULT_RHO, type LedgerState } from '../app/store'
 import { animateValue, type Timeline } from './animate'
+import { copy } from '../copy'
+import type { Spot } from './Spotlight'
 
 /** The node the first four steps are about. */
 export const IDENTITY_ID = 'okta'
@@ -45,6 +47,11 @@ export interface TourStep {
    * them, not by enter().
    */
   waitFor?: (now: LedgerState, atEntry: LedgerState) => boolean
+  /**
+   * What stays bright while everything else dims. Named by data-tour attribute
+   * on the element, or the selected node by its published screen position.
+   */
+  spots: Spot[]
   /** Copy keys. Step 7 is the closing card and has its own shape. */
   closing?: true
 }
@@ -60,6 +67,7 @@ export const STEPS: TourStep[] = [
       store.setFlyToId(IDENTITY_ID)
     },
     settleMs: 0,
+    spots: [{ node: true, label: copy.tour_1_spot_node }],
     // Any other platform will do. The point is that they went and looked.
     waitFor: (now) => now.selectedId !== null && now.selectedId !== IDENTITY_ID,
   },
@@ -76,6 +84,10 @@ export const STEPS: TourStep[] = [
       }, reduced)
     },
     settleMs: 350 + 1500,
+    spots: [
+      { selector: '[data-tour="fanin"]', label: copy.tour_2_spot_slider },
+      { selector: '[data-tour="riders"]', label: copy.tour_2_spot_list },
+    ],
     waitFor: (now, at) => now.rule !== at.rule || now.fanInAdded !== at.fanInAdded,
   },
 
@@ -91,6 +103,10 @@ export const STEPS: TourStep[] = [
       timeline.after(2000, () => store.setSubdomain(TOUR_SUBDOMAIN), reduced)
     },
     settleMs: 2000,
+    spots: [
+      { selector: '[data-tour="fail"]', label: copy.tour_3_spot_fail },
+      { selector: '[data-tour="nonadd"]', label: copy.tour_3_spot_pair },
+    ],
     waitFor: (now, at) =>
       now.failRequest !== null &&
       now.failRequest.nonce !== at.failRequest?.nonce &&
@@ -113,6 +129,10 @@ export const STEPS: TourStep[] = [
       }, reduced)
     },
     settleMs: 300 + 3200 + 900,
+    spots: [
+      { selector: '[data-tour="rho"]', label: copy.tour_4_spot_rho },
+      { selector: '[data-tour="gap"]', label: copy.tour_4_spot_gap },
+    ],
     waitFor: (now, at) => now.rho !== at.rho,
   },
 
@@ -133,6 +153,10 @@ export const STEPS: TourStep[] = [
       }, reduced)
     },
     settleMs: 350 + 3000,
+    spots: [
+      { selector: '[data-tour="month"]', label: copy.tour_5_spot_month },
+      { selector: '[data-tour="ratify"]', label: copy.tour_5_spot_board },
+    ],
     waitFor: (now, at) => now.cursor !== at.cursor || now.ratified !== at.ratified,
   },
 
@@ -141,6 +165,11 @@ export const STEPS: TourStep[] = [
     view: 5,
     enter: ({ store }) => { store.setView(5) },
     settleMs: 0,
+    spots: [
+      { selector: '[data-tour="caption-left"]', label: copy.tour_6_spot_left },
+      { selector: '[data-tour="caption-right"]', label: copy.tour_6_spot_right },
+      { selector: '[data-tour="p99"]', label: copy.tour_6_spot_table },
+    ],
   },
 
   // 7. The closing card. No view change.
@@ -148,6 +177,7 @@ export const STEPS: TourStep[] = [
     view: 5,
     enter: () => {},
     settleMs: 0,
+    spots: [],
     closing: true,
   },
 ]

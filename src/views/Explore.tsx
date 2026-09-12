@@ -33,9 +33,9 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [selectedLink, setSelectedLink] = useState<GLink | null>(null)
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState(false)
-  // View 1 draws no panel until something is picked, so the canvas only gives
-  // up the space once there is something in it.
-  const panelOpen = !collapsed && (selectedId !== null || selectedLink !== null)
+  // The panel is always present now, opening on the estate summary when
+  // nothing is picked, so the canvas yields to it whenever it is not collapsed.
+  const panelOpen = !collapsed
   const onSettle = useLayoutReport()
 
   const matches = useMemo(() => {

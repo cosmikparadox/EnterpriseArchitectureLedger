@@ -17,7 +17,8 @@ import {
   buildIndex, c1, edgeSpend, executionComponent, kCommitted, reportedCost, ruleShare,
 } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
-import { copy, fill } from '../copy'
+import { copy, fill, summary } from '../copy'
+import { Summary } from '../components/Summary'
 import { useLedger, DEFAULT_RHO } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
 
@@ -127,6 +128,9 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   }
   const hl = { left: headline(left), right: headline(right) }
 
+  const subId = useLedger((s) => s.subdomain) ?? 'claims'
+  const subName = concentrated.subdomains.find((s) => s.id === subId)?.name ?? subId
+
   const p99 = (mc: typeof mcLeft, id: string) =>
     mc.result?.subdomains.find((s) => s.id === id)?.jointP99 ?? null
 
@@ -167,7 +171,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
 
       <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}`}>
         <div className="half">
-          <div className="half-title">
+          <div className="half-title" data-tour="caption-left">
             Concentrated
             <span className="half-note">
               busiest node {hl.left.topName}, {hl.left.topRiders} use cases ride it
@@ -181,7 +185,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           />
         </div>
         <div className="half">
-          <div className="half-title">
+          <div className="half-title" data-tour="caption-right">
             Best of breed
             <span className="half-note">
               busiest node {hl.right.topName}, {hl.right.topRiders} use cases ride it
@@ -203,6 +207,17 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         >
           <h2>Concentrated against best of breed</h2>
           <div className="kind">Same 30 use cases, wired two ways</div>
+          <Summary
+            head={summary.s5_head} number={summary.s5_number} mechanism={summary.s5_mechanism}
+            values={{
+              n_uc: concentrated.use_cases.length,
+              left_top: hl.left.topRiders,
+              right_top: hl.right.topRiders,
+              sub: subName,
+              left: p99(mcLeft, subId) === null ? '...' : Math.round(p99(mcLeft, subId)!).toLocaleString('en-GB'),
+              right: p99(mcRight, subId) === null ? '...' : Math.round(p99(mcRight, subId)!).toLocaleString('en-GB'),
+            }}
+          />
 
           <div className="callout">{copy.view5_land}</div>
 
@@ -230,7 +245,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             </div>
           </section>
 
-          <section>
+          <section data-tour="p99">
             <h3>Joint P99 loss, by subdomain</h3>
             <Row l="" a="concentrated" b="best of breed" />
             {concentrated.subdomains.map((s) => {

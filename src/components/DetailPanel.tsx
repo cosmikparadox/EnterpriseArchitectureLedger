@@ -2,10 +2,11 @@
 // sections shown or hidden by type.
 
 import { useMemo } from 'react'
-import { copy , type GlossaryKey } from '../copy'
+import { copy, summary, type GlossaryKey } from '../copy'
+import { Summary } from './Summary'
 import { Term } from './Hint'
 import type { AllocationRule, Estate } from '../model/types'
-import { optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
+import { c1, edgeSpend, optionComponent, optionEngineFor, reportedCost, wCurve, type Index } from '../model/ledger'
 import { platformView, useCaseView, type GLink } from '../app/graph'
 import { WKCurve } from './WKCurve'
 import { PanelShell } from './PanelShell'
@@ -60,7 +61,34 @@ export function DetailPanel(props: DetailPanelProps) {
   }, [ix, isPlatform, selectedNodeId])
 
   if (selectedLink) return <LinkPanel {...props} link={selectedLink} />
-  if (!selectedNodeId) return null
+
+  // Nothing selected: the panel still opens, with the estate read at a glance
+  // and no figures. Counts and a range, never a total: canon 9.8.3 forbids
+  // one and the summary deck says so on every screen.
+  if (!selectedNodeId) {
+    const platforms = ix.estate.platforms
+    const ridersOf = (id: string) => ix.ridersOf.get(id)?.length ?? 0
+    const top = platforms.reduce((a, p) => (ridersOf(p.id) > ridersOf(a.id) ? p : a), platforms[0]!)
+    const c1s = platforms.map((p) => c1(ix, p.id) * 100)
+    return (
+      <PanelShell label="Estate" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint="Estate">
+        <h2>{ix.estate.label}</h2>
+        <div className="kind">{platforms.length} platforms, {ix.estate.use_cases.length} use cases</div>
+        <Summary
+          head={summary.s1_head} number={summary.s1_number} mechanism={summary.s1_mechanism}
+          values={{
+            n_platforms: platforms.length,
+            n_uc: ix.estate.use_cases.length,
+            top: top.name,
+            top_riders: ridersOf(top.id),
+            c1_lo: Math.min(...c1s).toFixed(0),
+            c1_hi: Math.max(...c1s).toFixed(0),
+          }}
+        />
+        <div className="note">{copy.intro}</div>
+      </PanelShell>
+    )
+  }
 
   if (isPlatform) {
     const v = platformView(ix, selectedNodeId, rule, AS_AT_MONTH - ix.platformById.get(selectedNodeId)!.adopted_month)
@@ -68,6 +96,18 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.category}, {v.kind === 'integration' ? 'integration node' : 'platform'}</div>
+        <Summary
+          head={summary.s1n_head} number={summary.s1n_number} mechanism={summary.s1n_mechanism}
+          values={{
+            name: v.name,
+            metered: Math.round(v.meteredSpend).toLocaleString('en-GB'),
+            pool: Math.round(v.fixedPool).toLocaleString('en-GB'),
+            riders: v.riders,
+            c1: (v.c1 * 100).toFixed(0),
+            blast_uc: v.blastUseCases,
+            blast_sub: v.blastSubdomains,
+          }}
+        />
 
         {v.kind === 'integration' && <div className="callout">{copy.integration_note}</div>}
 
@@ -129,6 +169,19 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.subdomainName}, use case</div>
+        <Summary
+          head={summary.s1u_head} number={summary.s1u_number} mechanism={summary.s1u_mechanism}
+          values={{
+            name: v.name,
+            n_edges: v.edges.length,
+            reported: Math.round(v.edges.reduce((a, e) => a + reportedCost(ix, e.platformId, v.id, rule), 0)).toLocaleString('en-GB'),
+            metered: Math.round(v.edges.reduce((a, e) => {
+              const u = ix.useCaseById.get(v.id)!
+              const edge = u.edges.find((x) => x.platform_id === e.platformId)!
+              return a + edgeSpend(u, edge, ix.platformById.get(e.platformId)!)
+            }, 0)).toLocaleString('en-GB'),
+          }}
+        />
 
         <section>
           <h3>Volume</h3>
