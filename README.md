@@ -713,6 +713,21 @@ T6 does. For every canvas, on eight routes, at three widths: it must be at least
 it, and where the tour card is anchored to the bottom the canvas must end within
 2px of the card's top edge.
 
+### 37. View 4 keeps its panel when the cursor is before adoption
+
+The panel body was gated on the node existing at the cursor month. Drag the
+month cursor below the adoption month and the whole body unmounted, the
+scrubber being dragged included, and the dim set flipped from everything to
+nothing, which read as the graph glitching. The tour's step 5 made this easy
+to hit: it animates the cursor upward from month 0, and the natural next move
+is to drag it back.
+
+`at()` still returns null before adoption so the charted lines start where the
+node does, but the panel reads through a zero state that never unmounts. The
+controls, the charts and the dimming are continuous across adoption; the
+figures say "not adopted yet" instead of disappearing, and the option block
+appears only once there is something to hold an option on.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two

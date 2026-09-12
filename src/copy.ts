@@ -119,6 +119,15 @@ export const copy = {
 
   rail_tour: 'Tour',
 
+  // View 4, cursor dragged to a month before the node was adopted. The panel
+  // keeps its shape; only the figures have nothing to say yet.
+  footprint_bill_visible:
+    'The bill was visible throughout. The execution component was not shown ' +
+    'to anyone.',
+  footprint_not_yet:
+    'Not adopted yet at this month. Nothing rides on it and there is nothing ' +
+    'to leave.',
+
   rank_tip:
     'Order the nodes by how much of their bill is handed out by rule rather ' +
     'than measured.',

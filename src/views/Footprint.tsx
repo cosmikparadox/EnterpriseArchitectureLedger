@@ -56,6 +56,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
       a + r.uc.volume_per_month * r.edge.driver_units_per_volume_unit * platform.driver_unit_cost_gbp, 0)
     const months = m - platform.adopted_month
     return {
+      adopted: true,
       n,
       subdomains: new Set(attached.map((r) => r.uc.subdomain)).size,
       metered,
@@ -96,10 +97,18 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
     ]
   }, [platform, at])
 
-  const now = at(cursor)
-  const atRatified = at(ratified)
+  // Before the node was adopted there is nothing on it, but the panel must not
+  // vanish: the cursor the viewer is dragging lives in it. Dragging to month 5
+  // used to unmount the scrubber under the finger and flip the dim set from
+  // everything to nothing, which read as a glitch. A zero state keeps the
+  // controls, the charts and the dimming continuous across adoption.
+  const EMPTY = useMemo(() => ({
+    adopted: false, n: 0, subdomains: 0, metered: 0, perRider: 0, execution: 0,
+    option: 0, k: 0, months: 0, attachedIds: new Set<string>(),
+  }), [])
+  const now = at(cursor) ?? EMPTY
+  const atRatified = at(ratified) ?? EMPTY
   const dimNodes = useMemo(() => {
-    if (!now) return new Set<string>()
     const out = new Set<string>()
     for (const u of estate.use_cases) if (!now.attachedIds.has(u.id) && u.adopted_month > cursor) out.add(u.id)
     return out
@@ -154,20 +163,20 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           <div className="kind">{platform?.category ?? ''}</div>
           {platform && (
             <Summary
-              head={atRatified ? summary.s4_head : summary.s4_head_before}
-              number={atRatified ? summary.s4_number : summary.s4_number_before}
+              head={atRatified.adopted ? summary.s4_head : summary.s4_head_before}
+              number={atRatified.adopted ? summary.s4_number : summary.s4_number_before}
               mechanism={summary.s4_mechanism}
               values={{
                 name: platform.name,
                 ratified,
                 adopted: platform.adopted_month,
-                n: atRatified?.n ?? 0,
-                exec: Math.round(atRatified?.execution ?? 0).toLocaleString('en-GB'),
+                n: atRatified.n,
+                exec: Math.round(atRatified.execution).toLocaleString('en-GB'),
               }}
             />
           )}
 
-          {platform && now && (
+          {platform && (
             <>
               <section>
                 <h3>Over 60 months</h3>
@@ -193,12 +202,11 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 <div className="row"><span className="l">Rule share per rider</span><span className="v">{gbp(now.perRider)} /month</span></div>
                 <div className="row"><span className="l">Execution component of leaving</span><span className="v">{gbp(now.execution)}</span></div>
                 <div className="note">
-                  The bill was visible throughout. The execution component was not shown to
-                  anyone.
+                  {now.adopted ? copy.footprint_bill_visible : copy.footprint_not_yet}
                 </div>
               </section>
 
-              {atRatified && (
+              {atRatified.adopted && (
                 <section data-tour="ratify">
                   <h3>Ratified as strategic</h3>
                   <div className="callout">
@@ -214,6 +222,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 </section>
               )}
 
+              {now.adopted && (
               <section>
                 <h3><Term k="execution_component">Switching cost</Term></h3>
                 <div className="note">{copy.switching_split}</div>
@@ -229,6 +238,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                   )}
                 </div>
               </section>
+              )}
             </>
           )}
         </PanelShell>
