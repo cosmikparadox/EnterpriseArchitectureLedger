@@ -164,7 +164,6 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         </button>
       </div>
 
-      <div className="stripe">{copy.view5_look_for}</div>
 
       <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}`}>
         <div className="half">

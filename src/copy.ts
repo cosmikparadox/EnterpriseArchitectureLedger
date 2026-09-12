@@ -117,11 +117,7 @@ export const copy = {
     'Under the t copula the extremes still move together even at zero ' +
     'correlation. That is deliberate. See 9.3.8.',
 
-  // View 5 opened as two grey clouds that look alike, with no labels and no
-  // instruction. This says what to compare before anything else is read.
-  view5_look_for:
-    'Same thirty use cases, wired two ways. Compare the named nodes: how many ' +
-    'there are, and how much rides on the busiest one.',
+  rail_tour: 'Tour',
 
   rank_tip:
     'Order the nodes by how much of their bill is handed out by rule rather ' +

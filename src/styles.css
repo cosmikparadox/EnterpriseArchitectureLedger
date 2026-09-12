@@ -106,6 +106,11 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--ink);
 }
 .rail button:disabled { opacity: 0.4; cursor: default; }
+/* The way back into the tour, on every screen. Pushed to the foot of the rail
+   and ruled off, because it is not a seventh view. */
+.rail-tour { margin-top: auto; border-top: 1px solid var(--line); padding-top: 10px; }
+.rail-tour[aria-pressed="true"] { background: var(--panel-2); color: var(--ink); }
+.rail-tour .n { font-size: 11px; }
 
 /* ---- main ---- */
 .main { position: relative; overflow: hidden; display: flex; flex-direction: column; }
@@ -154,7 +159,18 @@ button, input, select { font: inherit; color: inherit; }
 
 .graphwrap { flex: 1; position: relative; background: var(--graph-bg); min-height: 0; }
 .graphwrap canvas { display: block; touch-action: none; }
-.graph-holder { position: absolute; inset: 0; }
+/* How much of the right and bottom edges is taken by chrome the canvas must not
+   draw under: the detail panel, the tour card, or both. Declared in one place
+   because two different mechanisms consume it. A single graph is positioned
+   absolutely, so it takes the value as an inset; the split view is a grid, so it
+   takes the same value as padding and each half then fills what is left. Getting
+   this wrong is what collapsed the right-hand graph to nothing when the tour was
+   open on view 5: the inset meant for one canvas was applied to both halves. */
+.graphwrap { --chrome-right: 0px; --chrome-bottom: 0px; }
+.graph-holder {
+  position: absolute; inset: 0;
+  right: var(--chrome-right); bottom: var(--chrome-bottom);
+}
 
 /* The panel used to sit on top of the canvas, so a third of the estate was
    behind it and the picture could never be seen whole. Above the phone
@@ -162,7 +178,7 @@ button, input, select { font: inherit; color: inherit; }
    a bottom sheet that can be dragged and collapsed, and resizing a WebGL canvas
    on every frame of a drag is not worth the pixels it would return. */
 @media (min-width: 721px) {
-  .graphwrap.panel-open .graph-holder { right: 330px; }
+  .graphwrap.panel-open { --chrome-right: 330px; }
 }
 
 .legend {
@@ -177,7 +193,11 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---- detail panel ---- */
 .panel {
-  position: absolute; z-index: 20; top: 0; right: 0; height: 100%; width: 330px;
+  /* Ends where the chrome below it begins, the same value the canvas uses, so a
+     bottom anchored tour card does not cut the panel off mid sentence. The
+     phone rules below replace all four of these. */
+  position: absolute; z-index: 20; top: 0; right: 0; bottom: var(--chrome-bottom);
+  height: auto; width: 330px;
   background: var(--panel); border-left: 1px solid var(--line);
   overflow: auto; padding: 12px 14px 20px;
 }
@@ -329,7 +349,10 @@ button, input, select { font: inherit; color: inherit; }
 .tour-foot { display: flex; gap: 8px; margin-top: 10px; }
 .tour-foot .cta { padding: 5px 14px; }
 
-@media (min-width: 1100px) {
+/* The tour card only takes a column of its own where there is room for three:
+   two graphs, the panel, and the card. Below that it anchors to the bottom, the
+   same way it does on a phone, rather than squeezing the graph to a sliver. */
+@media (min-width: 1400px) {
   .tour-card {
     top: var(--tour-gap); right: var(--tour-gap); bottom: var(--tour-gap);
     width: var(--tour-card-w);
@@ -337,20 +360,20 @@ button, input, select { font: inherit; color: inherit; }
   /* The detail panel steps aside rather than sitting under the card. */
   .app.tour-open .panel { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
   .app.tour-open .panel-tab { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .graph-holder,
-  .app.tour-open .graphwrap.panel-open .graph-holder {
-    right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3);
+  .app.tour-open .graphwrap { --chrome-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  .app.tour-open .graphwrap.panel-open {
+    --chrome-right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3);
   }
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 1399px) {
   .tour-card {
     left: 0; right: 0; bottom: 0;
     max-height: var(--tour-card-h);
     border-radius: 12px 12px 0 0;
     border-left: 0; border-right: 0; border-bottom: 0;
   }
-  .app.tour-open .graph-holder { bottom: var(--tour-card-h); }
+  .app.tour-open .graphwrap { --chrome-bottom: var(--tour-card-h); }
   /* The legend has the sheet and the card to clear on a phone. */
   .app.tour-open .legend { bottom: calc(var(--tour-card-h) + 8px); }
 }
@@ -467,8 +490,14 @@ button, input, select { font: inherit; color: inherit; }
   font-size: 11.5px;
 }
 /* When the panel is open it must take room rather than cover the right graph. */
-.graphwrap.split.panel-open { padding-right: 330px; }
-.graphwrap.split .half { position: relative; border-right: 1px solid var(--line); }
+.graphwrap.split { padding-right: var(--chrome-right); padding-bottom: var(--chrome-bottom); }
+/* Each half is a grid cell inside that padding, so its own canvas has no chrome
+   left to clear. Without this reset the halves would inset again inside an area
+   that already accounts for it. */
+.graphwrap.split .half {
+  position: relative; border-right: 1px solid var(--line);
+  --chrome-right: 0px; --chrome-bottom: 0px;
+}
 .graphwrap.split .half:last-of-type { border-right: 0; }
 .half-title {
   position: absolute; z-index: 6; top: 8px; left: 10px; right: 10px;

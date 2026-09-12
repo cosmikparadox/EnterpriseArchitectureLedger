@@ -626,6 +626,37 @@ the top bar says what to compare before anything else is read.
 The split also turns: side by side for shape, stacked when the node names are
 the thing being compared and each estate wants the full width.
 
+### 33. One value describes the chrome the canvas must not draw under
+
+Deviation 30 gave the detail panel its own space by insetting the canvas, and
+the tour card did the same thing separately. Both were written for a screen with
+one graph on it, and view 5 has two: the inset meant for a single canvas was
+applied to each half, so with the tour open the right hand estate collapsed to
+nothing and the panel sat on top of what was left.
+
+`--chrome-right` and `--chrome-bottom` now say how much of each edge is taken,
+in one place, and the two layouts consume the same value differently. A single
+graph is positioned absolutely and takes it as an inset. The split view is a
+grid and takes it as padding, with each half resetting the value to zero so it
+fills what is left rather than insetting again inside an area that already
+accounts for it. The panel takes the bottom value too, so a bottom anchored tour
+card does not cut it off mid sentence.
+
+The tour card only takes a column of its own above 1400px, where there is room
+for two graphs, the panel and the card. Below that it anchors to the bottom, as
+it already did on a phone.
+
+### 34. The tour is reachable from every screen
+
+It could only be started from the front page, so once somebody had begun
+exploring there was no way back to it. There is now a Tour control at the foot
+of the view rail.
+
+It carries `aria-pressed`, not `aria-current`. `aria-current` marks the current
+item in a set, and the set in that rail is the six views; marking the tour that
+way announced two rail items as the current view at once. The acceptance suite
+found it, as a query for the current view that matched two elements.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -738,7 +769,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 
 | # | check | result | evidence |
 |---|---|---|---|
-| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,393 / 1,321 / 1,381 ms, worst 1,393. Mobile emulation 1,206 ms. Dev server 2,249 ms, printed for comparison and not the basis. |
+| 1 | cold start under 3s laptop, 6s phone | PASS | Built file: desktop 1,446 / 1,395 / 1,491 ms, worst 1,491. Mobile emulation 1,269 ms. Dev server 2,383 ms, printed for comparison and not the basis. |
 | 2 | one human completes the tour unaided and can say the five ideas back | NOT RUN | Needs one real human. Cannot be run from a container. Replaces the spec's check 2, per the tour brief B5. |
 | 3 | non-additivity exhibit | PASS | As restated. (a), (b) and (c) all hold; (c) exactly. |
 | 4 | ratification sentence computed, changes when dragged | PASS | Months 24 and 48 differ, and it is not the spec's hard-coded 2.4m example. |

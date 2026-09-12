@@ -80,6 +80,7 @@ export function App() {
   // view rail is not on it. The two buttons are the way in.
   const onLanding = view === 'landing'
   const tourStep = useLedger((s) => s.tourStep)
+  const setTourStep = useLedger((s) => s.setTourStep)
   const classes = ['app']
   if (onLanding) classes.push('landing-mode')
   if (tourStep !== null) classes.push('tour-open')
@@ -101,6 +102,21 @@ export function App() {
             <span className="t">{v.t}</span>
           </button>
         ))}
+        {/* The tour was reachable only from the front page, which meant once you
+            had started exploring there was no way back to it. */}
+        <button
+          className="rail-tour"
+          onClick={() => setTourStep(1)}
+          // aria-pressed, not aria-current. aria-current marks the current item
+          // in a set, and the set here is the six views: marking the tour that
+          // way says two rail items are the current view at once, which is both
+          // wrong for a screen reader and ambiguous for anything querying which
+          // view is showing.
+          aria-pressed={tourStep !== null}
+        >
+          <span className="n" aria-hidden="true">&#9654;</span>
+          <span className="t">{copy.rail_tour}</span>
+        </button>
       </nav>
       )}
 
