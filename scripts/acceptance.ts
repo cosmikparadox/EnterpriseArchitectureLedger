@@ -371,6 +371,26 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   await ctx.close()
 }
 
+// ---- A4. The settled layout is the same on every load -----------------------
+//
+// The seeded start and the tick-counted cooldown together are what make the
+// shape reproducible. Graph3D publishes a digest of every settled position on
+// the document root; three cold loads must agree, and the README records the
+// value so a change of shape is a visible diff rather than a surprise.
+{
+  const digests: string[] = []
+  for (let i = 0; i < 3; i++) {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+    const page = await ctx.newPage()
+    await page.goto('http://localhost:5190/#/explore', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.documentElement.dataset.layoutDigest, null, { timeout: 30000 }).catch(() => undefined)
+    digests.push(await page.evaluate(() => document.documentElement.dataset.layoutDigest ?? 'none'))
+    await ctx.close()
+  }
+  const same = digests.every((d) => d === digests[0] && d !== 'none')
+  add('A4 the settled layout is the same on every load', same ? 'PASS' : 'FAIL', `three cold loads: ${digests.join(' ')}`)
+}
+
 // ---- T7. The intro assembles the estate and hands over to step 1 ----------
 //
 // Step 0 is the title card over an empty canvas, with the estate arriving in
@@ -390,24 +410,46 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const hashAtStart = await page.evaluate(() => location.hash)
   const railHidden = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '0')
   const unresolved: string[] = []
-  // Five layers on Next, one step Back and forward again to prove it is
-  // reversible, then Begin the tour.
-  for (let i = 1; i <= 5; i++) {
+  // On the title card nothing has arrived: no hull is built, so none can be hit.
+  const hullsAtStart = (await page.evaluate(() => ((window as unknown as { __hullScreen?: () => unknown[] }).__hullScreen?.() ?? []).length))
+  // Beat 1 is the domains alone, with the marker on the canvas asking for a tap.
+  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await page.waitForTimeout(900)
+  const calloutAtOne = (await page.locator('.canvas-callout:not([hidden])').innerText().catch(() => '')).trim()
+  const beat1 = await page.locator('.intro-line').innerText()
+  if (beat1.includes('{')) unresolved.push(`beat 1: ${beat1.slice(0, 60)}`)
+  // A tapped coloured region names itself and joins the legend. The dev seam
+  // says where each hull sits on screen; the click itself is a real one.
+  const hulls = await page.evaluate(() => ((window as unknown as { __hullScreen?: () => { subdomain: string; x: number; y: number }[] }).__hullScreen?.() ?? []))
+  // Every region's centre must resolve to that region, not to a neighbour it
+  // overlaps. The sector anchors in the seeded layout are what make this hold.
+  let legendGrew = false
+  const ownHull: string[] = []
+  // Names come from the data file, the same place the app reads them.
+  const subName = new Map<string, string>(
+    (JSON.parse(readFileSync('data/estate.json', 'utf8')) as { subdomains: { id: string; name: string }[] }).subdomains.map((x) => [x.id, x.name]),
+  )
+  for (const [i, h] of hulls.entries()) {
+    await page.mouse.click(h.x, h.y)
+    await page.waitForTimeout(300)
+    const sd = await page.locator('.intro-focus').innerText().catch(() => '')
+    const name = subName.get(h.subdomain) ?? h.subdomain
+    if (sd.startsWith(name + ' covers') && !sd.includes('{')) ownHull.push(h.subdomain)
+    if (i === 0) {
+      const legend = await page.locator('.intro-legend').innerText().catch(() => '')
+      legendGrew = legend.includes('Tap a coloured region') === false && (await page.locator('.intro-legend-row').count()) === 1 && sd.includes('covers') && !sd.includes('{')
+    }
+  }
+  const allOwn = hulls.length === 6 && ownHull.length === 6
+  // With every domain named the marker has nothing left to point at.
+  const calloutGone = (await page.locator('.canvas-callout:not([hidden])').count()) === 0
+  // The other five layers on Next, then one step Back and forward again to
+  // prove it is reversible, then Begin the tour.
+  for (let i = 2; i <= 6; i++) {
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await page.waitForTimeout(650)
     const t = await page.locator('.intro-line').innerText()
     if (t.includes('{')) unresolved.push(`beat ${i}: ${t.slice(0, 60)}`)
-  }
-  // A tapped coloured region names itself and joins the legend. The dev seam
-  // says where each hull sits on screen; the click itself is a real one.
-  const hulls = await page.evaluate(() => ((window as unknown as { __hullScreen?: () => { subdomain: string; x: number; y: number }[] }).__hullScreen?.() ?? []))
-  let legendGrew = false
-  if (hulls.length > 0) {
-    await page.mouse.click(hulls[0]!.x, hulls[0]!.y)
-    await page.waitForTimeout(400)
-    const legend = await page.locator('.intro-legend').innerText().catch(() => '')
-    const sd = await page.locator('.intro-focus').innerText().catch(() => '')
-    legendGrew = legend.includes('Tap a coloured region') === false && (await page.locator('.intro-legend-row').count()) === 1 && sd.includes('covers') && !sd.includes('{')
   }
   // A tapped platform describes itself on the card, from the data. Node focus
   // is the store's selection, so the seam can stand in for a click on the canvas.
@@ -417,7 +459,7 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const described = focusText.includes('Salesforce') && focusText.includes('GBP') && !focusText.includes('{')
   await page.getByRole('button', { name: 'Back', exact: true }).click()
   await page.waitForTimeout(400)
-  const wentBack = (await page.locator('.intro-beats .on').count()) === 4
+  const wentBack = (await page.locator('.intro-beats .on').count()) === 5
   await page.getByRole('button', { name: 'Next', exact: true }).click()
   await page.waitForTimeout(400)
   await page.getByRole('button', { name: 'Begin the tour', exact: true }).click()
@@ -425,15 +467,68 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const hashAtEnd = await page.evaluate(() => location.hash)
   const railBack = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '1')
   const cardUp = (await page.locator('.tour-count').innerText().catch(() => '')).trim().toLowerCase() === '1 of 7'
-  const ok = hashAtStart === '#/tour/0' && railHidden && unresolved.length === 0 && legendGrew && described && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
+  const ok = hashAtStart === '#/tour/0' && railHidden && hullsAtStart === 0 && calloutAtOne === 'Tap a domain' && unresolved.length === 0 && legendGrew && allOwn && calloutGone && described && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
   add('T7 the intro builds the estate layer by layer and hands over to step 1', ok ? 'PASS' : 'FAIL',
-    ok ? 'started at #/tour/0 with chrome hidden; five layers on Next; a real click on a coloured region named it and started the legend; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
-       : `start ${hashAtStart}, rail hidden ${railHidden}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew} (${hulls.length} hulls), described ${described}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
+    ok ? 'started at #/tour/0 with chrome hidden and no hull built; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
+       : `start ${hashAtStart}, rail hidden ${railHidden}, hulls at start ${hullsAtStart}, callout "${calloutAtOne}", gone ${calloutGone}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew}, own region ${ownHull.length} of ${hulls.length}, described ${described}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
   await ctx.close()
 }
 
 
 //
+// ---- T8. Outside the intro a tapped domain explains itself on the canvas ----
+//
+// The legend builds only in the intro. Afterwards a tap on a domain's coloured
+// shape opens a pop-up with the same three lines, pinned to the shape and kept
+// on the canvas. A dot wins a click over the shape behind it, so the probe
+// picks a point inside each shape that is clear of every node.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/explore', { waitUntil: 'load' })
+  await page.waitForFunction(() => !!document.documentElement.dataset.layoutDigest, null, { timeout: 30000 }).catch(() => undefined)
+  await page.waitForTimeout(800)
+  type Pt = { x: number; y: number }
+  const seams = () => page.evaluate(() => {
+    const w = window as unknown as { __hullScreen?: () => { subdomain: string; x: number; y: number }[]; __nodeScreen?: () => { id: string; x: number; y: number }[] }
+    return { hulls: w.__hullScreen?.() ?? [], nodes: w.__nodeScreen?.() ?? [] }
+  })
+  // Clear of every node, and of the label that sits just above each one.
+const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n.y - p.y) > 16 && !(Math.abs(n.x - p.x) < 48 && n.y - p.y > 2 && n.y - p.y < 40))
+  const opened: string[] = []
+  const bad: string[] = []
+  const { hulls } = await seams()
+  for (const h of hulls) {
+    // Let go of anything open, then re-read positions: a selection can open
+    // the panel and move the canvas.
+    await page.keyboard.press('Escape').catch(() => undefined)
+    await page.mouse.click(200, 120); await page.waitForTimeout(250)
+    const { hulls: hs, nodes } = await seams()
+    const c = hs.find((x) => x.subdomain === h.subdomain)
+    if (!c) { bad.push(`${h.subdomain}: no hull`); continue }
+    const candidates: Pt[] = [[0, 0], [10, 8], [-10, -8], [14, -12], [-14, 12], [0, 18], [0, -18], [20, 0], [-20, 0], [28, 14], [-28, 14], [28, -14], [-28, -14], [0, 34], [36, 0], [-36, 0], [0, -34]].map(([dx, dy]) => ({ x: c.x + dx!, y: c.y + dy! }))
+    const pt = candidates.find((p) => clear(p, nodes))
+    if (!pt) { bad.push(`${h.subdomain}: no clear point near the centre`); continue }
+    await page.mouse.click(pt.x, pt.y); await page.waitForTimeout(350)
+    const text = await page.locator('.popover:not([hidden])').innerText().catch(() => '')
+    if (!text || text.includes('{')) { bad.push(`${h.subdomain}: no pop-up (${text.slice(0, 30)})`); continue }
+    const holder = await page.locator('.graph-holder').boundingBox()
+    const body = await page.locator('.popover-body').boundingBox()
+    if (holder && body && (body.x < holder.x || body.x + body.width > holder.x + holder.width + 1 || body.y + body.height > holder.y + holder.height + 1)) bad.push(`${h.subdomain}: pop-up leaves the canvas`)
+    await page.locator('.popover-close').click({ timeout: 5000 }).catch(() => bad.push(`${h.subdomain}: close not clickable`))
+    await page.waitForTimeout(200)
+    if ((await page.locator('.popover:not([hidden])').count()) !== 0) bad.push(`${h.subdomain}: still open after Close`)
+    opened.push(`${h.subdomain} ${text.split('\n')[0]}`)
+  }
+  const ok = hulls.length === 6 && bad.length === 0 && errors.length === 0
+  add('T8 outside the intro a tapped domain explains itself on the canvas', ok ? 'PASS' : 'FAIL',
+    ok ? `6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it`
+       : `hulls ${hulls.length}, opened ${opened.length}: ${bad.join(' | ') || 'no complaints'}, errors ${errors.length}`)
+  await ctx.close()
+}
+
 // Three layout regressions in a row reached the owner by screenshot: a panel
 // covering the graph, a split half collapsed to nothing, and a dead band half a
 // screen deep between the graph and the tour card. Nothing failed, because

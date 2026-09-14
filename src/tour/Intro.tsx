@@ -25,7 +25,7 @@ import type { Index } from '../model/ledger'
 
 /** How long the card takes to dissolve before the tour proper begins. */
 const DISSOLVE_MS = 700
-const LAST_BEAT = 5
+const LAST_BEAT = 6
 
 export interface IntroState {
   active: boolean
@@ -34,6 +34,8 @@ export interface IntroState {
   dimNodes: Set<string>
   /** Nodes whose lines are not drawn yet at this beat. */
   hideLinksOf: Set<string>
+  /** Domains whose shapes have not arrived yet. */
+  dimHulls: Set<string>
   leaving: boolean
   advance: () => void
   back: () => void
@@ -45,6 +47,8 @@ export interface IntroState {
   tapSub: (id: string) => void
   tapNode: (id: string) => void
   clearFocus: () => void
+  /** The pulsing marker on the canvas, if this beat has one. */
+  callout: { kind: 'hull' | 'node'; id: string; text: string } | null
 }
 
 export function useIntro(estate: Estate, ix: Index): IntroState {
@@ -97,19 +101,23 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     return () => clearTimeout(t)
   }, [active, leaving, reduced, setTourStep])
 
-  const { dimNodes, hideLinksOf } = useMemo(() => {
+  // Beats: 1 domains, 2 use cases, 3 platforms, 4 lines, 5 connectors,
+  // 6 the busiest node. Each layer fades in on Next and out on Back.
+  const { dimNodes, hideLinksOf, dimHulls } = useMemo(() => {
     const dim = new Set<string>()
     const hide = new Set<string>()
-    if (!active) return { dimNodes: dim, hideLinksOf: hide }
-    if (beat < 1) for (const id of ids.useCases) dim.add(id)
-    if (beat < 2) for (const id of ids.platforms) dim.add(id)
-    if (beat < 4) for (const id of ids.integration) dim.add(id)
-    // Lines arrive at beat 3, one beat after the platforms, so the platforms
-    // are seen on their own first. Connector lines wait for the connectors.
-    if (beat < 3) { for (const id of ids.useCases) hide.add(id); for (const id of ids.platforms) hide.add(id) }
-    if (beat < 4) for (const id of ids.integration) hide.add(id)
-    return { dimNodes: dim, hideLinksOf: hide }
-  }, [active, beat, ids])
+    const hulls = new Set<string>()
+    if (!active) return { dimNodes: dim, hideLinksOf: hide, dimHulls: hulls }
+    if (beat < 1) for (const s of estate.subdomains) hulls.add(s.id)
+    if (beat < 2) for (const id of ids.useCases) dim.add(id)
+    if (beat < 3) for (const id of ids.platforms) dim.add(id)
+    if (beat < 5) for (const id of ids.integration) dim.add(id)
+    // Lines arrive one beat after the platforms, so the platforms are seen on
+    // their own first. Connector lines wait for the connectors.
+    if (beat < 4) { for (const id of ids.useCases) hide.add(id); for (const id of ids.platforms) hide.add(id) }
+    if (beat < 5) for (const id of ids.integration) hide.add(id)
+    return { dimNodes: dim, hideLinksOf: hide, dimHulls: hulls }
+  }, [active, beat, ids, estate])
 
   const advance = () => {
     if (beat >= LAST_BEAT) setLeaving(true)
@@ -122,7 +130,31 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
   const tapNode = (id: string) => { setFocusSub(null); setSelectedId(id) }
   const clearFocus = () => { setFocusSub(null); setSelectedId(null) }
 
-  return { active, beat, dimNodes, hideLinksOf, leaving, advance, back, skip, focusSub, named, tapSub, tapNode, clearFocus }
+  // The marker moves to the next domain not yet named, and at the platform
+  // beat to the largest platform until one has been tapped. Then it is gone.
+  const selectedId = useLedger((s) => s.selectedId)
+  const callout = useMemo(() => {
+    if (!active || leaving) return null
+    if (beat === 1) {
+      const next = estate.subdomains.find((s) => !named.includes(s.id))
+      return next ? { kind: 'hull' as const, id: next.id, text: copy.intro_callout_domain } : null
+    }
+    if (beat === 2) {
+      if (selectedId && ix.useCaseById.has(selectedId)) return null
+      const busy = estate.use_cases.reduce((a, u) => (u.volume_per_month > a.volume_per_month ? u : a))
+      return { kind: 'node' as const, id: busy.id, text: copy.intro_callout_usecase }
+    }
+    if (beat === 3) {
+      if (selectedId && ix.platformById.has(selectedId)) return null
+      const big = estate.platforms
+        .filter((p) => p.type !== 'integration')
+        .reduce((a, p) => ((ix.ridersOf.get(p.id)?.length ?? 0) > (ix.ridersOf.get(a.id)?.length ?? 0) ? p : a))
+      return { kind: 'node' as const, id: big.id, text: copy.intro_callout_platform }
+    }
+    return null
+  }, [active, leaving, beat, named, selectedId, estate, ix])
+
+  return { active, beat, dimNodes, hideLinksOf, dimHulls, leaving, advance, back, skip, focusSub, named, tapSub, tapNode, clearFocus, callout }
 }
 
 export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Estate; ix: Index }) {
@@ -164,9 +196,9 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
     return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h') }
   }, [beat])
   const values = estateValues
-  const lines = [copy.intro_1, copy.intro_2, copy.intro_3, copy.intro_4, copy.intro_5]
-  const layers = [copy.intro_1_layer, copy.intro_2_layer, copy.intro_3_layer, copy.intro_4_layer, copy.intro_5_layer]
-  const sees = [copy.intro_1_see, copy.intro_2_see, copy.intro_3_see, copy.intro_4_see, copy.intro_5_see]
+  const lines = [copy.intro_1, copy.intro_2, copy.intro_3, copy.intro_4, copy.intro_5, copy.intro_6]
+  const layers = [copy.intro_1_layer, copy.intro_2_layer, copy.intro_3_layer, copy.intro_4_layer, copy.intro_5_layer, copy.intro_6_layer]
+  const sees = [copy.intro_1_see, copy.intro_2_see, copy.intro_3_see, copy.intro_4_see, copy.intro_5_see, copy.intro_6_see]
   const line = beat === 0 ? copy.landing_sentence : fill(lines[beat - 1]!, values)
   const subById = new Map(estate.subdomains.map((s) => [s.id, s]))
 

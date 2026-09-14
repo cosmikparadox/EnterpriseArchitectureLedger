@@ -251,54 +251,66 @@ export const copy = {
   // this has been read. Every figure and every name is live from the estate, so
   // nothing here is a line about a vendor.
   intro_1:
-    '{org} is an invented insurer with {n_sub} parts to its business: ' +
-    '{sub_list}.',
+    'What follows is a domain view of {org}, an invented insurer. It has ' +
+    '{n_sub} domains: {sub_list}.',
   intro_1_see:
-    'Between them they do {n_uc} things every month, from selling a policy to ' +
-    'paying a claim. Each dot is one of those things, a use case, and its ' +
-    'colour is the part of the business it belongs to. Tap a coloured region ' +
-    'to name it, or a dot to see what it does.',
+    'Each coloured shape is one domain: a part of the business and the work ' +
+    'it owns. Tap a domain to name it. The legend on this card builds as you ' +
+    'go, and only here.',
   intro_2:
+    'Between them the domains do {n_uc} things every month, from selling a ' +
+    'policy to paying a claim.',
+  intro_2_see:
+    'Each dot is one of those things, a use case, drawn in the colour of the ' +
+    'domain that owns it. Tap a dot to see what it does, what it depends on ' +
+    'and what it is told it costs.',
+  intro_3:
     'None of that work happens by hand. It runs on {n_platforms} systems the ' +
     'company bought or built, from the policy engine to payroll.',
-  intro_2_see:
+  intro_3_see:
     'Each grey circle is one of those systems, a platform. The bigger the ' +
-    'circle, the more of the {n_uc} use cases depend on it. Tap one to see ' +
-    'what rides on it and what it costs.',
-  intro_3:
+    'circle, the more of the {n_uc} use cases depend on it. Notice that no ' +
+    'platform sits inside one domain; they are shared. Tap one to see what ' +
+    'rides on it and what it costs.',
+  intro_4:
     'No use case runs on one platform. {example_uc} alone touches ' +
     '{example_n}: {example_list}.',
-  intro_3_see:
+  intro_4_see:
     'Each line is one of those dependencies. The dot at one end cannot happen ' +
     'without the platform at the other, and the thicker the line the more ' +
     'money moves along it each month.',
-  intro_4:
+  intro_5:
     'The platforms do not reach each other on their own. {n_int} more nodes ' +
     'exist only to carry logins, calls and messages between them.',
-  intro_4_see:
+  intro_5_see:
     'The diamonds are those connectors: {int_list}. Nearly every use case ' +
     'passes through them, which is why they sit in the middle of everything.',
-  intro_5:
+  intro_6:
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
     'use cases. If it stops, most of the business stops with it.',
-  intro_5_see:
+  intro_6_see:
     'That is the lit node. The tour starts here, with what this concentration ' +
     'costs and who is paying for it.',
 
-  intro_1_layer: 'The business',
-  intro_2_layer: 'The platforms',
-  intro_3_layer: 'The lines',
-  intro_4_layer: 'The connectors',
-  intro_5_layer: 'The busiest node',
+  intro_1_layer: 'The domains',
+  intro_2_layer: 'The use cases',
+  intro_3_layer: 'The platforms',
+  intro_4_layer: 'The lines',
+  intro_5_layer: 'The connectors',
+  intro_6_layer: 'The busiest node',
   intro_back: 'Back',
   intro_next: 'Next',
   intro_begin: 'Begin the tour',
   intro_skip: 'Skip the intro',
 
   // The legend that builds as coloured regions are tapped.
-  intro_legend_head: 'Parts of the business',
-  intro_legend_prompt: 'Tap a coloured region to name it.',
-  intro_legend_done: 'All {n_sub} named.',
+  intro_legend_head: 'Domains',
+  intro_legend_prompt: 'Tap a domain on the canvas to name it.',
+  intro_legend_done: 'All {n_sub} named. The rest of the tool calls a domain a subdomain, the paper\'s word.',
+  // The pulsing marker on the canvas.
+  intro_callout_domain: 'Tap a domain',
+  intro_callout_usecase: 'Tap a use case',
+  intro_callout_platform: 'Tap a platform',
   intro_focus_clear: 'Clear',
 
   // What the card says when a node is tapped. Assembled from data by

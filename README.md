@@ -57,7 +57,7 @@ into a view, which is the reason the store exists at all.
 
 | step | view | what it does when it opens | what it watches for |
 |---|---|---|---|
-| 0 | Explore | the title card over an empty canvas; the estate assembles in five beats behind it | nothing; Continue and Skip |
+| 0 | Explore | the title card over an empty canvas; the estate assembles in six beats behind it, domains first | tap a domain, a dot or a circle; Back, Next and Skip |
 | 1 | Explore | flies to the identity node, selects it, hulls on | you select a different platform |
 | 2 | Fixed pool | selects identity, then animates three riders on over 1.5s | you change the basis or the slider |
 | 3 | Risk | fails identity, waits 2s, then sets the subdomain | you fail a different node |
@@ -590,9 +590,13 @@ for, fixes half of it and leaves the other half moving.
 
 The cooldown is now 300 ticks with no time limit, 300 being where d3's default
 alpha decay reaches its floor. With both halves fixed the settled layout is
-byte-identical across loads: three loads in a row hash to `e79b104d`. The digest
-is published on the document root after the graph comes to rest, which is how
-that is checked.
+byte-identical across loads: three loads in a row hash to `6b8903cf`. Graph3D
+publishes the digest, FNV-1a over every node's id and settled position, on the
+document root as `data-layout-digest` once the simulation stops, and acceptance
+A4 loads the page three times and compares. Until deviation 42 the digest was
+measured by a one-off script and only claimed here; it is now part of the build.
+The value changes whenever the layout does, which is the point: a new shape is
+a visible diff in this file, not a surprise on someone's screen.
 
 ### 26. The tour quotes the execution component and not the option component
 
@@ -770,7 +774,7 @@ arrived yet; dimming alone leaves the lines. And the store gained nothing: step
 reads to render nothing. The relaunch control in the rail also starts at 0,
 since the intro is the opening of the tour, and it is one press to skip.
 
-Acceptance T7 walks it on Continue alone and checks the chrome is hidden while
+Acceptance T7 walks it on Next alone and checks the chrome is hidden while
 it runs, every beat resolves its figure, and the last Continue lands on step 1
 with the chrome back and the card on 1 of 7.
 
@@ -829,6 +833,77 @@ so they are familiar by the time the tour puts a figure on them.
 Nothing here comes from a vendor. There is no vendor framework in the data and
 none is implied; every figure is synthetic and declared, as the footer on every
 screen says.
+
+### 42. Each part of the business owns a sector of the layout
+
+A4 asked for a seeded layout and got one: every node started on a Fibonacci
+sphere in data order and the forces did the rest. The forces put Finance and
+Data and Analytics on top of each other, because they share six of their eight
+and ten platforms and the link force pulls both sets of use cases onto the same
+spot. Their coloured regions overlapped so completely that a click on the centre
+of either resolved to the same one, whatever rule decided the click.
+
+The seed now has structure. Each part of the business is given an anchor
+direction on one axis of an octahedron, in estate order, so every pair is at
+least a right angle apart. The octahedron is turned so the camera, which starts
+on the z axis, looks down one of its three-fold axes: seen that way the six
+anchors project to a regular hexagon and no two sectors sit one behind the
+other on screen, which with the axes left alone the pair on z would. Its use
+cases start in a cap around that anchor on an outer shell, fanned so they do
+not begin stacked and spread in depth as well as across, because a cap on a
+sphere is nearly a plate, and a plate seen edge-on swallows any ray in its
+plane. A platform starts on an inner shell in the mean direction of the parts
+that ride it: one two parts share sits between them, one every part shares
+starts near the middle. A force the same shape as the pull that keeps the hubs
+central holds each use case toward its anchor while the simulation runs and
+fades with alpha like everything else, so the settled shape is still the
+forces' own.
+
+What this buys: all six region centres resolve to their own region on a click,
+which T7 now checks, and the picture reads as six neighbourhoods around a shared
+middle rather than one tangle. What it costs: the layout is no longer "whatever
+the forces did", it has an opinion about where each part sits. The opinion is
+the data's order, not a designer's, and the digest above records the result.
+
+### 43. The intro has six beats, fades each one in, and points at what to tap
+
+The owner's screenshot of the title card showed the whole estate, hulls and all,
+behind a card that had not yet said what any of it was. Two causes. The library
+builds node objects lazily, after the state effect had already run, so a fresh
+object showed whole until something changed; each object now takes the current
+state as it is built. And the hulls had no notion of arriving at all.
+
+The intro is now six beats rather than five. The domains come first, on their
+own, as coloured shapes with nothing inside them; then the use cases fill them;
+then the platforms, the lines, the connectors, and the busiest node as before.
+The word is "domain". The shapes enclose the work one part of the business owns,
+which is a business domain in the domain-driven sense, and the card says so in
+its first sentence: a domain view of the organisation. They are not technology
+domains, and there is no second view that groups platforms by category. The
+platforms sit outside every shape on purpose, because the lesson is that they
+are shared, and a technology grouping would draw a boundary around exactly the
+thing the tool is trying to show has none. The rest of the tool says subdomain,
+the paper's word; the legend says so once it is complete.
+
+Nothing snaps. Every node and every hull keeps where its opacity is going and
+when it set off, and one animation frame loop, started only when something is
+still moving and stopped when nothing is, eases each material toward its target
+over 720 ms. Nothing is allocated per frame and no React state is touched, so a
+layer arriving costs a few multiplications a frame. A hull that has faded fully
+out is not built at all. Under prefers-reduced-motion opacity lands at once.
+
+A pulsing marker on the canvas says what to tap: "Tap a domain" on the domain
+not yet named, moving to the next as each is named and gone when all are; "Tap
+a use case" on the busiest use case at beat two; "Tap a platform" on the largest
+platform at beat three. It is one DOM element moved every other frame, not a
+render per frame. A tap on a node the intro has not yet revealed falls through
+to the domain behind it, because a dot that is not there yet should not take a
+click.
+
+The legend builds only in the intro; that is where the tool is taught. After
+it, and in ordinary use, tapping a domain opens a pop-up on the canvas with the
+same three lines the legend gave it, and the pop-up stays inside the canvas
+rather than sliding under the panel.
 
 ## Acceptance check 3, replaced
 
@@ -957,12 +1032,14 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
-| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden; five layers on Next; a real click on a coloured region named it and started the legend; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
+| A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
+| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden and no hull built; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
+| T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
 
-**18 pass, 0 fail, 1 not run.**
+**20 pass, 0 fail, 1 not run.**
 
 On check 7: a case-INSENSITIVE grep for "TCO" hits the bundle 81 times, every one
 of them inside an ordinary identifier such as `currentColor`, `getComponent`,

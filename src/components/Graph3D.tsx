@@ -4,7 +4,7 @@
 // are added to its scene directly, because they have to follow the layout as it
 // settles.
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import ForceGraph3D from '3d-force-graph'
 import * as THREE from 'three'
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
@@ -64,6 +64,19 @@ export interface Graph3DProps {
    * raycast there before the click is called background.
    */
   onSelectHull?: (subdomainId: string) => void
+  /**
+   * A pulsing marker on the canvas, pointing at one hull or one node, with a
+   * few words beside it. The intro uses it to say "tap one of these". The
+   * marker is a DOM element moved by hand each frame, not React state, so it
+   * follows the camera without a render per frame.
+   */
+  callout?: { kind: 'hull' | 'node'; id: string; text: string } | null
+  /** A small card on the canvas, pinned to one hull or node, with its own content. */
+  popover?: { kind: 'hull' | 'node'; id: string; content: ReactNode } | null
+  /** Hulls not yet revealed, drawn at nothing. Absent: a hull shows when any of its use cases does. */
+  dimHulls?: Set<string>
+  /** Set when the viewer asked for less motion: opacity changes land at once. */
+  reducedMotion?: boolean
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -71,8 +84,24 @@ export interface Graph3DProps {
  *  Implemented as a pull toward the origin rather than a hard pin, so the rest
  *  of the physics stays honest. */
 const HUBS = new Set(['okta', 'meridian', 'lakehouse'])
+/** Hull fill and edge opacity when fully shown. */
+const HULL_FILL = 0.085
+const HULL_EDGE = 0.3
+/** Strength of the pull that keeps each part of the business in its sector. */
+const SECTOR_PULL = 0.1
 
 interface Positioned { x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number }
+
+/** FNV-1a over every node's id and settled position, to a hundredth. */
+function layoutDigest(nodes: (GNode & Positioned)[]): string {
+  let h = 0x811c9dc5
+  const text = nodes.map((n) => `${n.id}:${(n.x ?? 0).toFixed(2)},${(n.y ?? 0).toFixed(2)},${(n.z ?? 0).toFixed(2)}`).join(';')
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 0x01000193) >>> 0
+  }
+  return h.toString(16).padStart(8, '0')
+}
 
 /** Everything built for one node, so state can be set on it without rebuilding. */
 interface NodeObjs {
@@ -85,6 +114,10 @@ interface NodeObjs {
   label: SpriteText | null
   ringSprite: THREE.Sprite | null
   colour: string
+  /** Opacity tween: where it started, where it is going, and when it began. */
+  fadeFrom: number
+  fadeTo: number
+  fadeT0: number
 }
 
 function disposeMesh(m: THREE.Mesh): void {
@@ -144,9 +177,11 @@ export function Graph3D(props: Graph3DProps) {
       .nodeVal((n: object) => (n as GNode).val)
       // A node not yet revealed by the intro has no hover label and no click.
       .nodeLabel((n: object) => (propsRef.current.dimNodes?.has((n as GNode).id) ? '' : (n as GNode).name))
-      .onNodeClick((n: object) => {
+      .onNodeClick((n: object, ev: MouseEvent) => {
         const id = (n as GNode).id
-        if (propsRef.current.dimNodes?.has(id)) return
+        // A node the intro has not revealed is not there yet: the click falls
+        // through to whatever is behind it, the hull or the background.
+        if (propsRef.current.dimNodes?.has(id)) { clickBehind(ev); return }
         propsRef.current.onSelectNode(id)
       })
       .linkLabel((l: object) => {
@@ -154,11 +189,7 @@ export function Graph3D(props: Graph3DProps) {
         return `${Math.round(k.units).toLocaleString('en-GB')} units, GBP ${Math.round(k.spend).toLocaleString('en-GB')}/month`
       })
       .onLinkClick((l: object) => propsRef.current.onSelectLink(l as GLink))
-      .onBackgroundClick((ev: MouseEvent) => {
-        const hit = hullUnderPointer(ev)
-        if (hit && propsRef.current.onSelectHull) propsRef.current.onSelectHull(hit)
-        else propsRef.current.onBackground()
-      })
+      .onBackgroundClick((ev: MouseEvent) => clickBehind(ev))
       .enableNodeDrag(false)
       // A4. Seeding the starting positions is only half of a reproducible
       // layout. By default the simulation stops after 15 seconds of wall time,
@@ -179,6 +210,23 @@ export function Graph3D(props: Graph3DProps) {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any)
+    // Hold each part of the business in its sector. The link force pulls the
+    // use cases of two parts that share most of their platforms onto the same
+    // spot; this pull toward the part's anchor direction is what keeps their
+    // coloured regions apart. It is gentle, and it fades with alpha like the
+    // rest of the simulation, so the settled shape is still the forces' own.
+    g.d3Force('sector', ((alpha: number) => {
+      const { anchors, radius: sectorRadius } = propsRef.current.data
+      for (const n of (g.graphData().nodes as (GNode & Positioned)[])) {
+        if (n.kind !== 'use_case' || !n.subdomain) continue
+        const a = anchors.get(n.subdomain)
+        if (!a) continue
+        n.vx = (n.vx ?? 0) + (a[0] * sectorRadius - (n.x ?? 0)) * SECTOR_PULL * alpha
+        n.vy = (n.vy ?? 0) + (a[1] * sectorRadius - (n.y ?? 0)) * SECTOR_PULL * alpha
+        n.vz = (n.vz ?? 0) + (a[2] * sectorRadius - (n.z ?? 0)) * SECTOR_PULL * alpha
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const charge = g.d3Force('charge') as any
     if (charge?.strength) charge.strength(-140)
@@ -189,6 +237,19 @@ export function Graph3D(props: Graph3DProps) {
     // Dev-only seam for the acceptance script: where each hull sits on screen,
     // so a test can click a coloured region the way a viewer would.
     if (import.meta.env.DEV) {
+      ;(window as unknown as { __layout?: unknown }).__layout = () => ({
+        camera: g.cameraPosition(),
+        nodes: (g.graphData().nodes as (GNode & Positioned)[]).map((n) => ({ id: n.id, kind: n.kind, sub: n.subdomain, x: n.x, y: n.y, z: n.z })),
+      })
+      ;(window as unknown as { __nodeScreen?: unknown }).__nodeScreen = () => {
+        const el = holder.current
+        if (!el) return []
+        const box = el.getBoundingClientRect()
+        return (g.graphData().nodes as (GNode & Positioned)[]).map((n) => {
+          const p = g.graph2ScreenCoords(n.x ?? 0, n.y ?? 0, n.z ?? 0)
+          return { id: n.id, x: box.left + p.x, y: box.top + p.y }
+        })
+      }
       ;(window as unknown as { __hullScreen?: unknown }).__hullScreen = () => {
         const el = holder.current
         if (!el) return []
@@ -208,6 +269,9 @@ export function Graph3D(props: Graph3DProps) {
     let framed = false
     g.onEngineTick(() => { if (++ticks % 8 === 0) rebuildHulls() })
     g.onEngineStop(() => {
+      // The settled layout, as a digest on the document root. This is how
+      // "the same shape on every load" is checked rather than asserted.
+      document.documentElement.dataset.layoutDigest = layoutDigest(g.graphData().nodes as (GNode & Positioned)[])
       rebuildHulls()
       const settled = (g.graphData().nodes as (GNode & Positioned)[])
         .map((n) => ({ id: n.id, x: n.x ?? 0, y: n.y ?? 0, z: n.z ?? 0 }))
@@ -256,6 +320,13 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /** A click that reached past the nodes: a hull if one is under it, else the background. */
+  function clickBehind(ev: MouseEvent) {
+    const hit = hullUnderPointer(ev)
+    if (hit && propsRef.current.onSelectHull) propsRef.current.onSelectHull(hit)
+    else propsRef.current.onBackground()
+  }
+
   // ---- hulls ----
   // Which hull, if any, is under a pointer event. Only the solid meshes are
   // tested; the wireframe edges would make a hairline the target.
@@ -289,6 +360,24 @@ export function Graph3D(props: Graph3DProps) {
     return best
   }
 
+  /** Put each hull's current alpha on its materials, without rebuilding. */
+  function paintHullAlpha() {
+    const group = hullGroup.current
+    if (!group) return
+    let needRebuild = false
+    for (const c of group.children) {
+      const sub = c.userData.subdomain as string | undefined
+      if (!sub) continue
+      const a = hullAlpha.current.get(sub)?.cur ?? 1
+      const m = (c as THREE.Mesh).material as THREE.Material
+      m.opacity = (c.userData.edge ? HULL_EDGE : HULL_FILL) * a
+      if (a <= 0) needRebuild = true
+    }
+    // A hull arriving from nothing has no mesh yet; one rebuild gives it one.
+    const missing = [...hullAlpha.current].some(([sub, a]) => a.cur > 0 && !group.children.some((c) => c.userData.subdomain === sub))
+    if (needRebuild || missing) rebuildHulls()
+  }
+
   function rebuildHulls() {
     const g = gRef.current
     const group = hullGroup.current
@@ -319,6 +408,10 @@ export function Graph3D(props: Graph3DProps) {
     for (const [sub, pts] of bySub) {
       if (pts.length < 8) continue
       if (isolatedSubdomain && sub !== isolatedSubdomain) continue
+      // A hull that has faded fully out is not built at all: nothing to draw,
+      // nothing to hit with a click.
+      const alpha = hullAlpha.current.get(sub)?.cur ?? 1
+      if (alpha <= 0) continue
       let geom: ConvexGeometry
       try { geom = new ConvexGeometry(pts) } catch { continue }
       // Hulls overlap around shared platforms. Spec section 4.1: do not hide
@@ -327,7 +420,7 @@ export function Graph3D(props: Graph3DProps) {
       const mat = new THREE.MeshBasicMaterial({
         color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL,
         transparent: true,
-        opacity: 0.085,
+        opacity: HULL_FILL * alpha,
         side: THREE.DoubleSide,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
@@ -337,8 +430,10 @@ export function Graph3D(props: Graph3DProps) {
       group.add(hull)
       const wire = new THREE.LineSegments(
         new THREE.EdgesGeometry(geom, 24),
-        new THREE.LineBasicMaterial({ color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: 0.3 }),
+        new THREE.LineBasicMaterial({ color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: HULL_EDGE * alpha }),
       )
+      wire.userData.subdomain = sub
+      wire.userData.edge = true
       group.add(wire)
     }
   }
@@ -372,6 +467,7 @@ export function Graph3D(props: Graph3DProps) {
   // collections, which is what read as choppy. Selection in view 1 did the
   // same on every click.
   const objs = useRef(new Map<string, NodeObjs>())
+  useEffect(() => () => { if (fadeRaf.current) cancelAnimationFrame(fadeRaf.current) }, [])
 
   useEffect(() => {
     const g = gRef.current
@@ -463,7 +559,12 @@ export function Graph3D(props: Graph3DProps) {
         group.add(label)
       }
 
-      objs.current.set(n.id, { mesh, solid, wire, halo, ring, fail, label, ringSprite, colour })
+      const o: NodeObjs = { mesh, solid, wire, halo, ring, fail, label, ringSprite, colour, fadeFrom: 1, fadeTo: 1, fadeT0: 0 }
+      objs.current.set(n.id, o)
+      // The library builds objects lazily, after the state effect has run, so a
+      // fresh object takes the current state here or it would show whole until
+      // something changed. This is why the title card used to show the estate.
+      applyNodeState(n, o, true)
       return group
     })
 
@@ -472,10 +573,92 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.data, props.dark, props.labelMode, props.nodeRing])
 
+  // ---- state, and the fade between states ----
+  //
+  // Opacity does not jump. Each node and each hull keeps where it is going and
+  // when it set off; one animation frame loop, started only when something is
+  // still moving and stopped when nothing is, eases every material toward its
+  // target. Nothing is allocated per frame and no React state is touched, so
+  // a layer of the intro fading in costs a few multiplications a frame.
+  const FADE_MS = 720
+  const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
+  const fadeRaf = useRef(0)
+  const hullAlpha = useRef(new Map<string, { cur: number; from: number; to: number; t0: number }>())
+
+  const runFades = () => {
+    if (fadeRaf.current) return
+    const step = () => {
+      fadeRaf.current = 0
+      const now = performance.now()
+      let moving = false
+      for (const o of objs.current.values()) {
+        if (o.solid.opacity === o.fadeTo) continue
+        const t = Math.min(1, (now - o.fadeT0) / FADE_MS)
+        o.solid.opacity = t >= 1 ? o.fadeTo : o.fadeFrom + (o.fadeTo - o.fadeFrom) * easeOut(t)
+        o.mesh.visible = o.solid.opacity > 0
+        if (t < 1) moving = true
+      }
+      for (const a of hullAlpha.current.values()) {
+        if (a.cur === a.to) continue
+        const t = Math.min(1, (now - a.t0) / FADE_MS)
+        a.cur = t >= 1 ? a.to : a.from + (a.to - a.from) * easeOut(t)
+        if (t < 1) moving = true
+      }
+      paintHullAlpha()
+      if (moving) fadeRaf.current = requestAnimationFrame(step)
+    }
+    fadeRaf.current = requestAnimationFrame(step)
+  }
+
+  /** Aim a node's opacity, at once or over the fade. */
+  const fadeTo = (o: NodeObjs, target: number, instant: boolean) => {
+    if (o.fadeTo === target && (instant || o.solid.opacity === target)) return
+    o.fadeTo = target
+    if (instant || propsRef.current.reducedMotion) { o.solid.opacity = target; o.fadeFrom = target; o.mesh.visible = target > 0; return }
+    o.mesh.visible = true
+    o.fadeFrom = o.solid.opacity
+    o.fadeT0 = performance.now()
+    runFades()
+  }
+
+  /** What the current props say about one node. Recomputed by applyState. */
+  const stateCtx = useRef<{
+    neighbours: Set<string>
+    dimmed: (n: GNode) => boolean
+  }>({ neighbours: new Set(), dimmed: () => false })
+
+  const applyNodeState = (n: GNode, o: NodeObjs, instant: boolean) => {
+    const { labelMode, selectedId } = propsRef.current
+    const { neighbours, dimmed } = stateCtx.current
+    const dim = dimmed(n)
+    const isSel = selectedId === n.id
+    const isNeighbour = neighbours.has(n.id)
+    const affected = propsRef.current.affectedUseCases?.has(n.id) === true
+    const failed = propsRef.current.failedNodeId === n.id
+
+    o.mesh.material = affected ? o.wire : o.solid
+    // A node the intro has not revealed is not there at all; a node Isolate
+    // has dimmed is still there, faintly, because the sharing is the lesson.
+    fadeTo(o, propsRef.current.dimNodes?.has(n.id) ? 0 : dim ? 0.12 : 1, instant)
+    o.solid.emissive.set(failed ? '#d05a6a' : isSel ? o.colour : '#000000')
+    o.solid.emissiveIntensity = failed ? 0.9 : isSel ? 0.55 : 0
+    o.halo.visible = isSel && !dim
+    o.ring.visible = isSel
+    o.fail.visible = failed
+    if (o.ringSprite) o.ringSprite.visible = !dim
+    if (o.label) {
+      o.label.visible =
+        labelMode === 'all' ? !dim
+        : labelMode === 'selected' ? (isSel || isNeighbour)
+        : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
+        : false
+    }
+  }
+
   const applyState = () => {
     const g = gRef.current
     if (!g) return
-    const { dark, labelMode, selectedId, isolatedSubdomain, data } = props
+    const { dark, selectedId, isolatedSubdomain, data } = props
 
     const neighbours = new Set<string>()
     if (selectedId) {
@@ -495,30 +678,28 @@ export function Graph3D(props: Graph3DProps) {
       if (n.kind !== 'use_case') return !data.links.some((l) => l.platformId === n.id && isIn(l.ucId))
       return n.subdomain !== isolatedSubdomain
     }
+    stateCtx.current = { neighbours, dimmed }
 
     for (const n of data.nodes) {
       const o = objs.current.get(n.id)
       if (!o) continue
-      const dim = dimmed(n)
-      const isSel = selectedId === n.id
-      const isNeighbour = neighbours.has(n.id)
-      const affected = props.affectedUseCases?.has(n.id) === true
-      const failed = props.failedNodeId === n.id
+      applyNodeState(n, o, false)
+    }
 
-      o.mesh.material = affected ? o.wire : o.solid
-      o.solid.opacity = dim ? 0.12 : 1
-      o.solid.emissive.set(failed ? '#d05a6a' : isSel ? o.colour : '#000000')
-      o.solid.emissiveIntensity = failed ? 0.9 : isSel ? 0.55 : 0
-      o.halo.visible = isSel && !dim
-      o.ring.visible = isSel
-      o.fail.visible = failed
-      if (o.ringSprite) o.ringSprite.visible = !dim
-      if (o.label) {
-        o.label.visible =
-          labelMode === 'all' ? !dim
-          : labelMode === 'selected' ? (isSel || isNeighbour)
-          : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
-          : false
+    // A hull whose use cases are all still dimmed has not arrived yet. It
+    // fades in with them, from nothing, rather than sitting there whole.
+    const subs = new Set(data.nodes.flatMap((n) => (n.kind === 'use_case' && n.subdomain ? [n.subdomain] : [])))
+    for (const sub of subs) {
+      const arrived = props.dimHulls
+        ? !props.dimHulls.has(sub)
+        : data.nodes.some((n) => n.kind === 'use_case' && n.subdomain === sub && !dimmed(n))
+      const target = arrived ? 1 : 0
+      const a = hullAlpha.current.get(sub) ?? { cur: target, from: target, to: target, t0: 0 }
+      if (!hullAlpha.current.has(sub)) hullAlpha.current.set(sub, a)
+      if (a.to !== target) {
+        a.to = target
+        if (propsRef.current.reducedMotion) { a.cur = target; a.from = target }
+        else { a.from = a.cur; a.t0 = performance.now(); runFades() }
       }
     }
 
@@ -543,7 +724,7 @@ export function Graph3D(props: Graph3DProps) {
   useEffect(() => {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.failedNodeId,
+  }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
       props.affectedUseCases, props.litLinks, props.hideLinksOf])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
@@ -623,6 +804,54 @@ export function Graph3D(props: Graph3DProps) {
     return () => { cancelAnimationFrame(raf); reportSelectedScreenPos(null) }
   }, [props.selectedId])
 
+  // ---- things pinned to the canvas ----
+  //
+  // The callout and the pop-up are DOM elements moved every other frame to
+  // where their target is on screen. A hull's target is the mean of its use
+  // cases, which is what the eye takes for its centre; a node's is the node.
+  // Off screen, they hide. No React state is touched per frame.
+  const calloutEl = useRef<HTMLDivElement | null>(null)
+  const popoverEl = useRef<HTMLDivElement | null>(null)
+  const follow = (el: HTMLElement | null, target: { kind: 'hull' | 'node'; id: string } | null | undefined, keepInside = false) => {
+    if (!el || !target) return () => undefined
+    let raf = 0
+    let frame = 0
+    const tick = () => {
+      raf = requestAnimationFrame(tick)
+      if (frame++ % 2 !== 0) return
+      const g = gRef.current
+      if (!g) return
+      const nodes = g.graphData().nodes as (GNode & Positioned)[]
+      let x = 0, y = 0, z = 0, k = 0
+      for (const n of nodes) {
+        if (n.x === undefined) continue
+        const hit = target.kind === 'node' ? n.id === target.id : (n.kind === 'use_case' && n.subdomain === target.id)
+        if (!hit) continue
+        x += n.x; y += n.y ?? 0; z += n.z ?? 0; k++
+      }
+      if (k === 0) { el.hidden = true; return }
+      const p = g.graph2ScreenCoords(x / k, y / k, z / k)
+      const box = holder.current?.getBoundingClientRect()
+      const inside = box ? p.x >= 0 && p.y >= 0 && p.x <= box.width && p.y <= box.height : true
+      el.hidden = !inside
+      let { x: sx, y: sy } = p
+      if (keepInside && box) {
+        // The pop-up's body hangs below its anchor, centred on it. Keep the
+        // whole of it on the canvas, or it slides under the panel beside it.
+        const body = el.firstElementChild as HTMLElement | null
+        const w = body?.offsetWidth ?? 0
+        const h = body?.offsetHeight ?? 0
+        sx = Math.min(Math.max(sx, w / 2 + 8), box.width - w / 2 - 8)
+        if (sy + 14 + h > box.height - 8) sy = Math.max(8, sy - h - 28)
+      }
+      el.style.transform = `translate(${Math.round(sx)}px, ${Math.round(sy)}px)`
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }
+  useEffect(() => follow(calloutEl.current, props.callout), [props.callout])
+  useEffect(() => follow(popoverEl.current, props.popover, true), [props.popover])
+
   // ---- search flies the camera. Spec section 4.1 ----
   //
   // flyToId carries a nonce after a '#', because the request is an event and not
@@ -654,5 +883,19 @@ export function Graph3D(props: Graph3DProps) {
 
   // The inset is set in CSS rather than here, so the tour can pull the canvas
   // clear of its card without this component knowing the tour exists.
-  return <div ref={holder} className="graph-holder" />
+  return (
+    <div ref={holder} className="graph-holder">
+      {props.callout && (
+        <div ref={calloutEl} className="canvas-callout" hidden aria-hidden="true">
+          <span className="canvas-callout-ring" />
+          <span className="canvas-callout-text">{props.callout.text}</span>
+        </div>
+      )}
+      {props.popover && (
+        <div ref={popoverEl} className="popover" hidden role="dialog">
+          <div className="popover-body">{props.popover.content}</div>
+        </div>
+      )}
+    </div>
+  )
 }

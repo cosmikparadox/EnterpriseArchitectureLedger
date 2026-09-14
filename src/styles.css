@@ -629,3 +629,50 @@ button, input, select { font: inherit; color: inherit; }
 .cmp { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 6px; padding: 1px 0; }
 .cmp .cl { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmp .ca, .cmp .cb { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* The pulsing marker the intro puts on the canvas. Moved by transform from
+   Graph3D each other frame; the pulse is CSS on the ring alone. */
+.canvas-callout {
+  position: absolute; left: 0; top: 0; pointer-events: none; z-index: 3;
+  display: flex; align-items: center; gap: 10px;
+  will-change: transform;
+}
+.canvas-callout-ring {
+  width: 18px; height: 18px; margin-left: -9px; border-radius: 50%;
+  border: 2px solid var(--accent); box-sizing: border-box;
+  box-shadow: 0 0 0 0 rgba(31, 78, 121, 0.45);
+  animation: callout-pulse 1.6s ease-out infinite;
+}
+.canvas-callout-text {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 9px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+@keyframes callout-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(31, 78, 121, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(31, 78, 121, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 78, 121, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-callout-ring { animation: none; }
+}
+
+/* The pop-up a tapped domain opens outside the intro. Same lines as the legend. */
+.popover {
+  position: absolute; left: 0; top: 0; z-index: 4; will-change: transform;
+}
+.popover-body {
+  transform: translate(-50%, 14px);
+  width: min(300px, 80vw);
+  background: var(--panel); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  font-size: 12.5px; line-height: 1.45;
+}
+.popover-body p { margin: 6px 0 0; color: var(--ink-2); }
+.popover-head { display: flex; align-items: center; gap: 8px; }
+.popover-head strong { flex: 1; font-size: 13px; }
+.popover-close {
+  border: 0; background: transparent; color: var(--ink-3); font-size: 18px; line-height: 1;
+  cursor: pointer; padding: 0 2px;
+}
+.popover-close:hover { color: var(--ink); }

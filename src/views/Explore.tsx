@@ -10,6 +10,9 @@ import type { AllocationRule, Estate } from '../model/types'
 import type { Index } from '../model/ledger'
 import { useLedger } from '../app/store'
 import { IntroCard, useIntro } from '../tour/Intro'
+import { usePrefersReducedMotion } from '../app/useNarrow'
+import { describeSubdomain } from '../model/describe'
+import { copy, fill } from '../copy'
 import { useLayoutReport } from '../app/layoutReport'
 
 export interface ExploreProps {
@@ -38,7 +41,11 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // nothing is picked, so the canvas yields to it whenever it is not collapsed.
   const panelOpen = !collapsed
   const onSettle = useLayoutReport()
+  const reduced = usePrefersReducedMotion()
   const intro = useIntro(estate, ix)
+  // Outside the intro a tapped domain explains itself in a pop-up on the
+  // canvas, with the same lines the intro's legend gave it.
+  const [hullPop, setHullPop] = useState<string | null>(null)
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -108,18 +115,38 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           onSettle={onSettle}
           dimNodes={intro.active ? intro.dimNodes : undefined}
           hideLinksOf={intro.active ? intro.hideLinksOf : undefined}
+          dimHulls={intro.active ? intro.dimHulls : undefined}
+          callout={intro.active ? intro.callout : null}
+          reducedMotion={reduced}
           onSelectNode={(id) => {
             if (intro.active) { intro.tapNode(id); return }
-            setSelectedLink(null); setSelectedId(id); setCollapsed(false)
+            setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false)
           }}
           onSelectLink={(l) => { if (intro.active) return; setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
-          onBackground={() => { if (intro.active) { intro.clearFocus(); return } setSelectedId(null); setSelectedLink(null) }}
-          // A coloured region is a subdomain. In the intro it names itself on
-          // the card; in the working view it does what the Isolate control does.
+          onBackground={() => { if (intro.active) { intro.clearFocus(); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
+          // A coloured shape is a domain. In the intro it names itself on the
+          // card; afterwards it explains itself in a pop-up where it was tapped.
           onSelectHull={(sub) => {
             if (intro.active) { intro.tapSub(sub); return }
-            setIsolated((cur) => (cur === sub ? null : sub))
+            setHullPop((cur) => (cur === sub ? null : sub))
           }}
+          popover={!intro.active && hullPop ? {
+            kind: 'hull',
+            id: hullPop,
+            content: (() => {
+              const v = describeSubdomain(ix, hullPop)
+              return (
+                <>
+                  <div className="popover-head">
+                    <span className="intro-swatch" style={{ background: SUBDOMAIN_COLOUR[hullPop] }} />
+                    <strong>{String(v.name)}</strong>
+                    <button type="button" className="popover-close" aria-label="Close" onClick={() => setHullPop(null)}>×</button>
+                  </div>
+                  {[copy.desc_sd_what, copy.desc_sd_count, copy.desc_sd_shared].map((t) => <p key={t}>{fill(t, v)}</p>)}
+                </>
+              )
+            })(),
+          } : null}
         />
 
         <Legend>

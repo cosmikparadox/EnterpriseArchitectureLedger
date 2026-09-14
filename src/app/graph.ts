@@ -36,7 +36,14 @@ export interface GLink {
   cfp: number
 }
 
-export interface GraphData { nodes: GNode[]; links: GLink[] }
+export interface GraphData {
+  nodes: GNode[]
+  links: GLink[]
+  /** One direction per part of the business; the sector force holds use cases near it. */
+  anchors: Map<string, [number, number, number]>
+  /** The shell radius the seeded positions were laid out on. */
+  radius: number
+}
 
 /** Paul Tol's bright palette. Readable in both themes, and distinguishable by
  *  most common colour vision deficiencies. Subdomains only, never vendors. */
@@ -83,12 +90,52 @@ export function buildGraph(estate: Estate, ix: Index): GraphData {
       })
     }
   }
-  seedPositions(nodes)
-  return { nodes, links }
+  // Which parts of the business ride each platform, one entry per use case.
+  const ridersSub = new Map<string, string[]>()
+  for (const u of estate.use_cases) for (const e of u.edges) ridersSub.set(e.platform_id, [...(ridersSub.get(e.platform_id) ?? []), u.subdomain])
+  const anchors = sectorAnchors(estate.subdomains.map((s) => s.id))
+  seedPositions(nodes, anchors, ridersSub)
+  return { nodes, links, anchors, radius: shellRadius(nodes.length) }
 }
 
 /** Seed for the layout. Distinct from the estate seed; it decides shape, not data. */
 export const LAYOUT_SEED = 0x1ed9e4
+
+/**
+ * One direction per part of the business, on the axes of an octahedron.
+ *
+ * Six points can be no further apart on a sphere than this: every pair is at
+ * least a right angle apart. Parts are assigned to axes in estate order, so the
+ * assignment is as stable as the data file.
+ *
+ * The octahedron is turned so the camera, which starts on the z axis, looks
+ * down one of its three-fold axes. Seen that way the six vertices project to a
+ * regular hexagon, so no two sectors sit one behind the other on screen. With
+ * the axes left as they are, the pair on the z axis would.
+ */
+const SQ2 = Math.SQRT2
+const SQ3 = Math.sqrt(3)
+const SQ6 = Math.sqrt(6)
+const AXES: [number, number, number][] = [
+  [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1],
+]
+// Rows of the rotation that carries the body diagonal (1,1,1) onto z.
+const E1: [number, number, number] = [1 / SQ2, -1 / SQ2, 0]
+const E2: [number, number, number] = [1 / SQ6, 1 / SQ6, -2 / SQ6]
+const E3: [number, number, number] = [1 / SQ3, 1 / SQ3, 1 / SQ3]
+const dot = (a: [number, number, number], b: [number, number, number]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+const OCTAHEDRON: [number, number, number][] = AXES.map((a) => [dot(a, E1), dot(a, E2), dot(a, E3)])
+
+export function sectorAnchors(subdomainIds: string[]): Map<string, [number, number, number]> {
+  const out = new Map<string, [number, number, number]>()
+  subdomainIds.forEach((id, i) => {
+    const a = OCTAHEDRON[i % OCTAHEDRON.length]!
+    // Past six parts the axes repeat; tilt the repeats so they do not coincide.
+    const k = Math.floor(i / OCTAHEDRON.length)
+    out.set(id, k === 0 ? a : [a[0] + 0.4 * k, a[1] - 0.3 * k, a[2] + 0.5 * k])
+  })
+  return out
+}
 
 /**
  * Give every node a starting position from a seeded generator.
@@ -100,27 +147,73 @@ export const LAYOUT_SEED = 0x1ed9e4
  * between builds, and anyone reading this over someone's shoulder is looking at
  * the same picture.
  *
- * Points are placed on a Fibonacci sphere and then jittered, rather than drawn
- * uniformly at random. A uniform draw clumps, and d3 breaks ties between
- * coincident nodes with Math.random, which would put the non-determinism
- * straight back. The sphere spreads them; the jitter keeps the result from
- * looking like a lattice.
+ * Each part of the business owns a sector: its use cases start in a cap around
+ * that part's anchor direction, on an outer shell. A platform starts on an inner
+ * shell in the mean direction of the parts that ride it, so a platform two parts
+ * share sits between them and one every part shares sits near the middle. Parts
+ * that share most of their platforms, Finance and Data and Analytics here, used
+ * to settle on top of each other and their coloured regions could not be told
+ * apart by a click. The anchors keep them a right angle apart. Positions are
+ * jittered from the seeded generator so the result is not a lattice.
  */
-function seedPositions(nodes: GNode[]): void {
+/** Radius scaled to the node count so a small estate is not lost in a big shell. */
+export const shellRadius = (n: number) => 26 * Math.cbrt(n)
+
+function seedPositions(nodes: GNode[], anchors: Map<string, [number, number, number]>, ridersSub: Map<string, string[]>): void {
   const rng = makeRng(LAYOUT_SEED)
   const n = nodes.length
-  const golden = Math.PI * (3 - Math.sqrt(5))
-  // Radius scaled to the node count so a small estate is not lost in a big shell.
-  const radius = 26 * Math.cbrt(n)
-  for (let i = 0; i < n; i++) {
-    const y = 1 - (i / Math.max(1, n - 1)) * 2
-    const r = Math.sqrt(Math.max(0, 1 - y * y))
-    const theta = golden * i
-    const jitter = () => (rng.next() - 0.5) * radius * 0.18
-    const node = nodes[i]!
-    node.x = Math.cos(theta) * r * radius + jitter()
-    node.y = y * radius + jitter()
-    node.z = Math.sin(theta) * r * radius + jitter()
+  const radius = shellRadius(n)
+  const jitter = (scale: number) => (rng.next() - 0.5) * radius * scale
+  const norm = (v: [number, number, number]): [number, number, number] => {
+    const l = Math.hypot(v[0], v[1], v[2]) || 1
+    return [v[0] / l, v[1] / l, v[2] / l]
+  }
+  // Count use cases per sector so each cap can be spread evenly.
+  const seen = new Map<string, number>()
+  for (const node of nodes) {
+    let dir: [number, number, number]
+    let shell: number
+    let spread: number
+    if (node.kind === 'use_case' && node.subdomain && anchors.has(node.subdomain)) {
+      dir = anchors.get(node.subdomain)!
+      shell = radius
+      spread = 0.55
+      // Fan the sector's use cases around its axis so they do not start stacked.
+      const i = seen.get(node.subdomain) ?? 0
+      seen.set(node.subdomain, i + 1)
+      const golden = Math.PI * (3 - Math.sqrt(5))
+      const t = golden * i
+      const [ax, ay, az] = dir
+      // Two directions perpendicular to the anchor.
+      const u: [number, number, number] = Math.abs(ay) < 0.9 ? norm([-az, 0, ax]) : [1, 0, 0]
+      const w: [number, number, number] = norm([ay * u[2] - az * u[1], az * u[0] - ax * u[2], ax * u[1] - ay * u[0]])
+      const cap = 0.45
+      dir = norm([
+        ax + cap * (Math.cos(t) * u[0] + Math.sin(t) * w[0]),
+        ay + cap * (Math.cos(t) * u[1] + Math.sin(t) * w[1]),
+        az + cap * (Math.cos(t) * u[2] + Math.sin(t) * w[2]),
+      ])
+      // Spread the cap in depth as well as across, so a sector's hull is a
+      // solid and not a plate. A plate seen edge-on swallows any ray in its
+      // plane, and a click on the neighbour in front of it lands on the plate.
+      shell = radius * (0.8 + 0.4 * ((i * 0.618034) % 1))
+      spread = 0.12
+    } else {
+      const subs = ridersSub.get(node.id) ?? []
+      const sum: [number, number, number] = [0, 0, 0]
+      for (const sid of subs) {
+        const a = anchors.get(sid)
+        if (a) { sum[0] += a[0]; sum[1] += a[1]; sum[2] += a[2] }
+      }
+      const len = Math.hypot(sum[0], sum[1], sum[2])
+      // A platform every part shares has no direction; it starts near the middle.
+      dir = len < 1e-6 ? [0, 0, 0] : [sum[0] / len, sum[1] / len, sum[2] / len]
+      shell = radius * 0.45 * Math.min(1, len / Math.max(1, subs.length))
+      spread = 0.18
+    }
+    node.x = dir[0] * shell + jitter(spread)
+    node.y = dir[1] * shell + jitter(spread)
+    node.z = dir[2] * shell + jitter(spread)
   }
 }
 
