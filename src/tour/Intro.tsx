@@ -16,12 +16,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { copy, fill } from '../copy'
-import { useLedger } from '../app/store'
+import { useLedger, FIRST_LEDGER_CHAPTER, TOUR_STEPS } from '../app/store'
 import { usePrefersReducedMotion } from '../app/useNarrow'
 import { SUBDOMAIN_COLOUR } from '../app/graph'
-import { describeEstate, describePlatform, describeSubdomain, describeUseCase } from '../model/describe'
+import { describeEstate, describeLink, describePlatform, describeSubdomain, describeUseCase } from '../model/describe'
 import type { Estate } from '../model/types'
 import type { Index } from '../model/ledger'
+import type { GLink } from '../app/graph'
 
 /** How long the card takes to dissolve before the tour proper begins. */
 const DISSOLVE_MS = 700
@@ -46,6 +47,9 @@ export interface IntroState {
   named: string[]
   tapSub: (id: string) => void
   tapNode: (id: string) => void
+  /** A tapped line. Chapter 4 is about them. */
+  tapLink: (l: GLink) => void
+  focusLink: GLink | null
   clearFocus: () => void
   /** The pulsing marker on the canvas, if this beat has one. */
   callout: { kind: 'hull' | 'node'; id: string; text: string } | null
@@ -61,13 +65,16 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
   const setFlyToId = useLedger((s) => s.setFlyToId)
   const setShowHulls = useLedger((s) => s.setShowHulls)
   const reduced = usePrefersReducedMotion()
-  const active = tourStep === 0
-  const [beat, setBeat] = useState(0)
+  const active = tourStep !== null && tourStep < FIRST_LEDGER_CHAPTER
+  // The beat is the chapter number, so the URL says where you are and Back
+  // from the first ledger chapter lands on the last beat of the picture.
+  const beat = active ? tourStep : 0
   const [leaving, setLeaving] = useState(false)
   const [focusSub, setFocusSub] = useState<string | null>(null)
   const [named, setNamed] = useState<string[]>([])
   /** Which named domain is open on the card. Tapping one opens it, tapping again closes it. */
   const [openSub, setOpenSub] = useState<string | null>(null)
+  const [focusLink, setFocusLink] = useState<GLink | null>(null)
 
   const ids = useMemo(() => {
     const useCases = estate.use_cases.map((u) => u.id)
@@ -81,16 +88,21 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
   // Reset on entry. Under reduced motion the whole estate is shown at once and
   // the card carries the last sentence; the beats are for the eye, and this
   // viewer asked for less of that.
+  // Reset on entry from outside the tour. Coming Back from chapter 7 is not
+  // an entry: the named domains and the open entry are kept.
+  const wasActive = useRef(false)
   useEffect(() => {
-    if (!active) return
+    const entering = active && !wasActive.current
+    wasActive.current = active
+    if (!entering) return
     setLeaving(false)
-    setBeat(reduced ? LAST_BEAT : 0)
     setFocusSub(null)
+    setFocusLink(null)
     setNamed([])
     setOpenSub(null)
     setSelectedId(null)
     setShowHulls(true)
-  }, [active, reduced, setSelectedId, setShowHulls])
+  }, [active, setSelectedId, setShowHulls])
 
   // The last beat aims the camera at the busiest node and lights it.
   useEffect(() => {
@@ -99,11 +111,11 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     setFlyToId(ids.top.id)
   }, [active, beat, ids.top.id, setSelectedId, setFlyToId])
 
-  // Leaving: the card dissolves, then step 1 takes over. Step 1's own enter()
-  // selects and flies to the same node, so the handover is invisible.
+  // Leaving on Skip: the card dissolves and the tour ends. Next from the last
+  // beat is not a leave; it is the next chapter, on the same card.
   useEffect(() => {
     if (!active || !leaving) return
-    const t = setTimeout(() => setTourStep(1), reduced ? 0 : DISSOLVE_MS)
+    const t = setTimeout(() => setTourStep(null), reduced ? 0 : DISSOLVE_MS)
     return () => clearTimeout(t)
   }, [active, leaving, reduced, setTourStep])
 
@@ -125,16 +137,14 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     return { dimNodes: dim, hideLinksOf: hide, dimHulls: hulls }
   }, [active, beat, ids, estate])
 
-  const advance = () => {
-    if (beat >= LAST_BEAT) setLeaving(true)
-    else setBeat((b) => b + 1)
-  }
-  const back = () => setBeat((b) => Math.max(0, b - 1))
+  const advance = () => setTourStep(Math.min(FIRST_LEDGER_CHAPTER, beat + 1))
+  const back = () => setTourStep(Math.max(0, beat - 1))
   const skip = () => setLeaving(true)
   // A region and a node are not both in focus: tapping one lets go of the other.
-  const tapSub = (id: string) => { setSelectedId(null); setFocusSub(id); setOpenSub(id); setNamed((n) => (n.includes(id) ? n : [...n, id])) }
-  const tapNode = (id: string) => { setFocusSub(null); setSelectedId(id) }
-  const clearFocus = () => { setFocusSub(null); setSelectedId(null) }
+  const tapSub = (id: string) => { setSelectedId(null); setFocusLink(null); setFocusSub(id); setOpenSub(id); setNamed((n) => (n.includes(id) ? n : [...n, id])) }
+  const tapNode = (id: string) => { setFocusSub(null); setFocusLink(null); setSelectedId(id) }
+  const tapLink = (l: GLink) => { setFocusSub(null); setSelectedId(null); setFocusLink(l) }
+  const clearFocus = () => { setFocusSub(null); setFocusLink(null); setSelectedId(null) }
   const toggleSub = (id: string) => setOpenSub((cur) => (cur === id ? null : id))
 
   // The marker moves to the next domain not yet named, and at the platform
@@ -161,11 +171,11 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     return null
   }, [active, leaving, beat, named, selectedId, estate, ix])
 
-  return { active, beat, dimNodes, hideLinksOf, dimHulls, leaving, advance, back, skip, focusSub, named, tapSub, tapNode, clearFocus, callout, openSub, toggleSub }
+  return { active, beat, dimNodes, hideLinksOf, dimHulls, leaving, advance, back, skip, focusSub, named, tapSub, tapNode, tapLink, focusLink, clearFocus, callout, openSub, toggleSub }
 }
 
 export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Estate; ix: Index }) {
-  const { beat, leaving, advance, back, skip, focusSub, named, clearFocus, openSub, toggleSub } = intro
+  const { beat, leaving, advance, back, skip, focusSub, named, clearFocus, openSub, toggleSub, focusLink } = intro
   const selectedId = useLedger((s) => s.selectedId)
   const rule = useLedger((s) => s.rule)
   const estateValues = useMemo(() => describeEstate(ix), [ix])
@@ -183,8 +193,13 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
       const v = describePlatform(ix, selectedId, rule)
       return { colour: undefined, lines: [copy.desc_pf_what, copy.desc_pf_rides, copy.desc_pf_cost, copy.desc_pf_how, copy.desc_pf_rule].map((t) => fill(t, v)) }
     }
+    if (focusLink) {
+      const v = describeLink(ix, focusLink)
+      const u = ix.useCaseById.get(focusLink.ucId)
+      return { colour: u ? SUBDOMAIN_COLOUR[u.subdomain] : undefined, lines: [copy.desc_ln_what, copy.desc_ln_flow, copy.desc_ln_risk].map((t) => fill(t, v)) }
+    }
     return null
-  }, [selectedId, ix, rule])
+  }, [selectedId, focusLink, ix, rule])
   void focusSub
   // One description per named domain, built once each.
   const domainLines = useMemo(() => new Map(named.map((id) => {
@@ -253,13 +268,11 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
       )}
       <div className="intro-actions">
         <button className="ctl" onClick={back} disabled={beat === 0}>{copy.intro_back}</button>
-        <button className="cta" onClick={advance} autoFocus>
-          {beat >= LAST_BEAT ? copy.intro_begin : copy.intro_next}
-        </button>
+        <button className="cta" onClick={advance} autoFocus>{copy.intro_next}</button>
         <button className="tour-skip" onClick={skip}>{copy.intro_skip}</button>
       </div>
       <div className="intro-beats" aria-hidden="true">
-        {Array.from({ length: LAST_BEAT }, (_, i) => i + 1).map((b) => <span key={b} className={b <= beat ? 'on' : ''} />)}
+        {Array.from({ length: TOUR_STEPS }, (_, i) => i + 1).map((b) => <span key={b} className={b <= beat ? 'on' : ''} />)}
       </div>
     </aside>
   )

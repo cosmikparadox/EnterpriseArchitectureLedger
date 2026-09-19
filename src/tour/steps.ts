@@ -1,4 +1,4 @@
-// The seven steps. Brief B3.
+// The ledger chapters, 7 to 15. Brief B3, extended.
 //
 // A step is three things: what it does to the tool when it opens, which copy it
 // shows, and what it watches for so it can tell you that you did the thing. It
@@ -12,9 +12,9 @@ import { animateValue, type Timeline } from './animate'
 import { copy } from '../copy'
 import type { Spot } from './Spotlight'
 
-/** The node the first four steps are about. */
+/** The node the ledger chapters are about. */
 export const IDENTITY_ID = 'okta'
-/** The cloud data platform, step 5. */
+/** The cloud data platform, chapter 12. */
 export const DATA_PLATFORM_ID = 'meridian'
 /** The subdomain whose non-additivity pair the tour reads. */
 export const TOUR_SUBDOMAIN = 'claims'
@@ -56,8 +56,29 @@ export interface TourStep {
   closing?: true
 }
 
+/**
+ * Which sections of the node panel a chapter has earned. The panel used to
+ * open whole on the first ledger chapter, thirty figures at once, none of them
+ * introduced. Now chapter 7 shows the name and the summary, chapter 8 adds the
+ * meter, and the rest is met one chapter at a time on the screens built for
+ * it. Outside the tour, everything shows.
+ */
+export type PanelSection = 'metered' | 'riders' | 'failure' | 'switching'
+export function panelSectionsAt(step: number | null): PanelSection[] | 'all' {
+  if (step === null) return 'all'
+  if (step <= 7) return []
+  if (step === 8) return ['metered']
+  return 'all'
+}
+
+/** Chapter number to step definition. Chapters 0 to 6 are the intro and have none. */
+export function stepFor(chapter: number): TourStep | undefined {
+  return STEPS[chapter - 7]
+}
+
 export const STEPS: TourStep[] = [
-  // 1. A platform is a shared node, and use cases plug into it.
+  // 7. Why a ledger. The picture is complete; the busiest node is lit; the
+  //    panel opens on its name alone.
   {
     view: 1,
     enter: ({ store }) => {
@@ -67,12 +88,23 @@ export const STEPS: TourStep[] = [
       store.setFlyToId(IDENTITY_ID)
     },
     settleMs: 0,
-    spots: [{ node: true, label: copy.tour_1_spot_node }],
+    spots: [{ node: true, label: copy.tour_7_spot_node }],
+  },
+
+  // 8. What it meters. The panel shows the meter and nothing else yet.
+  {
+    view: 1,
+    enter: ({ store }) => {
+      store.setView(1)
+      store.setSelectedId(IDENTITY_ID)
+    },
+    settleMs: 0,
+    spots: [{ selector: '[data-tour="metered"]', label: copy.tour_8_spot_meter }],
     // Any other platform will do. The point is that they went and looked.
     waitFor: (now) => now.selectedId !== null && now.selectedId !== IDENTITY_ID,
   },
 
-  // 2. Part of every bill is a rule, not a meter.
+  // 9. Part of every bill is a rule, not a meter.
   {
     view: 2,
     enter: ({ store, timeline, reduced }) => {
@@ -85,13 +117,13 @@ export const STEPS: TourStep[] = [
     },
     settleMs: 350 + 1500,
     spots: [
-      { selector: '[data-tour="fanin"]', label: copy.tour_2_spot_slider },
-      { selector: '[data-tour="riders"]', label: copy.tour_2_spot_list },
+      { selector: '[data-tour="fanin"]', label: copy.tour_9_spot_slider },
+      { selector: '[data-tour="riders"]', label: copy.tour_9_spot_list },
     ],
     waitFor: (now, at) => now.rule !== at.rule || now.fanInAdded !== at.fanInAdded,
   },
 
-  // 3. Fan-in is blast radius, and adding risk up overcounts it.
+  // 10. Fan-in is blast radius, and adding risk up overcounts it.
   {
     view: 3,
     enter: ({ store, timeline, reduced }) => {
@@ -104,8 +136,8 @@ export const STEPS: TourStep[] = [
     },
     settleMs: 2000,
     spots: [
-      { selector: '[data-tour="fail"]', label: copy.tour_3_spot_fail },
-      { selector: '[data-tour="nonadd"]', label: copy.tour_3_spot_pair },
+      { selector: '[data-tour="fail"]', label: copy.tour_10_spot_fail },
+      { selector: '[data-tour="nonadd"]', label: copy.tour_10_spot_pair },
     ],
     waitFor: (now, at) =>
       now.failRequest !== null &&
@@ -113,7 +145,7 @@ export const STEPS: TourStep[] = [
       now.failRequest.nodeId !== IDENTITY_ID,
   },
 
-  // 4. How much platforms fail together changes the number, and nothing here
+  // 11. How much platforms fail together changes the number, and nothing here
   //    knows how much they do.
   {
     view: 3,
@@ -130,13 +162,13 @@ export const STEPS: TourStep[] = [
     },
     settleMs: 300 + 3200 + 900,
     spots: [
-      { selector: '[data-tour="rho"]', label: copy.tour_4_spot_rho },
-      { selector: '[data-tour="gap"]', label: copy.tour_4_spot_gap },
+      { selector: '[data-tour="rho"]', label: copy.tour_11_spot_rho },
+      { selector: '[data-tour="gap"]', label: copy.tour_11_spot_gap },
     ],
     waitFor: (now, at) => now.rho !== at.rho,
   },
 
-  // 5. The footprint arrived before the board did.
+  // 12. The footprint arrived before the board did.
   {
     view: 4,
     enter: ({ store, timeline, reduced }) => {
@@ -154,27 +186,36 @@ export const STEPS: TourStep[] = [
     },
     settleMs: 350 + 3000,
     spots: [
-      { selector: '[data-tour="month"]', label: copy.tour_5_spot_month },
-      { selector: '[data-tour="ratify"]', label: copy.tour_5_spot_board },
+      { selector: '[data-tour="month"]', label: copy.tour_12_spot_month },
+      { selector: '[data-tour="ratify"]', label: copy.tour_12_spot_board },
     ],
     waitFor: (now, at) => now.cursor !== at.cursor || now.ratified !== at.ratified,
   },
 
-  // 6. Diversifying moved the concentration.
+  // 13. Diversifying moved the concentration.
   {
     view: 5,
     enter: ({ store }) => { store.setView(5) },
     settleMs: 0,
     spots: [
-      { selector: '[data-tour="caption-left"]', label: copy.tour_6_spot_left },
-      { selector: '[data-tour="caption-right"]', label: copy.tour_6_spot_right },
-      { selector: '[data-tour="p99"]', label: copy.tour_6_spot_table },
+      { selector: '[data-tour="caption-left"]', label: copy.tour_13_spot_left },
+      { selector: '[data-tour="caption-right"]', label: copy.tour_13_spot_right },
+      { selector: '[data-tour="p99"]', label: copy.tour_13_spot_table },
     ],
   },
 
-  // 7. The closing card. No view change.
+  // 14. The boundaries are drawn by people. Redraw them and watch what moves.
   {
-    view: 5,
+    view: 6,
+    enter: ({ store }) => { store.setView(6) },
+    settleMs: 0,
+    spots: [{ selector: '[data-tour="basis"]', label: copy.tour_14_spot_basis }],
+    waitFor: (now, at) => now.rule !== at.rule,
+  },
+
+  // 15. The close. No view change.
+  {
+    view: 6,
     enter: () => {},
     settleMs: 0,
     spots: [],

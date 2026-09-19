@@ -354,6 +354,15 @@ button, input, select { font: inherit; color: inherit; }
 .app.intro-open .panel,
 .app.intro-open .panel-tab,
 .app.intro-open .legend { opacity: 0; pointer-events: none; }
+/* The ledger chapters bring a screen's own controls back. The rail stays
+   hidden: the chapters choose the screen. */
+.app.tour-open .topbar,
+.app.tour-open .panel,
+.app.tour-open .panel-tab,
+.app.tour-open .legend { opacity: 1; pointer-events: auto; }
+.tour-tick { font-size: 11px; color: var(--accent); margin: -4px 0 6px; }
+/* The card sits above the spotlight's dimming; it is the thing being read. */
+.app.tour-open .intro { z-index: 70; }
 .rail, .topbar, .panel, .panel-tab, .legend { transition: opacity 600ms ease; }
 .intro {
   position: absolute; z-index: 30;
@@ -403,62 +412,57 @@ button, input, select { font: inherit; color: inherit; }
 .intro-beats { display: flex; gap: 5px; margin-top: 14px; }
 .intro-beats span { width: 22px; height: 3px; border-radius: 2px; background: var(--line); transition: background 300ms; }
 .intro-beats span.on { background: var(--accent); }
-@media (min-width: 900px) {
+/* The card takes a column of its own only where there is room for a graph, a
+   panel and the card side by side; below that it is a sheet along the bottom,
+   for every chapter alike, so the card never jumps between the two parts. */
+@media (min-width: 1400px) {
   .intro { top: var(--tour-gap); right: var(--tour-gap); bottom: var(--tour-gap); width: var(--tour-card-w); }
   /* Panel is hidden during the intro, so only the card takes room, whatever
      panel-open says. */
   .app.intro-open .graphwrap,
   .app.intro-open .graphwrap.panel-open { --chrome-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  /* In the ledger chapters the screen's panel steps left of the card. */
+  .app.tour-open .panel { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  .app.tour-open .panel-tab { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  .app.tour-open .graphwrap.panel-open { --chrome-right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3); }
+  .app.intro-open { --wm-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); --wm-bottom: 0px; }
 }
-@media (max-width: 899px) {
+@media (max-width: 1399px) {
+  .app.intro-open { --wm-right: 0px; --wm-bottom: var(--tour-card-actual-h, var(--tour-card-h)); }
+  .app.tour-open .legend { bottom: calc(var(--tour-card-actual-h, var(--tour-card-h)) + 8px); }
   .intro { left: 0; right: 0; bottom: 0; max-height: var(--tour-card-h); border-radius: 12px 12px 0 0; border-left: 0; border-right: 0; border-bottom: 0; }
   .app.intro-open .graphwrap,
   .app.intro-open .graphwrap.panel-open { --chrome-right: 0px; --chrome-bottom: var(--tour-card-actual-h, var(--tour-card-h)); }
+  /* In the ledger chapters the screen's panel is up, so the canvas still
+     ends where the panel begins, above the phone breakpoint. */
+  @media (min-width: 721px) {
+    .app.tour-open .graphwrap.panel-open { --chrome-right: 330px; }
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .rail, .topbar, .panel, .panel-tab, .legend, .intro { transition: none; }
   .intro-line, .intro-see { animation: none; }
 }
 
-/* ---- the guided tour card ----
-   Right-anchored on wide screens, bottom-anchored otherwise. The canvas is
-   inset by the card's footprint rather than drawn under it, so the node a step
-   is talking about cannot end up behind the card. That is acceptance T2, and it
-   holds by construction rather than by arithmetic at each step. */
+/* ---- the ledger chapters' card ----
+   The same card as the intro's, in the same place. What follows are the
+   pieces the intro does not use: the small headings of the close, the cost
+   line, the More detail fold. */
 :root {
   --tour-card-w: 330px;
   /* The card's ceiling. What the layout actually clears is --tour-card-actual-h,
      which the card measures and publishes as it renders; this is only the
-     fallback until it has, and the cap on how tall it may grow. Reserving the
-     ceiling instead of the measurement left a dead band the height of half a
-     screen between the graph and a card three lines tall. */
+     fallback until it has, and the cap on how tall it may grow. */
   --tour-card-h: 46vh;
   --tour-gap: 12px;
 }
-.tour-card {
-  position: absolute; z-index: 60;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: 0 10px 34px rgba(0,0,0,0.20);
-  padding: 10px 13px 12px;
-  display: flex; flex-direction: column; gap: 2px;
-  overflow: auto;
-  overscroll-behavior: contain;
-}
-.tour-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.tour-count {
-  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--ink-3); font-variant-numeric: tabular-nums;
-}
-.tour-tick { font-size: 11px; color: var(--accent); }
 .tour-skip {
   margin-left: auto; background: none; border: 0; cursor: pointer;
   color: var(--ink-3); font-size: 11px; padding: 2px 0;
 }
 .tour-skip:hover { color: var(--ink); }
 .tour-body p { margin: 0 0 7px; font-size: 13px; line-height: 1.5; }
-.tour-body .tour-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tour-body .tour-cost { color: var(--ink-2); font-variant-numeric: tabular-nums; font-size: 12.5px; }
 .tour-body h3 {
   font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
   color: var(--ink-3); margin: 8px 0 4px; font-weight: 600;
@@ -471,37 +475,6 @@ button, input, select { font: inherit; color: inherit; }
 .tour-more-body {
   font-size: 11.5px; color: var(--ink-2);
   border-left: 2px solid var(--line); padding-left: 8px; margin-top: 6px;
-}
-.tour-foot { display: flex; gap: 8px; margin-top: 10px; }
-.tour-foot .cta { padding: 5px 14px; }
-
-/* The tour card only takes a column of its own where there is room for three:
-   two graphs, the panel, and the card. Below that it anchors to the bottom, the
-   same way it does on a phone, rather than squeezing the graph to a sliver. */
-@media (min-width: 1400px) {
-  .tour-card {
-    top: var(--tour-gap); right: var(--tour-gap); bottom: var(--tour-gap);
-    width: var(--tour-card-w);
-  }
-  /* The detail panel steps aside rather than sitting under the card. */
-  .app.tour-open .panel { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .panel-tab { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .graphwrap { --chrome-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .graphwrap.panel-open {
-    --chrome-right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3);
-  }
-}
-
-@media (max-width: 1399px) {
-  .tour-card {
-    left: 0; right: 0; bottom: 0;
-    max-height: var(--tour-card-h);
-    border-radius: 12px 12px 0 0;
-    border-left: 0; border-right: 0; border-bottom: 0;
-  }
-  .app.tour-open .graphwrap { --chrome-bottom: var(--tour-card-actual-h, var(--tour-card-h)); }
-  /* The legend has the sheet and the card to clear on a phone. */
-  .app.tour-open .legend { bottom: calc(var(--tour-card-actual-h, var(--tour-card-h)) + 8px); }
 }
 
 /* ---- narrow viewports: rail becomes a bottom tab strip, panel slides up ---- */
@@ -693,8 +666,8 @@ button, input, select { font: inherit; color: inherit; }
 .wordmark {
   /* Centred on the canvas the viewer can see, not on the box under the card. */
   position: absolute;
-  left: calc((100% - var(--chrome-right, 0px)) / 2);
-  top: calc((100% - var(--chrome-bottom, 0px)) * 0.42);
+  left: calc((100% - var(--wm-right, 0px)) / 2);
+  top: calc((100% - var(--wm-bottom, 0px)) * 0.42);
   transform: translate(-50%, -50%);
   text-align: center; pointer-events: none; z-index: 2; white-space: nowrap;
   animation: intro-in 900ms ease;
@@ -702,7 +675,8 @@ button, input, select { font: inherit; color: inherit; }
 }
 .wordmark-name { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); transition: font-size 800ms cubic-bezier(.2,.7,.2,1); }
 .wordmark-tag { font-size: 14px; color: var(--ink-2); margin-top: 6px; transition: opacity 400ms, margin 800ms, font-size 800ms; }
-.wordmark.wordmark-top { top: 18px; transform: translate(-50%, 0); }
+.wordmark.wordmark-top { top: 52px; transform: translate(-50%, 0); }
+.app.intro-open:not(.tour-open) .wordmark.wordmark-top { top: 18px; }
 .wordmark.wordmark-top .wordmark-name { font-size: 15px; }
 .wordmark.wordmark-top .wordmark-tag { font-size: 11px; margin-top: 1px; color: var(--ink-3); }
 .wordmark.wordmark-leaving { opacity: 0; }

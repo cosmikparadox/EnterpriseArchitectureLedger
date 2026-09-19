@@ -98,7 +98,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
       <div className="topbar">
         <h1>Ledger Explorer</h1>
         <ViewName n={6}>Boundaries</ViewName>
-        <RuleSelect rule={rule} setRule={setRule} />
+        <span data-tour="basis"><RuleSelect rule={rule} setRule={setRule} /></span>
         <button className="ctl" onClick={() => { setMoved({}); setPicked(null) }} disabled={moves === 0}>
           Reset boundaries
         </button>

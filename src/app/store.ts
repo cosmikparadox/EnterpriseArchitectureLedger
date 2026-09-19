@@ -23,7 +23,16 @@ import type { AllocationRule } from '../model/types'
 /** 'landing' is the front page at #/. The six views are the six views. */
 export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6
 
-export const TOUR_STEPS = 7
+/**
+ * Chapters. 0 is the title card. 1 to 6 build the picture: domains, use cases,
+ * platforms, lines, connectors, the busiest node. 7 to 15 build the ledger on
+ * that node: why a ledger, what it meters, what it hands out by rule, what
+ * happens when it stops, how much things fail together, how the footprint
+ * grew, what diversifying does, where the lines are drawn, and a close.
+ */
+export const TOUR_STEPS = 15
+/** The first chapter of the second part, where the numbers start. */
+export const FIRST_LEDGER_CHAPTER = 7
 
 /**
  * A request to fail a platform, raised from anywhere. The nonce is what makes

@@ -10,6 +10,8 @@ import { c1, edgeSpend, optionComponent, optionEngineFor, reportedCost, wCurve, 
 import { platformView, useCaseView, type GLink } from '../app/graph'
 import { WKCurve } from './WKCurve'
 import { PanelShell } from './PanelShell'
+import { useLedger } from '../app/store'
+import { panelSectionsAt } from '../tour/steps'
 
 /** The estate is observed at month 60, the end of the view 4 window. */
 export const AS_AT_MONTH = 60
@@ -43,6 +45,10 @@ export interface DetailPanelProps {
 
 export function DetailPanel(props: DetailPanelProps) {
   const { ix, rule, selectedNodeId, selectedLink } = props
+  // During the tour the panel earns its sections one chapter at a time.
+  const tourStep = useLedger((s) => s.tourStep)
+  const revealed = panelSectionsAt(tourStep)
+  const show = (k: 'metered' | 'riders' | 'failure' | 'switching') => revealed === 'all' || revealed.includes(k)
   const isPlatform = selectedNodeId !== null && ix.platformById.has(selectedNodeId)
   const isUseCase = selectedNodeId !== null && ix.useCaseById.has(selectedNodeId)
 
@@ -96,8 +102,13 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.category}, {v.kind === 'integration' ? 'integration node' : 'platform'}</div>
+        {/* Chapter 7 shows the name alone; chapter 8 adds the headline once
+            "meters" has been taught; the two readings follow the chapters
+            that teach their words. */}
+        {tourStep !== 7 && (
         <Summary
           head={summary.s1n_head} number={summary.s1n_number} mechanism={summary.s1n_mechanism}
+          headOnly={tourStep === 8}
           values={{
             name: v.name,
             metered: Math.round(v.meteredSpend).toLocaleString('en-GB'),
@@ -108,29 +119,35 @@ export function DetailPanel(props: DetailPanelProps) {
             blast_sub: v.blastSubdomains,
           }}
         />
+        )}
 
-        {v.kind === 'integration' && <div className="callout">{copy.integration_note}</div>}
+        {v.kind === 'integration' && revealed === 'all' && <div className="callout">{copy.integration_note}</div>}
 
-        <section>
-          <h3>Metered</h3>
+        {show('metered') && (
+        <section data-tour="metered">
+          <h3>{copy.panel_section_metered}</h3>
           <Row k="fixed_pool" l="Fixed pool" v={gbp(v.fixedPool) + ' /month'} />
           <Row l="Driver" v={v.driverName} />
           <Row l="Unit cost" v={gbp(v.unitCost, 4)} />
           <Row k="metered_spend" l="Metered spend" v={gbp(v.meteredSpend) + ' /month'} />
           <div className="note">{v.capacityNote}</div>
         </section>
+        )}
 
+        {show('riders') && (
         <section>
-          <h3>Riders and the rule</h3>
+          <h3>{copy.panel_section_riders}</h3>
           <Row k="fan_in" l="Use cases riding" v={String(v.riders)} />
           <Row k="subdomain" l="Subdomains" v={String(v.subdomains)} />
           <Row k="rule_share" l="Allocated by rule" v={gbp(v.ruleShareTotal) + ' /month'} />
           <Row k="c1" l="Rule share of reported cost" v={pct(v.c1, 1)} />
           <div className="callout">{copy.fixed_share_warning}</div>
         </section>
+        )}
 
+        {show('failure') && (
         <section>
-          <h3>Failure and blast radius</h3>
+          <h3>{copy.panel_section_failure}</h3>
           <Row l="Loss events per year" v={v.lef.toFixed(2)} />
           <Row l="Direct loss, median" v={gbp(v.lossMedian)} />
           <Row l="Direct loss, P90" v={gbp(v.lossP90)} />
@@ -138,14 +155,14 @@ export function DetailPanel(props: DetailPanelProps) {
           <Row l="Subdomains crossed" v={String(v.blastSubdomains)} />
           <Row k="blast_radius" l="Volume at risk" v={Math.round(v.blastVolume).toLocaleString('en-GB') + ' /month'} />
         </section>
+        )}
 
+        {show('switching') && (
         <section>
-          <h3>Switching cost</h3>
+          <h3>{copy.panel_section_switching}</h3>
           <div className="note">{copy.switching_split}</div>
           <Row k="execution_component" l="Execution component" v={gbp(v.executionComponent)} />
-          <div className="note">
-            What it costs to actually move: migration effort, dual running, retraining.
-          </div>
+          <div className="note">{copy.panel_exec_note}</div>
           {option && (
             // Canon 9.5.7 and 9.9. The option component NEVER renders outside
             // this element. The figure and the refusal are one block, so a
@@ -159,6 +176,7 @@ export function DetailPanel(props: DetailPanelProps) {
           )}
           <Row l="Adopted" v={'month ' + v.adoptedMonth} />
         </section>
+        )}
       </PanelShell>
     )
   }
@@ -193,10 +211,7 @@ export function DetailPanel(props: DetailPanelProps) {
           <Row l="Metered part, exact" v={gbp(v.meteredPerUnit, 3)} />
           <Row l="Under the current rule" v={gbp(v.perUnitCurrent, 3)} />
           <Row l="Range across all rules" v={`${gbp(v.perUnitLow, 3)} to ${gbp(v.perUnitHigh, 3)}`} />
-          <div className="callout">
-            The spread across allocation rules is the honest number. The metered part is
-            observed. The rest is a rule.
-          </div>
+          <div className="callout">{copy.panel_spread_note}</div>
         </section>
 
         <section>

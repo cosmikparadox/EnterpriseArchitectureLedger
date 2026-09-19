@@ -239,42 +239,49 @@ add('3 non-additivity, as restated', 'PASS',
 // the card never covers the node the step is about. T3 performs each step's
 // asked-for action by script and waits for the tick. T4 cold-loads one step.
 
-const TOUR_STEPS_N = 7
-
-// Long enough for each step's own animations to finish before the card is read:
-// step 2 animates over 1.5s, step 3 waits 2s, step 4 sweeps for about 4s.
-const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
+// The ledger chapters, 7 to 15, on one card with the picture chapters before
+// them. The bars under the buttons count all fifteen; there is no counter.
+const FIRST = 7
+const LAST = 15
+const CHAPTER_HEADING: Record<number, string> = {
+  7: 'Why a ledger', 8: 'What it meters', 9: 'What it hands out by rule',
+  10: 'What happens when it stops', 11: 'How much they fail together',
+  12: 'How the footprint grew', 13: 'What diversifying does',
+  14: 'Where the lines are drawn', 15: 'The ledger, closed',
+}
+// Long enough for each chapter's own animations to finish before the card is
+// read: 9 animates over 1.5s, 10 waits 2s, 11 sweeps for about 4s.
+const CHAPTER_SETTLE: Record<number, number> = { 7: 2600, 8: 1600, 9: 2600, 10: 4200, 11: 5200, 12: 4200, 13: 4200, 14: 1600, 15: 1200 }
 
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/1', { waitUntil: 'load' })
-  await page.waitForSelector('.tour-card')
+  await page.goto(`http://localhost:5190/#/tour/${FIRST}`, { waitUntil: 'load' })
+  await page.waitForSelector('.intro')
 
   const unresolved: string[] = []
   const missing: string[] = []
-  for (let n = 1; n <= TOUR_STEPS_N; n++) {
-    await page.waitForTimeout(STEP_SETTLE[n - 1] ?? 2000)
-    const visible = await page.locator('.tour-card').isVisible()
-    if (!visible) missing.push(`step ${n}`)
-    const text = await page.locator('.tour-card').innerText()
+  for (let n = FIRST; n <= LAST; n++) {
+    await page.waitForTimeout(CHAPTER_SETTLE[n] ?? 2000)
+    const visible = await page.locator('.intro').isVisible()
+    if (!visible) missing.push(`chapter ${n}`)
+    const text = await page.locator('.intro').innerText()
     // Every GBP placeholder resolved: no braces and no ellipsis left in a
     // sentence that should be carrying a number.
-    if (text.includes('{') || text.includes('...')) unresolved.push(`step ${n}: ${text.replace(/\n/g, ' ').slice(0, 90)}`)
-    const counter = await page.locator('.tour-count').innerText()
-    // innerText returns the text as rendered, and the card small-caps the
-    // counter, so this compares what was written rather than how it is drawn.
-    if (counter.trim().toLowerCase() !== `${n} of ${TOUR_STEPS_N}`) missing.push(`counter at ${n} read "${counter.trim()}"`)
-    if (n < TOUR_STEPS_N) {
-      await page.getByRole('button', { name: 'Next', exact: true }).click()
-    }
+    if (text.includes('{') || text.includes('...')) unresolved.push(`chapter ${n}: ${text.replace(/\n/g, ' ').slice(0, 90)}`)
+    const heading = (await page.locator('.intro h1').innerText()).trim()
+    if (heading !== CHAPTER_HEADING[n]) missing.push(`heading at ${n} read "${heading}"`)
+    const bars = await page.locator('.intro-beats .on').count()
+    if (bars !== n) missing.push(`${bars} bars lit at chapter ${n}`)
+    if ((await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity)) !== '0') missing.push(`rail showing at ${n}`)
+    if (n < LAST) await page.getByRole('button', { name: 'Next', exact: true }).click()
   }
   const t1ok = errors.length === 0 && unresolved.length === 0 && missing.length === 0
-  add('T1 tour walks 1 to 7 on Next alone', t1ok ? 'PASS' : 'FAIL',
+  add('T1 the ledger chapters walk 7 to 15 on Next alone', t1ok ? 'PASS' : 'FAIL',
     t1ok
-      ? `7 cards, every placeholder resolved, no page errors`
+      ? `9 chapters on one card, each headed by its chapter, the bars counting up, the rail hidden throughout, every placeholder resolved, no page errors`
       : `errors ${errors.length}; unresolved ${unresolved.join(' | ')}; missing ${missing.join(', ')}`)
   await ctx.close()
 }
@@ -284,14 +291,14 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/1', { waitUntil: 'load' })
-  await page.waitForSelector('.tour-card')
+  await page.goto(`http://localhost:5190/#/tour/${FIRST}`, { waitUntil: 'load' })
+  await page.waitForSelector('.intro')
 
   const overlaps: string[] = []
   let measured = 0
-  for (let n = 1; n <= TOUR_STEPS_N; n++) {
-    await page.waitForTimeout(STEP_SETTLE[n - 1] ?? 2000)
-    const card = await page.locator('.tour-card').boundingBox()
+  for (let n = FIRST; n <= LAST; n++) {
+    await page.waitForTimeout(CHAPTER_SETTLE[n] ?? 2000)
+    const card = await page.locator('.intro').boundingBox()
     const pos = await page.evaluate(() => document.documentElement.dataset.selectedScreen ?? null)
     if (card && pos) {
       measured++
@@ -302,13 +309,13 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
       const pad = 24
       const inside = x > card.x - pad && x < card.x + card.width + pad &&
                      y > card.y - pad && y < card.y + card.height + pad
-      if (inside) overlaps.push(`step ${n}: node at ${x},${y} under card at ${Math.round(card.y)}`)
+      if (inside) overlaps.push(`chapter ${n}: node at ${x},${y} under card at ${Math.round(card.y)}`)
     }
-    if (n < TOUR_STEPS_N) await page.getByRole('button', { name: 'Next', exact: true }).click()
+    if (n < LAST) await page.getByRole('button', { name: 'Next', exact: true }).click()
   }
   const t2ok = overlaps.length === 0 && errors.length === 0
   add('T2 on 390x844 the card never covers the node', t2ok ? 'PASS' : 'FAIL',
-    t2ok ? `${measured} steps had a selected node on screen, none under the card`
+    t2ok ? `${measured} chapters had a selected node on screen, none under the card`
          : overlaps.join(' | '))
   await ctx.close()
 }
@@ -316,41 +323,46 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
-  // Each step's waitFor, and the action that should satisfy it. Performed
+  // Each chapter's waitFor, and the action that should satisfy it. Performed
   // through the same controls a person would use where there is one, and
   // through the store where the action is "select a different node in 3D".
   const actions: { step: number; what: string; run: () => Promise<void> }[] = [
-    { step: 1, what: 'select a different platform', run: async () => {
+    { step: 8, what: 'select a different platform', run: async () => {
       await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
     } },
-    { step: 2, what: 'change the allocation basis', run: async () => {
+    { step: 9, what: 'change the allocation basis', run: async () => {
       await page.getByLabel('Allocation basis for the fixed pool').selectOption('driver')
     } },
-    { step: 3, what: 'fail a different node', run: async () => {
+    { step: 10, what: 'fail a different node', run: async () => {
       await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { failIt: (s: string) => void } } }).__ledger?.getState().failIt('meridian'))
     } },
-    { step: 4, what: 'move the dependence slider', run: async () => {
+    { step: 11, what: 'move the dependence slider', run: async () => {
       await page.getByLabel('Dependence between platform failures, rho').fill('0.35')
     } },
-    { step: 5, what: 'move the month cursor', run: async () => {
+    { step: 12, what: 'move the month cursor', run: async () => {
       await page.getByLabel('Month the platform was ratified as strategic').fill('40')
+    } },
+    // A hash change keeps the document, so the store still holds the basis
+    // chapter 9's action set; this one has to pick a basis not yet chosen.
+    { step: 14, what: 'change the allocation basis', run: async () => {
+      await page.getByLabel('Allocation basis for the fixed pool').selectOption('by_volume')
     } },
   ]
   const fired: string[] = []
   const silent: string[] = []
   for (const a of actions) {
     await page.goto(`http://localhost:5190/#/tour/${a.step}`, { waitUntil: 'load' })
-    await page.waitForSelector('.tour-card')
-    await page.waitForTimeout(STEP_SETTLE[a.step - 1] ?? 2000)
-    if (await page.locator('.tour-tick').count() > 0) { silent.push(`step ${a.step} ticked before the action`); continue }
+    await page.waitForSelector('.intro')
+    await page.waitForTimeout(CHAPTER_SETTLE[a.step] ?? 2000)
+    if (await page.locator('.tour-tick').count() > 0) { silent.push(`chapter ${a.step} ticked before the action`); continue }
     await a.run()
     await page.waitForTimeout(900)
     const ticked = await page.locator('.tour-tick').count() > 0
     if (ticked) fired.push(`${a.step} ${a.what}`)
-    else silent.push(`step ${a.step} did not tick on ${a.what}`)
+    else silent.push(`chapter ${a.step} did not tick on ${a.what}`)
   }
   add('T3 each waitFor fires on the action it describes', silent.length === 0 ? 'PASS' : 'FAIL',
-    silent.length === 0 ? `${fired.length} of 5 fired; step 6 has no waitFor by design` : silent.join(' | '))
+    silent.length === 0 ? `${fired.length} of 6 fired; chapters 7, 13 and 15 have no waitFor by design` : silent.join(' | '))
   await ctx.close()
 }
 
@@ -359,15 +371,15 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/5', { waitUntil: 'load' })
-  await page.waitForSelector('.tour-card')
+  await page.goto('http://localhost:5190/#/tour/12', { waitUntil: 'load' })
+  await page.waitForSelector('.intro')
   await page.waitForTimeout(4500)
-  const counter = (await page.locator('.tour-count').innerText()).trim()
+  const heading = (await page.locator('.intro h1').innerText()).trim()
   const view = (await page.locator('.rail button[aria-current="true"] .t').innerText()).trim()
   const selected = (await page.locator('.panel h2').first().innerText()).trim()
-  const ok = counter.toLowerCase() === '5 of 7' && view === 'Footprint' && selected === 'Meridian Data Cloud' && errors.length === 0
-  add('T4 deep link to one step cold-loads into it', ok ? 'PASS' : 'FAIL',
-    `counter "${counter}", view "${view}", selected "${selected}", page errors ${errors.length}`)
+  const ok = heading === CHAPTER_HEADING[12] && view === 'Footprint' && selected === 'Meridian Data Cloud' && errors.length === 0
+  add('T4 deep link to one chapter cold-loads into it', ok ? 'PASS' : 'FAIL',
+    `#/tour/12: heading "${heading}", view "${view}", selected "${selected}", page errors ${errors.length}`)
   await ctx.close()
 }
 
@@ -464,7 +476,7 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   // With every domain named the marker has nothing left to point at.
   const calloutGone = (await page.locator('.canvas-callout:not([hidden])').count()) === 0
   // The other five layers on Next, then one step Back and forward again to
-  // prove it is reversible, then Begin the tour.
+  // prove it is reversible, then Next into the ledger chapters.
   for (let i = 2; i <= 6; i++) {
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await page.waitForTimeout(650)
@@ -482,15 +494,16 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const wentBack = (await page.locator('.intro-beats .on').count()) === 5
   await page.getByRole('button', { name: 'Next', exact: true }).click()
   await page.waitForTimeout(400)
-  await page.getByRole('button', { name: 'Begin the tour', exact: true }).click()
+  await page.getByRole('button', { name: 'Next', exact: true }).click()
   await page.waitForTimeout(1500)
   const hashAtEnd = await page.evaluate(() => location.hash)
   const railBack = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '1')
-  const cardUp = (await page.locator('.tour-count').innerText().catch(() => '')).trim().toLowerCase() === '1 of 7'
-  const ok = hashAtStart === '#/tour/0' && railHidden && hullsAtStart === 0 && wordmarkAtStart.includes('Harbourline') && centred && fading && wordmarkAtTop && chapterHeading && calloutAtOne === 'Tap a domain' && unresolved.length === 0 && legendGrew && allOwn && stacked && calloutGone && described && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
+  // The same card, now headed by the first ledger chapter: no second tour.
+  const cardUp = (await page.locator('.intro h1').innerText().catch(() => '')).trim() === CHAPTER_HEADING[FIRST]
+  const ok = hashAtStart === '#/tour/0' && railHidden && hullsAtStart === 0 && wordmarkAtStart.includes('Harbourline') && centred && fading && wordmarkAtTop && chapterHeading && calloutAtOne === 'Tap a domain' && unresolved.length === 0 && legendGrew && allOwn && stacked && calloutGone && described && wentBack && hashAtEnd === `#/tour/${FIRST}` && !railBack && cardUp && errors.length === 0
   add('T7 the intro builds the estate layer by layer and hands over to step 1', ok ? 'PASS' : 'FAIL',
-    ok ? 'started at #/tour/0 with chrome hidden, no hull built and the company name centred on the visible canvas to within 2 px; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
-       : `start ${hashAtStart}, rail hidden ${railHidden}, hulls at start ${hullsAtStart}, wordmark "${wordmarkAtStart.slice(0, 20)}", centred ${centred}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, at top ${wordmarkAtTop}, heading ${chapterHeading}, stacked ${stacked} (${entries}), callout "${calloutAtOne}", gone ${calloutGone}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew}, own region ${ownHull.length} of ${hulls.length}, described ${described}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
+    ok ? 'started at #/tour/0 with chrome hidden, no hull built and the company name centred on the visible canvas to within 2 px; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; Next from the last beat went straight to #/tour/7 on the same card, headed Why a ledger, with the rail still hidden'
+       : `start ${hashAtStart}, rail hidden ${railHidden}, hulls at start ${hullsAtStart}, wordmark "${wordmarkAtStart.slice(0, 20)}", centred ${centred}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, at top ${wordmarkAtTop}, heading ${chapterHeading}, stacked ${stacked} (${entries}), callout "${calloutAtOne}", gone ${calloutGone}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew}, own region ${ownHull.length} of ${hulls.length}, described ${described}, back ${wentBack}, end ${hashAtEnd}, rail hidden after ${!railBack}, card ${cardUp}, errors ${errors.length}`)
   await ctx.close()
 }
 
@@ -561,7 +574,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 {
   const bad: string[] = []
   let measured = 0
-  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/2', '#/tour/6']
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/9', '#/tour/13']
   for (const [w, h] of [[1850, 1000], [1233, 1325], [1280, 800]] as const) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } })
     const page = await ctx.newPage()
@@ -571,7 +584,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
       await page.waitForTimeout(r.startsWith('#/tour') ? 3200 : 1500)
       const holders = await page.locator('.graph-holder').all()
       const panel = await page.locator('.panel').boundingBox().catch(() => null)
-      const card = await page.locator('.tour-card').boundingBox().catch(() => null)
+      const card = await page.locator('.intro').boundingBox().catch(() => null)
       const cardIsBottom = card !== null && card.width > w * 0.8
       for (const [i, hd] of holders.entries()) {
         const box = await hd.boundingBox()
@@ -607,7 +620,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const offsiteLinks: string[] = []
-  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/7']) {
+  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/15']) {
     await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
     await page.waitForTimeout(hash === '#/' ? 400 : 2000)
     const hrefs = await page.evaluate(() =>

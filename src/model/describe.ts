@@ -13,6 +13,7 @@
 
 import type { AllocationRule } from './types'
 import { c1, edgeSpend, meteredSpend, reportedCost, type Index } from './ledger'
+import type { GLink } from '../app/graph'
 
 const gbp = (n: number) => Math.round(n).toLocaleString('en-GB')
 const num = (n: number) => Math.round(n).toLocaleString('en-GB')
@@ -109,5 +110,19 @@ export function describeEstate(ix: Index): Record<string, string | number> {
     example_list: list(busiestUc.edges.map((x) => ix.platformById.get(x.platform_id)?.name ?? x.platform_id), 5),
     top: top.name,
     top_riders: ridersOf(top.id),
+  }
+}
+
+/** One line, from the data it carries. */
+export function describeLink(ix: Index, l: GLink): Record<string, string | number> {
+  const u = ix.useCaseById.get(l.ucId)
+  const p = ix.platformById.get(l.platformId)
+  return {
+    uc: u?.name ?? l.ucId,
+    platform: p?.name ?? l.platformId,
+    units: num(l.units),
+    driver: p?.driver_name ?? 'units',
+    spend: gbp(l.spend),
+    pct: Math.round(l.cfp * 100),
   }
 }

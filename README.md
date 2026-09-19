@@ -46,78 +46,71 @@ npm run build        # static build into dist/
 
 ## The guided tour
 
-Seven steps, at `#/tour/1` to `#/tour/7`, with an intro before them at
-`#/tour/0`. The tool stays live underneath the whole way: every step asks you
-to touch something, and Next is never disabled.
-Where a step asks for an action, a tick appears once you have done it, and that
-is all the tick does. Nobody is held at a step.
+One tour, fifteen chapters, at `#/tour/0` to `#/tour/15`, on one card that
+stays in the same place throughout. The first part builds the picture; the
+second builds the ledger on the node the picture left lit. There is no second
+"begin", because there is no second tour: Next from the last chapter of the
+picture is the first chapter of the ledger, and Back goes the other way. The
+rail is hidden for the whole tour, because the chapters choose the screen; a
+screen's own controls come back in the ledger chapters, because each chapter
+asks for one of them.
 
-Each step drives the tool only through the store. Nothing in `src/tour/` reaches
-into a view, which is the reason the store exists at all.
+The tool stays live underneath the whole way: every chapter asks you to touch
+something, and Next is never disabled. Where a chapter asks for an action, a
+tick appears once you have done it, and that is all the tick does. Nobody is
+held at a chapter.
 
-| step | view | what it does when it opens | what it watches for |
+Each chapter drives the tool only through the store. Nothing in `src/tour/`
+reaches into a view, which is the reason the store exists at all.
+
+| chapter | screen | what it does when it opens | what it watches for |
 |---|---|---|---|
-| 0 | Explore | the company name on an empty canvas; on Next it moves to the top and the estate assembles in six chapters, domains first | tap a domain, a dot or a circle; open a named domain on the card; Back, Next and Skip |
-| 1 | Explore | flies to the identity node, selects it, hulls on | you select a different platform |
-| 2 | Fixed pool | selects identity, then animates three riders on over 1.5s | you change the basis or the slider |
-| 3 | Risk | fails identity, waits 2s, then sets the subdomain | you fail a different node |
-| 4 | Risk | sweeps dependence 0 to 1 and back to 0.5 | you move the dependence slider |
-| 5 | Footprint | selects the cloud data platform, runs the month cursor from 0 up to the ratification marker | you move either month control |
-| 6 | Two shapes | nothing; both estates are already on screen | nothing |
-| 7 | closing card | nothing | nothing |
+| 0 | Explore | the company name on an empty canvas | Next |
+| 1 | Explore | the domains fade in, name moves to the top, card headed Domains | tap a domain to name it; open a named domain on the card |
+| 2 | Explore | the use cases fill the domains | tap a dot |
+| 3 | Explore | the platforms arrive | tap a circle |
+| 4 | Explore | the lines arrive | tap a line |
+| 5 | Explore | the connectors arrive | nothing |
+| 6 | Explore | the camera flies to the busiest node | Next into the ledger |
+| 7 | Explore | why a ledger; the panel opens on the node's name alone | nothing |
+| 8 | Explore | the panel shows the meter and nothing else | you select a different platform |
+| 9 | Fixed pool | animates three riders on over 1.5s | you change the basis or the slider |
+| 10 | Risk | fails the node, waits 2s, then sets the subdomain | you fail a different node |
+| 11 | Risk | sweeps dependence 0 to 1 and back to 0.5 | you move the dependence slider |
+| 12 | Footprint | selects the cloud data platform, runs the month cursor up to the ratification marker | you move either month control |
+| 13 | Two shapes | nothing; both estates are already on screen | nothing |
+| 14 | Boundaries | nothing | you change the allocation basis |
+| 15 | closing card | nothing | nothing |
 
-Every GBP figure in a tour sentence is read from the running tool through
-`fill()`, never typed into the copy deck. The dependence range in step 4 is the
-range the figure actually covered while the slider swept, collected as the
+Every GBP figure in a chapter's sentences is read from the running tool through
+`fill()`, never typed into the copy deck. The dependence range in chapter 11 is
+the range the figure actually covered while the slider swept, collected as the
 results arrived, not a stored pair.
 
-A step's `waitFor` is armed only after that step's own animations have finished,
-and the state it compares against is read at that moment. Otherwise step 4 would
-congratulate you for the slider it is moving itself.
+A chapter's `waitFor` is armed only after that chapter's own animations have
+finished, and the state it compares against is read at that moment. Otherwise
+chapter 11 would congratulate you for the slider it is moving itself.
 
-Step 5 does not move the ratification marker. The marker is the month the board
-ratified the node, month 31; the node was adopted in month 17. The fourteen
-months between the two are the whole step, and an earlier version of it set the
-marker to the adoption month, which closed the gap and left the step showing
-nothing. The execution figure the card quotes is pinned to the marker, not to
-wherever the cursor has been dragged, because the sentence says "at that month"
-and means the marker.
+Chapter 12 does not move the ratification marker. The marker is the month the
+board ratified the node, month 31; the node was adopted in month 17. The
+fourteen months between the two are the whole chapter.
 
-The intro is step 0. "Start the tour" opens view 1 with the rail, top bar and
-panel faded out and the whole estate dimmed to nothing behind the title card.
-Five beats follow, each a sentence with a live figure: the business and its use
-cases light up, coloured by subdomain with the hulls on; then the platforms;
-then the lines between them; then the connector nodes; then the camera flies
-to the busiest node and its halo lights. The card dissolves, the chrome fades
-in, and step 1 begins on the same graph, which has been there throughout. It
-runs on view 1's own Graph3D, so nothing is laid out twice. Beats advance on
-their own every 3.4 seconds; Continue and Skip are always there; under reduced
-motion there is no clock and the estate is shown whole with the last sentence.
+The node panel fills in as the ledger chapters go. Chapter 7 shows the node's
+name; chapter 8 adds the headline and the meter; the two readings under the
+headline, and the other three sections, arrive with the chapters that teach
+their words. Outside the tour the panel shows everything.
 
-The intro is also where the estate explains itself. Tap a coloured region and
-it names itself and joins a legend that builds as you go; tap a dot and the
-card says what that use case does, what it rides on, what it is told it costs,
-and which single dependency would take it down; tap a circle and the card says
-what rides on that platform, what it costs whether used or not, what it meters,
-and how much of what its riders pay is set by rule. None of that is written by
-hand. `src/model/describe.ts` assembles every line from the estate, because a
-hand written line about a product would be the one place the rule that vendor
-names are furniture slipped. Outside the intro, tapping a region isolates that
-part of the business, the same as the Isolate control. Regions overlap around
-shared platforms, so a click is credited to the region the pointer's ray
-crosses most deeply, not the nearest surface, which is usually a neighbour's
-edge. A node the intro has not yet revealed takes no click and shows no hover
-label until its layer arrives.
-
-Each step dims everything except the parts it is about and puts a short label
-beside each bright part, so the dimmed screen says what it is pointing at. A
-step names its targets by `data-tour` attribute; step 1 asks for the selected
-node instead, whose screen position the graph already publishes. The spotlight
-is an SVG mask under the card with `pointer-events: none` throughout, so the
-tool stays live under the dimming, which is the premise of the tour.
-
-Under `prefers-reduced-motion` the camera cuts instead of travelling and every
-animated value is applied at once.
+The intro is also where the estate explains itself. Tap a domain and it names
+itself and joins a list on the card that opens and closes on a tap; tap a dot
+and the card says what that use case does, what it rides on, what it is told it
+costs, and which single dependency would take it down; tap a circle and the
+card says what rides on that platform, what it costs whether used or not, what
+it meters, and how much of what its riders pay is set by rule; tap a line and
+the card says what it joins, what crosses it and what goes down with it. None
+of that is written by hand. `src/model/describe.ts` assembles every line from
+the estate, because a hand written line about a product would be the one place
+the rule that vendor names are furniture slipped. Outside the intro, tapping a
+domain opens a pop-up on the canvas with the same three lines.
 
 ## Reading the words on screen
 
@@ -936,6 +929,38 @@ also too quick to read as a fade at 720 ms; hulls now take 1400 ms, nodes keep
 720. Acceptance T7 samples the hull alphas 220 ms after Next and expects all
 six strictly between nothing and full.
 
+### 45. One tour, not two, and the ledger built a section at a time
+
+The owner walked the six-beat intro into the old tour and stopped at the seam:
+"why am I suddenly seeing Okta, why does it say begin the tour, what was I
+doing before?" The seam was real. The intro was bolted on in front of a tour
+that had been written first, so the reader built the picture on one card, then
+was handed a second card, a full panel of thirty figures and a counter that
+started again at one.
+
+It is now one tour of fifteen chapters on one card: six that build the picture,
+nine that build the ledger on the node the picture left lit. The chapter
+numbers run straight through and so do the bars under the buttons. Back from
+chapter 7 is chapter 6 with the picture up. The rail stays hidden for the whole
+tour, because the chapters choose the screen and a rail that says Explore while
+the chapter says Risk is a contradiction on screen. The bottom-anchored tour
+card is gone; the ledger chapters use the intro's card and its place.
+
+The second part opens with why there is a ledger at all, in the words the
+paper uses for it: architecture decisions are made on drawings and priced by
+nobody; a ledger is a book where every entry carries a number, a date and a
+name; this one keeps three entries per use case and refuses to add them. Then
+the panel fills in one section per chapter: the name alone, then the meter,
+then the rule, the failure, the footprint, and the boundary, each on the screen
+built for it. Chapter 14, the boundaries, is new; the old tour skipped view 6.
+
+The copy for the ledger chapters was rewritten to be read aloud. Each unusual
+word is explained in the sentence that first uses it: driver, fixed pool,
+rider, rule share, blast radius, P99, execution component. Sentences run
+longer than the tour brief's twenty words where a shorter one would have left
+the word unexplained. Connectors are drawn in a darker grey than platforms,
+still grey, because colour means domain and nothing else.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -1058,13 +1083,13 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 8 | every view carries the footer | PASS | 6 of 6. |
 | 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 47.5 KB. |
 | T1 | tour walks steps 1 to 7 on Next alone | PASS | 7 cards, every placeholder resolved, no page errors. |
-| T2 | on 390 by 844, the card never covers the node the step is about | PASS | 5 steps have a selected node on screen; none of the five is under the card. Steps 6 and 7 select nothing. |
-| T3 | each waitFor fires on the action it describes | PASS | 5 of 5 fired. Step 6 has no waitFor by design. |
-| T4 | deep link to one step cold-loads into it | PASS | #/tour/5 opens on step 5, view Footprint, Meridian Data Cloud selected, no page errors. |
+| T2 | on 390 by 844, the card never covers the node the chapter is about | PASS | 6 chapters have a selected node on screen; none is under the card. |
+| T3 | each waitFor fires on the action it describes | PASS | 6 of 6 fired. Chapters 7, 13 and 15 have no waitFor by design. |
+| T4 | deep link to one chapter cold-loads into it | PASS | #/tour/12 opens headed How the footprint grew, view Footprint, Meridian Data Cloud selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
-| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
+| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, chapters 9 and 13 among them: all sized, none under the panel, none short of the card. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
-| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden, no hull built and the company name centred on the visible canvas to within 2 px; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
+| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden, no hull built and the company name centred on the visible canvas to within 2 px; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; Next from the last beat went straight to #/tour/7 on the same card, headed Why a ledger, with the rail still hidden. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |

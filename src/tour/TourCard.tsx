@@ -1,4 +1,9 @@
-// The tour card. Brief B2.
+// The ledger chapters' card, 7 to 15. Brief B2.
+//
+// It is the same card as the intro's, in the same place, with the same
+// buttons and the same row of bars, because the two parts are one tour. What
+// differs is the engine underneath: each chapter drives a view through the
+// store, waits for the thing it asked for, and keeps a spotlight on it.
 //
 // An overlay, not a modal: the tool underneath stays live the whole way through,
 // and every step asks you to touch it. Next is always enabled. waitFor only adds
@@ -11,9 +16,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { copy, fill } from '../copy'
-import { useLedger, TOUR_STEPS } from '../app/store'
+import { useLedger, TOUR_STEPS, FIRST_LEDGER_CHAPTER } from '../app/store'
 import { usePrefersReducedMotion } from '../app/useNarrow'
-import { STEPS } from './steps'
+import { stepFor } from './steps'
 import { Timeline } from './animate'
 import { useTourFigures } from './figures'
 import { Spotlight } from './Spotlight'
@@ -46,8 +51,8 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
   // is moving itself, so waitFor is armed only after enter()'s own animations
   // have finished, and the state it compares against is read at that moment.
   useEffect(() => {
-    if (step === null || step === 0) return
-    const def = STEPS[step - 1]
+    if (step === null || step < FIRST_LEDGER_CHAPTER) return
+    const def = stepFor(step)
     if (!def) return
     const timeline = new Timeline()
     setShowMore(false)
@@ -85,19 +90,22 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
     return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h') }
   }, [step])
 
-  if (step === null || step === 0) return null
-  const def = STEPS[step - 1]
+  if (step === null || step < FIRST_LEDGER_CHAPTER) return null
+  const def = stepFor(step)
   if (!def) return null
 
   const c = copy as unknown as CopyMap
+  const heading = c[`tour_${step}_layer`] ?? ''
   const doText = c[`tour_${step}_do`]
   const seeText = c[`tour_${step}_see`]
   const costText = c[`tour_${step}_cost`]
   const moreText = c[`tour_${step}_more`]
 
   const leave = () => { setTourStep(null) }
+  // Back from the first ledger chapter returns to the last chapter of the
+  // picture; the two parts are one tour.
   const go = (n: number) => {
-    if (n < 1) return
+    if (n < 0) return
     if (n > TOUR_STEPS) { leave(); return }
     setTourStep(n)
   }
@@ -109,47 +117,41 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
   return (
     <>
     <Spotlight spots={def.spots} />
-    <aside className="tour-card" aria-label="Guided tour" ref={cardRef}>
-      <div className="tour-head">
-        <span className="tour-count">
-          {fill(copy.tour_counter, { n: step, total: TOUR_STEPS })}
-        </span>
-        {done && <span className="tour-tick" role="status">{copy.tour_did_it}</span>}
-        <button className="tour-skip" onClick={leave}>{copy.tour_skip}</button>
-      </div>
+    <aside className="intro" aria-label="Guided tour" ref={cardRef}>
+      <h1 key={`h${step}`}>{def.closing ? copy.tour_15_layer : heading}</h1>
+      {done && <div className="tour-tick" role="status">{copy.tour_did_it}</div>}
 
       {def.closing ? (
         <div className="tour-body">
-          <h3>{copy.tour_7_h_what}</h3>
-          <p>{copy.tour_7_what}</p>
-          <h3>{copy.tour_7_h_not}</h3>
-          <p>{copy.tour_7_not}</p>
-          <h3>{copy.tour_7_h_read}</h3>
+          <h3>{copy.tour_15_h_what}</h3>
+          <p>{copy.tour_15_what}</p>
+          <h3>{copy.tour_15_h_not}</h3>
+          <p>{copy.tour_15_not}</p>
+          <h3>{copy.tour_15_h_read}</h3>
           <p>
             {mediumReady && (
               <>
                 <a href={copy.tour_medium_url} target="_blank" rel="noreferrer">
-                  {copy.tour_7_read_link}
+                  {copy.tour_15_read_link}
                 </a>{' '}
               </>
             )}
-            {fill(copy.tour_7_read, figures)}
+            {fill(copy.tour_15_read, figures)}
           </p>
-          <p className="tour-built">{copy.tour_7_built}</p>
-          <div className="tour-foot">
+          <p className="tour-built">{copy.tour_15_built}</p>
+          <div className="intro-actions">
+            <button className="ctl" onClick={() => go(step - 1)}>{copy.tour_back}</button>
             <button className="cta" onClick={() => { leave(); setView(1) }}>
-              {copy.tour_7_explore}
+              {copy.tour_15_explore}
             </button>
-            <button className="cta secondary" onClick={() => go(1)}>
-              {copy.tour_7_restart}
-            </button>
+            <button className="tour-skip" onClick={() => go(0)}>{copy.tour_15_restart}</button>
           </div>
         </div>
       ) : (
         <div className="tour-body">
-          <p>{fill(doText ?? '', figures)}</p>
-          <p>{fill(seeText ?? '', figures)}</p>
-          <p className="tour-cost">{fill(costText ?? '', figures)}</p>
+          <p key={`d${step}`} className="intro-line">{fill(doText ?? '', figures)}</p>
+          <p key={`s${step}`} className="intro-see">{fill(seeText ?? '', figures)}</p>
+          {costText && <p className="tour-cost">{fill(costText, figures)}</p>}
           {moreText && (
             <>
               <button
@@ -162,16 +164,16 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
               {showMore && <p className="tour-more-body">{fill(moreText, figures)}</p>}
             </>
           )}
-          <div className="tour-foot">
-            <button className="ctl" onClick={() => go(step - 1)} disabled={step === 1}>
-              {copy.tour_back}
-            </button>
-            <button className="cta" onClick={() => go(step + 1)}>
-              {copy.tour_next}
-            </button>
+          <div className="intro-actions">
+            <button className="ctl" onClick={() => go(step - 1)}>{copy.tour_back}</button>
+            <button className="cta" onClick={() => go(step + 1)}>{copy.tour_next}</button>
+            <button className="tour-skip" onClick={leave}>{copy.tour_skip}</button>
           </div>
         </div>
       )}
+      <div className="intro-beats" aria-hidden="true">
+        {Array.from({ length: TOUR_STEPS }, (_, i) => i + 1).map((b) => <span key={b} className={b <= step ? 'on' : ''} />)}
+      </div>
     </aside>
     </>
   )

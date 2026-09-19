@@ -9,7 +9,7 @@ import ForceGraph3D from '3d-force-graph'
 import * as THREE from 'three'
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
 import SpriteText from 'three-spritetext'
-import { NEUTRAL, NEUTRAL_DIM, SUBDOMAIN_COLOUR, type GLink, type GNode, type GraphData } from '../app/graph'
+import { CONNECTOR, CONNECTOR_DARK, NEUTRAL, NEUTRAL_DIM, SUBDOMAIN_COLOUR, type GLink, type GNode, type GraphData } from '../app/graph'
 import { ringTexture, type RingSplit } from './rings'
 import { reportSelectedScreenPos } from '../app/layoutReport'
 
@@ -483,9 +483,14 @@ export function Graph3D(props: Graph3DProps) {
       const stale = objs.current.get(n.id)
       if (stale) disposeNode(stale)
 
+      // Colour means domain and nothing else, so platforms and connectors
+      // are both grey; a connector is the darker grey, and a diamond, so the
+      // two kinds read apart without a colour being spent on either.
       const colour = n.kind === 'use_case'
         ? (SUBDOMAIN_COLOUR[n.subdomain ?? ''] ?? NEUTRAL)
-        : (dark ? NEUTRAL : NEUTRAL_DIM)
+        : n.kind === 'integration'
+          ? (dark ? CONNECTOR_DARK : CONNECTOR)
+          : (dark ? NEUTRAL : NEUTRAL_DIM)
       const r = n.val
 
       // Shape carries node type independently of colour. Spec section 2.

@@ -11,7 +11,7 @@ import bestOfBreedJson from '../../data/estate_bestofbreed.json'
 import type { AllocationRule, Estate } from '../model/types'
 import { buildIndex } from '../model/ledger'
 import { copy } from '../copy'
-import { useLedger, type View } from './store'
+import { useLedger, FIRST_LEDGER_CHAPTER, type View } from './store'
 import { useHashRoute } from './route'
 import { Explore } from '../views/Explore'
 import { FixedPool } from '../views/FixedPool'
@@ -85,14 +85,16 @@ export function App() {
   // runs inside view 1, so it has to be put there, and a deep link to #/tour/0
   // arrives with the view still on the front page.
   useEffect(() => {
-    if (tourStep === 0 && view !== 1) setView(1)
+    if (tourStep !== null && tourStep < FIRST_LEDGER_CHAPTER && view !== 1) setView(1)
   }, [tourStep, view, setView])
   const classes = ['app']
   if (onLanding) classes.push('landing-mode')
-  // Step 0 is the intro: chrome hidden, no card, no canvas inset. The card and
-  // its inset belong to steps 1 to 7.
-  if (tourStep === 0) classes.push('intro-open')
-  if (tourStep !== null && tourStep > 0) classes.push('tour-open')
+  // One tour, one card, one place. Chapters 0 to 6 hide every control: the
+  // picture is being built and there is nothing to press. Chapters 7 to 15
+  // bring the screen's own controls back, because each asks for one of them,
+  // and keep the rail hidden, because the chapters choose the screen.
+  if (tourStep !== null) classes.push('intro-open')
+  if (tourStep !== null && tourStep >= FIRST_LEDGER_CHAPTER) classes.push('tour-open')
 
   return (
     <div className={classes.join(' ')}>
@@ -137,7 +139,13 @@ export function App() {
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
-        {tourStep !== null && tourStep > 0 && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}
+        {tourStep !== null && (
+          <div className={`wordmark${tourStep > 0 ? ' wordmark-top' : ''}`} aria-hidden="true">
+            <div className="wordmark-name">{copy.wordmark_name}</div>
+            <div className="wordmark-tag">{copy.wordmark_tag}</div>
+          </div>
+        )}
+        {tourStep !== null && tourStep >= FIRST_LEDGER_CHAPTER && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}
       </main>
 
       <footer className="footer">

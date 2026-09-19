@@ -122,7 +122,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
             if (intro.active) { intro.tapNode(id); return }
             setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false)
           }}
-          onSelectLink={(l) => { if (intro.active) return; setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
+          onSelectLink={(l) => { if (intro.active) { intro.tapLink(l); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
           onBackground={() => { if (intro.active) { intro.clearFocus(); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
           // A coloured shape is a domain. In the intro it names itself on the
           // card; afterwards it explains itself in a pop-up where it was tapped.
@@ -169,12 +169,6 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           </div>
         </Legend>
 
-        {intro.active && (
-          <div className={`wordmark${intro.beat > 0 ? ' wordmark-top' : ''}${intro.leaving ? ' wordmark-leaving' : ''}`} aria-hidden="true">
-            <div className="wordmark-name">{copy.wordmark_name}</div>
-            <div className="wordmark-tag">{copy.wordmark_tag}</div>
-          </div>
-        )}
         {intro.active && <IntroCard intro={intro} estate={estate} ix={ix} />}
 
         <DetailPanel

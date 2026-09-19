@@ -15,20 +15,26 @@ export interface SummaryProps {
   number: string
   mechanism: string
   values: Record<string, string | number>
+  /** During the tour the two readings arrive once their words have been taught. */
+  headOnly?: boolean
 }
 
-export function Summary({ head, number, mechanism, values }: SummaryProps) {
+export function Summary({ head, number, mechanism, values, headOnly = false }: SummaryProps) {
   return (
     <div className="summary" data-tour="summary">
       <p className="summary-head">{fill(head, values)}</p>
-      <div className="summary-lens">
-        <span className="summary-eyebrow">{summary.eyebrow_number}</span>
-        <p>{fill(number, values)}</p>
-      </div>
-      <div className="summary-lens">
-        <span className="summary-eyebrow">{summary.eyebrow_mechanism}</span>
-        <p>{fill(mechanism, values)}</p>
-      </div>
+      {!headOnly && (
+        <>
+          <div className="summary-lens">
+            <span className="summary-eyebrow">{summary.eyebrow_number}</span>
+            <p>{fill(number, values)}</p>
+          </div>
+          <div className="summary-lens">
+            <span className="summary-eyebrow">{summary.eyebrow_mechanism}</span>
+            <p>{fill(mechanism, values)}</p>
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -172,75 +172,168 @@ export const copy = {
   tour_more: 'More detail',
   tour_did_it: 'You did that.',
 
-  tour_1_do:
-    'Drag to turn the graph, then tap one of the small nodes joined to the ' +
-    'lit one.',
-  tour_1_see:
-    'Everything joined to the lit node needs that node working before it can ' +
-    'do anything.',
-  tour_1_cost:
-    'The work plugged into this one node is billed GBP {spend} a month.',
-  tour_1_more:
-    'Fan-in is how many use cases ride one node. This one carries {riders}.',
+  // ---- Part two, the ledger. Chapters 7 to 15. ----
+  //
+  // Written to be read aloud by a person. Each chapter asks for one thing,
+  // says what the reader is looking at, and puts one figure on it. Every
+  // unusual word is explained in the sentence that first uses it. The figures
+  // are live through fill(); nothing here is typed in.
+  tour_7_layer: 'Why a ledger',
+  tour_7_do:
+    'That is the whole picture. Before the numbers, a word on why there are ' +
+    'any.',
+  tour_7_see:
+    'Harbourline makes its architecture decisions on drawings like this one: ' +
+    'what to keep, what to leave, what to share. Nobody prices those ' +
+    'decisions, because the systems are shared and the bills are split by ' +
+    'habit. A ledger is a book where every entry carries a number, a date and ' +
+    'the name of whoever wrote it. This tool keeps one for architecture. For ' +
+    'each use case it records three things: what it costs, what it risks, and ' +
+    'what leaving would cost. Never one total, because those three do not add.',
+  tour_7_cost:
+    'The entries that follow are all about the lit node, {riders} use cases ' +
+    'deep. The panel on the right will fill in as we go.',
+  tour_7_more:
+    'The three entries are kept apart on purpose. A monthly cost, a bad year ' +
+    'and a price for leaving are three different kinds of number, and adding ' +
+    'them would produce a figure that means nothing. See the Ledger paper.',
 
-  tour_2_do:
-    'Watch three use cases arrive on this node, then move the slider yourself.',
-  tour_2_see:
-    'The use case you were reading did nothing different, and its number ' +
-    'moved anyway.',
-  tour_2_cost:
-    'Its monthly figure went from GBP {before} to GBP {after} with its own ' +
-    'usage flat.',
-  tour_2_more:
-    'The part that moved is the rule share, allocated on a declared basis. ' +
-    'See 9.2.8.',
+  tour_8_layer: 'What it meters',
+  tour_8_do:
+    'Look at the panel. It shows one section: the meter. Then tap any other ' +
+    'grey circle to see its meter too.',
+  tour_8_see:
+    'Every platform has a bill in two parts. One part is a fixed pool: what it ' +
+    'costs whether anyone uses it or not, the licences and the team who run ' +
+    'it. The other is metered: counted on a meter that ticks with use, here ' +
+    'every login. The meter is the only part of the bill anyone actually ' +
+    'measures.',
+  tour_8_cost:
+    'The work plugged into this node is metered at GBP {spend} a month.',
+  tour_8_more:
+    'The meter\'s unit is called the driver: the thing that gets counted. ' +
+    'For an identity platform it is logins; for a policy engine it is policy ' +
+    'transactions.',
 
-  tour_3_do:
+  tour_9_layer: 'What it hands out by rule',
+  tour_9_do:
+    'Watch three more use cases arrive on this node. Then move the slider ' +
+    'yourself.',
+  tour_9_see:
+    'The fixed pool is not measured. It is shared out among the use cases that ' +
+    'ride the platform, by a rule somebody chose: an equal split, or in ' +
+    'proportion to use. So the number a use case is told it costs moves when ' +
+    'a neighbour arrives or leaves, though it did nothing different. The ' +
+    'riders are the use cases riding the platform; their share of the pool is ' +
+    'their rule share.',
+  tour_9_cost:
+    'The use case you were reading went from GBP {before} to GBP {after} a ' +
+    'month with its own usage flat.',
+  tour_9_more:
+    'A rule share should never inform a decision to leave a platform, because ' +
+    'leaving does not release it. The pool stays; it is simply shared among ' +
+    'fewer riders. See the Ledger paper, 9.2.6.',
+
+  tour_10_layer: 'What happens when it stops',
+  tour_10_do:
     'Press Fail it on a different node and watch which use cases go dark.',
-  tour_3_see:
-    'One node stopping takes work out across several teams at the same time.',
-  tour_3_cost:
-    'Priced one use case at a time, {sub} comes to GBP {sum}. Priced ' +
-    'together, GBP {joint}.',
-  tour_3_more:
-    'The first figure sums the per use case P99s. The second is the P99 of ' +
-    'the joint loss. See 9.8.3.',
+  tour_10_see:
+    'This is the second entry: risk. When a shared platform stops, every use ' +
+    'case that depends on it stops too, across teams that never speak to each ' +
+    'other. How far that reaches is the blast radius. Then look at the pair of ' +
+    'figures on the right. Priced one use case at a time and added up, a bad ' +
+    'year for {sub} comes to one number. Priced together it comes to a ' +
+    'smaller one, because adding counts the same outage once per use case.',
+  tour_10_cost:
+    'One at a time, GBP {sum}. Together, GBP {joint}.',
+  tour_10_more:
+    'Both figures are a P99: a year worse than this comes about once in a ' +
+    'hundred. The first sums the P99s of each use case; the second is the P99 ' +
+    'of the whole domain\'s loss in one go. See the Ledger paper, 9.8.3.',
 
-  tour_4_do:
-    'Move the dependence slider yourself, from one end to the other and back.',
-  tour_4_see:
-    'How often platforms fail together changes the answer, and nothing here ' +
-    'measures that.',
-  tour_4_cost:
+  tour_11_layer: 'How much they fail together',
+  tour_11_do:
+    'Move the dependence slider, from one end to the other and back.',
+  tour_11_see:
+    'Whether two platforms tend to fail on the same day changes the answer, ' +
+    'and it is the one thing nobody measures. At the left they fail ' +
+    'independently. At the right, always together. The honest reading is the ' +
+    'range, not a point on it.',
+  tour_11_cost:
     'Across the full range the {sub} figure ran from GBP {lo} to GBP {hi}.',
-  tour_4_more:
-    'The slider is rho under a Student t copula, four degrees of freedom. It ' +
-    'is a declared input, not a measurement.',
+  tour_11_more:
+    'The slider is rho under a Student t copula with four degrees of freedom. ' +
+    'It is a declared input, not a measurement, and the tool says so.',
 
-  tour_5_do:
+  tour_12_layer: 'How the footprint grew',
+  tour_12_do:
     'Drag the month handle back and forth across the marked month.',
-  tour_5_see:
-    'By the time this node reached the board, the estate was already built ' +
-    'on it.',
-  tour_5_cost:
-    'At that month the execution work of leaving had already reached about ' +
-    'GBP {exec}.',
-  tour_5_more:
-    'Riders attach in adoption order. The marker is the month the board ' +
-    'ratified the node.',
+  tour_12_see:
+    'This is the third entry: what leaving would cost, and how that cost grew ' +
+    'without anyone deciding it should. Use cases attached to this platform ' +
+    'one at a time, each for its own good reason. By the month the board ' +
+    'first saw it as a decision, the estate was already built on it.',
+  tour_12_cost:
+    'At that month the work of leaving had already reached about GBP {exec}.',
+  tour_12_more:
+    'That figure is the execution component: migration, rewiring, running two ' +
+    'systems for a while. There is a second part, the value of the choices ' +
+    'given up, which the ledger declines to state without evidence of what ' +
+    'the alternative was. See the Ledger paper, 9.5.',
 
-  tour_6_do:
-    'Compare the two estates. On each side, find the node that would take the ' +
-    'most work down with it.',
-  tour_6_see:
-    'Splitting the estate into specialists did not remove the shared node, it ' +
-    'moved it.',
-  tour_6_cost:
-    'The same subdomain sits at GBP {left} on one side and GBP {right} on the ' +
+  tour_13_layer: 'What diversifying does',
+  tour_13_do:
+    'Compare the two estates. On each side, find the node that would take ' +
+    'the most work down with it.',
+  tour_13_see:
+    'On the left, one platform does most of the work. On the right the same ' +
+    'thirty use cases are spread across specialists. The shared point did not ' +
+    'disappear. It moved to the connectors, the diamonds, which now carry ' +
+    'everything between the specialists.',
+  tour_13_cost:
+    'A bad year for {sub} runs GBP {left} on one side and GBP {right} on the ' +
     'other.',
-  tour_6_more:
+  tour_13_more:
     'Both figures are the joint P99 loss for {sub} at the dependence ' +
-    'currently set.',
+    'currently set. Change the slider and both move.',
+
+  tour_14_layer: 'Where the lines are drawn',
+  tour_14_do:
+    'Change the allocation basis, then move a use case into another domain ' +
+    'and watch the figures.',
+  tour_14_see:
+    'The graph was mined from the systems. The domain boundaries were drawn ' +
+    'by people, in a meeting. Under some rules, redrawing a boundary moves ' +
+    'money on paper before anything moves in the estate. The figures that ' +
+    'move when a line moves are the ones to trust least.',
+  tour_14_cost:
+    'Under an equal split, no figure moves. Under a headcount split, they all ' +
+    'do.',
+  tour_14_more:
+    'The ledger permits only bases that ignore the boundary: an equal split ' +
+    'and a driver-proportional one. The headcount basis is shown here as the ' +
+    'counter-example. See the Ledger paper, 9.2.8.',
+
+  tour_15_layer: 'The ledger, closed',
+  tour_15_h_what: 'What this is',
+  tour_15_what:
+    'An invented insurer and a way of pricing its architecture: three ' +
+    'entries per use case, kept apart. Nothing here is a real measurement.',
+  tour_15_h_not: 'What it does not do',
+  tour_15_not:
+    'It will not add the estate up to one number. It cannot say where a ' +
+    'boundary belongs, or what leaving would really cost.',
+  tour_15_h_read: 'Read the argument',
+  // Two lines. The DOI line always shows; the Medium line is gated on the URL
+  // being real, so the placeholder is never rendered as a link.
+  tour_15_read: 'Archived at DOI {doi}.',
+  tour_15_read_link: 'Part 1 of the written argument.',
+  tour_15_built:
+    'Built with heavy AI assistance, under a written specification and an ' +
+    'acceptance suite. Every deviation from the source document is listed in ' +
+    'the README.',
+  tour_15_explore: 'Explore on your own',
+  tour_15_restart: 'Start again',
 
   // The intro, tour step 0. The estate is built a layer at a time, and each
   // layer gets two things: the sentence, and a line on what just appeared.
@@ -274,12 +367,13 @@ export const copy = {
     'platform sits inside one domain; they are shared. Tap one to see what ' +
     'rides on it and what it costs.',
   intro_4:
-    'No use case runs on one platform. {example_uc} alone touches ' +
-    '{example_n}: {example_list}.',
+    'Now the lines. Each one joins a use case to a platform it cannot run ' +
+    'without. Take {example_uc}: to happen at all it needs {example_n} ' +
+    'platforms, {example_list}, so it has {example_n} lines.',
   intro_4_see:
-    'Each line is one of those dependencies. The dot at one end cannot happen ' +
-    'without the platform at the other, and the thicker the line the more ' +
-    'money moves along it each month.',
+    'A line is a dependency, and a dependency is also a bill: work flows ' +
+    'along it every month and money flows back. The thicker the line, the ' +
+    'more money. Tap a line to see what it carries.',
   intro_5:
     'The platforms do not reach each other on their own. {n_int} more nodes ' +
     'exist only to carry logins, calls and messages between them.',
@@ -290,8 +384,9 @@ export const copy = {
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
     'use cases. If it stops, most of the business stops with it.',
   intro_6_see:
-    'That is the lit node. The tour starts here, with what this concentration ' +
-    'costs and who is paying for it.',
+    'That is the lit node. The picture is complete; what follows is the ' +
+    'ledger for this one node: what it costs, what it risks, and what leaving ' +
+    'it would cost.',
 
   // Chapter names. They head the card; the bars beneath the buttons count them.
   intro_1_layer: 'Domains',
@@ -307,7 +402,6 @@ export const copy = {
   wordmark_tag: 'An architecture ledger of one invented insurer',
   intro_back: 'Back',
   intro_next: 'Next',
-  intro_begin: 'Begin the tour',
   intro_skip: 'Skip the intro',
 
   // The legend that builds as coloured regions are tapped.
@@ -345,6 +439,24 @@ export const copy = {
     'Its biggest exposure is {worst}. When that is down, this is down ' +
     '{worst_pct} times in a hundred.',
 
+  desc_ln_what:
+    'This line joins {uc} to {platform}. {uc} cannot run without it.',
+  desc_ln_flow:
+    'Every month about {units} {driver} cross it, and GBP {spend} goes with ' +
+    'them: that is the metered part of what {uc} is told it costs here.',
+  desc_ln_risk:
+    'If {platform} goes down, {uc} goes down with it {pct} times in a hundred.',
+
+  // Panel notes that used to be typed into the component.
+  panel_exec_note: 'What it costs to actually move: migration effort, dual running, retraining.',
+  panel_spread_note:
+    'The spread across allocation rules is the honest number. The metered part ' +
+    'is observed. The rest is a rule.',
+  panel_section_metered: 'What it meters',
+  panel_section_riders: 'Who rides it, and the rule',
+  panel_section_failure: 'When it stops',
+  panel_section_switching: 'What leaving would cost',
+
   desc_pf_what:
     '{name}, {category}. {riders} use cases across {n_sub} parts of the ' +
     'business depend on it.',
@@ -359,39 +471,22 @@ export const copy = {
 
   // Spotlight labels. One short phrase beside each highlighted element, so
   // the dimmed screen says what the bright part is.
-  tour_1_spot_node: 'the lit node',
-  tour_2_spot_slider: 'the slider',
-  tour_2_spot_list: 'what each rider is told',
-  tour_3_spot_fail: 'Fail it',
-  tour_3_spot_pair: 'one at a time, or together',
-  tour_4_spot_rho: 'how much they fail together',
-  tour_4_spot_gap: 'the gap',
-  tour_5_spot_month: 'the month handle',
-  tour_5_spot_board: 'when the board saw it',
-  tour_6_spot_left: 'one shared point',
-  tour_6_spot_right: 'four of them',
-  tour_6_spot_table: 'a bad year, each side',
+  tour_7_spot_node: 'the busiest node',
+  tour_8_spot_meter: 'the meter',
+  tour_9_spot_slider: 'the slider',
+  tour_9_spot_list: 'what each rider is told',
+  tour_10_spot_fail: 'Fail it',
+  tour_10_spot_pair: 'one at a time, or together',
+  tour_11_spot_rho: 'how much they fail together',
+  tour_11_spot_gap: 'the gap',
+  tour_12_spot_month: 'the month handle',
+  tour_12_spot_board: 'when the board saw it',
+  tour_13_spot_left: 'one shared point',
+  tour_13_spot_right: 'four of them',
+  tour_13_spot_table: 'a bad year, each side',
+  tour_14_spot_basis: 'the basis',
 
   // Closing card.
-  tour_7_h_what: 'What this is',
-  tour_7_what:
-    'An invented insurer and a way of pricing its architecture. Nothing here ' +
-    'is a real measurement.',
-  tour_7_h_not: 'What it does not do',
-  tour_7_not:
-    'It will not add your estate up to one number. It cannot say where a ' +
-    'boundary belongs, or what leaving would really cost.',
-  tour_7_h_read: 'Read the argument',
-  // Two lines. The DOI line always shows; the Medium line is gated on the URL
-  // being real, so the placeholder is never rendered as a link.
-  tour_7_read: 'Archived at DOI {doi}.',
-  tour_7_read_link: 'Part 1 of the written argument.',
-  tour_7_built:
-    'Built with heavy AI assistance, under a written specification and an ' +
-    'acceptance suite. Every deviation from the source document is listed in ' +
-    'the README.',
-  tour_7_explore: 'Explore on your own',
-  tour_7_restart: 'Start again',
 
   // Placeholder. The owner supplies the real address before the site is
   // served, and until then the Medium line is not rendered at all: a link to
