@@ -142,7 +142,7 @@ export function App() {
         {tourStep !== null && (
           <div className={`wordmark${tourStep > 0 ? ' wordmark-top' : ''}`} aria-hidden="true">
             <div className="wordmark-name">{copy.wordmark_name}</div>
-            <div className="wordmark-tag">{copy.wordmark_tag}</div>
+            <div className="wordmark-tag">{tourStep === 0 ? copy.wordmark_tag : tourStep < FIRST_LEDGER_CHAPTER ? copy.wordmark_tag_one : copy.wordmark_tag_two}</div>
           </div>
         )}
         {tourStep !== null && tourStep >= FIRST_LEDGER_CHAPTER && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}

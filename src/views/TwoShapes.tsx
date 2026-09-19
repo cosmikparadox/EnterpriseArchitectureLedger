@@ -6,6 +6,7 @@
 // Every readout is PER SUBDOMAIN and none of them is totalled, per spec hard
 // rule D and canon 9.8.3.
 
+import type React from 'react'
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
 import { Hint, Term, ViewName } from '../components/Hint'
@@ -99,6 +100,25 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   // Side by side reads better for shape; stacked gives each estate the full
   // width, which is what you want when the labels are what you are comparing.
   const [stacked, setStacked] = useState(false)
+  // The divider. Dragging it gives either estate more room; the halves are a
+  // grid whose first column is the dragged percentage, and each canvas
+  // resizes with its cell. Pointer capture keeps the drag on the divider.
+  const [split, setSplit] = useState(50)
+  const [dragging, setDragging] = useState(false)
+  const onDividerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const wrap = (e.currentTarget.parentElement as HTMLElement)
+    const box = wrap.getBoundingClientRect()
+    const usable = box.width - parseFloat(getComputedStyle(wrap).paddingRight || '0')
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setDragging(true)
+    const move = (ev: PointerEvent) => {
+      const pct = ((ev.clientX - box.left) / Math.max(1, usable)) * 100
+      setSplit(Math.min(75, Math.max(25, pct)))
+    }
+    const up = () => { setDragging(false); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
 
   const mcLeft = useMonteCarlo(concentrated, rho, 10_000)
   const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000, 4, 20260906)
@@ -169,7 +189,15 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
       </div>
 
 
-      <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}`}>
+      <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}`} style={{ ['--split' as string]: `${split}%` }}>
+        {!stacked && (
+          <div
+            className={`split-divider${dragging ? ' dragging' : ''}`}
+            role="separator" aria-orientation="vertical" aria-label="Divider between the two estates"
+            aria-valuenow={Math.round(split)} aria-valuemin={25} aria-valuemax={75}
+            onPointerDown={onDividerDown}
+          />
+        )}
         <div className="half">
           <div className="half-title" data-tour="caption-left">
             Concentrated

@@ -77,29 +77,30 @@ export function stepFor(chapter: number): TourStep | undefined {
 }
 
 export const STEPS: TourStep[] = [
-  // 7. Why a ledger. The picture is complete; the busiest node is lit; the
-  //    panel opens on its name alone.
+  // 7. Why a ledger. The picture is complete and the drawing it is usually
+  //    seen as sits over it. Nothing is selected; the panel stays closed.
   {
     view: 1,
     enter: ({ store }) => {
       store.setView(1)
       store.setShowHulls(true)
-      store.setSelectedId(IDENTITY_ID)
-      store.setFlyToId(IDENTITY_ID)
+      store.setSelectedId(null)
     },
     settleMs: 0,
-    spots: [{ node: true, label: copy.tour_7_spot_node }],
+    spots: [{ selector: '[data-tour="drawing"] .drawing-sheet', label: copy.tour_7_spot_drawing }],
   },
 
-  // 8. What it meters. The panel shows the meter and nothing else yet.
+  // 8. What it meters. The busiest node is selected and flown to; the panel
+  //    opens on the meter and nothing else yet.
   {
     view: 1,
     enter: ({ store }) => {
       store.setView(1)
       store.setSelectedId(IDENTITY_ID)
+      store.setFlyToId(IDENTITY_ID)
     },
     settleMs: 0,
-    spots: [{ selector: '[data-tour="metered"]', label: copy.tour_8_spot_meter }],
+    spots: [{ node: true, label: copy.tour_7_spot_node }, { selector: '[data-tour="metered"]', label: copy.tour_8_spot_meter }],
     // Any other platform will do. The point is that they went and looked.
     waitFor: (now) => now.selectedId !== null && now.selectedId !== IDENTITY_ID,
   },

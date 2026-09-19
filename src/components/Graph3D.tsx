@@ -483,9 +483,10 @@ export function Graph3D(props: Graph3DProps) {
       const stale = objs.current.get(n.id)
       if (stale) disposeNode(stale)
 
-      // Colour means domain and nothing else, so platforms and connectors
-      // are both grey; a connector is the darker grey, and a diamond, so the
-      // two kinds read apart without a colour being spent on either.
+      // Domains own the six bright colours; platforms are grey; connectors
+      // are one teal shared by all of them, and diamonds, so the two kinds of
+      // shared node read apart at a glance. No vendor has a colour: the teal
+      // belongs to the kind, not the name.
       const colour = n.kind === 'use_case'
         ? (SUBDOMAIN_COLOUR[n.subdomain ?? ''] ?? NEUTRAL)
         : n.kind === 'integration'

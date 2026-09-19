@@ -334,14 +334,23 @@ button, input, select { font: inherit; color: inherit; }
   position: fixed; inset: 0; z-index: 55;
   pointer-events: none;
 }
-.spotlight-dim { fill: rgba(16, 19, 26, 0.52); }
+/* No dimming. The outline breathes, slowly, and that is the whole pointer. */
+.spotlight-dim { display: none; }
 @media (prefers-color-scheme: dark) { .spotlight-dim { fill: rgba(0, 0, 0, 0.62); } }
-.spotlight-edge { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.spotlight-edge {
+  fill: none; stroke: var(--accent); stroke-width: 2;
+  animation: spot-breathe 2.4s ease-in-out infinite;
+}
+@keyframes spot-breathe {
+  0%, 100% { stroke-opacity: 0.35; stroke-width: 1.5; }
+  50% { stroke-opacity: 1; stroke-width: 2.5; }
+}
+@media (prefers-reduced-motion: reduce) { .spotlight-edge { animation: none; stroke-opacity: 0.9; } }
 .spotlight-label text {
   font: 600 11px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  fill: #fff;
+  fill: var(--accent);
   paint-order: stroke;
-  stroke: rgba(16, 19, 26, 0.85); stroke-width: 3px; stroke-linejoin: round;
+  stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round;
 }
 
 /* ---- the intro, tour step 0 ----
@@ -409,25 +418,51 @@ button, input, select { font: inherit; color: inherit; }
 .intro-focus p { margin: 0 0 6px; font-size: 12px; line-height: 1.5; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .intro-focus .intro-focus-lead { color: var(--ink); font-weight: 600; }
 .intro-focus .tour-skip { margin: 0; padding: 0; }
-.intro-beats { display: flex; gap: 5px; margin-top: 14px; }
-.intro-beats span { width: 22px; height: 3px; border-radius: 2px; background: var(--line); transition: background 300ms; }
+.intro-beats { display: flex; gap: 4px; margin-top: 12px; align-items: center; }
+.intro-beats span { flex: 1 1 0; height: 3px; border-radius: 2px; background: var(--line); transition: background 300ms; }
 .intro-beats span.on { background: var(--accent); }
-/* The card takes a column of its own only where there is room for a graph, a
-   panel and the card side by side; below that it is a sheet along the bottom,
-   for every chapter alike, so the card never jumps between the two parts. */
-@media (min-width: 1400px) {
-  .intro { top: var(--tour-gap); right: var(--tour-gap); bottom: var(--tour-gap); width: var(--tour-card-w); }
-  /* Panel is hidden during the intro, so only the card takes room, whatever
-     panel-open says. */
+/* The gap between the sixth and seventh bar is the seam between the two parts. */
+.intro-beats span:nth-child(7) { margin-left: 8px; }
+.intro-part {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+  margin: 0 0 4px;
+}
+/* Card type scales with the viewport between phone and desktop sizes, on a
+   fluid scale, so the story reads at the same apparent size on a laptop and a
+   large monitor without a separate breakpoint for each. */
+.intro { --fs: clamp(12.5px, 0.55vw + 8px, 15px); }
+.intro h1 { font-size: calc(var(--fs) * 1.45); }
+.intro-line, .tour-body p { font-size: var(--fs); }
+.intro-see, .tour-body .tour-cost, .tour-more-body, .intro-entry-body p, .intro-focus p { font-size: calc(var(--fs) * 0.92); }
+/* ---- the story column ----
+   One column on the right carries the whole story: the chapter card at the
+   top, and beneath it the screen's own panel, which the chapter is about. The
+   two never overlap because they share a column and the panel starts where the
+   card ends. The canvas has the rest. Below 1000px the card is a sheet along
+   the bottom and the panel keeps its phone behaviour. */
+@media (min-width: 1000px) {
+  .intro {
+    top: var(--tour-gap); right: var(--tour-gap); width: var(--tour-card-w);
+    max-height: 48vh; overflow: auto; overscroll-behavior: contain;
+  }
   .app.intro-open .graphwrap,
   .app.intro-open .graphwrap.panel-open { --chrome-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  /* In the ledger chapters the screen's panel steps left of the card. */
-  .app.tour-open .panel { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .panel-tab { right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
-  .app.tour-open .graphwrap.panel-open { --chrome-right: calc(var(--tour-card-w) * 2 + var(--tour-gap) * 3); }
+  /* In the ledger chapters the screen's panel sits under the card, same column. */
+  .app.tour-open .panel {
+    right: var(--tour-gap); width: var(--tour-card-w);
+    top: calc(var(--tour-card-actual-h, 40vh) + var(--tour-gap) * 2); bottom: var(--tour-gap);
+    border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 34px rgba(0,0,0,0.12);
+  }
+  .app.tour-open .panel-tab { right: var(--tour-gap); }
+  .app.tour-open .graphwrap.panel-open { --chrome-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
   .app.intro-open { --wm-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); --wm-bottom: 0px; }
+  /* The top bar ends where the column begins, so its last controls are not
+     under the card. */
+  .app.tour-open .topbar { padding-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); }
+  /* In the split view the captions drop below the name at the top of the canvas. */
+  .app.tour-open .graphwrap.split .half-title { top: 58px; }
 }
-@media (max-width: 1399px) {
+@media (max-width: 999px) {
   .app.intro-open { --wm-right: 0px; --wm-bottom: var(--tour-card-actual-h, var(--tour-card-h)); }
   .app.tour-open .legend { bottom: calc(var(--tour-card-actual-h, var(--tour-card-h)) + 8px); }
   .intro { left: 0; right: 0; bottom: 0; max-height: var(--tour-card-h); border-radius: 12px 12px 0 0; border-left: 0; border-right: 0; border-bottom: 0; }
@@ -687,3 +722,50 @@ button, input, select { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .wordmark, .wordmark-name, .wordmark-tag { transition: none; animation: none; }
 }
+
+/* ---- chapter 7: the drawing the estate is usually seen as ----
+   A matrix, one colour per judgment, over the canvas. It dissolves on a tap
+   or on Next, and the graph beneath is what the colours were hiding. */
+.drawing {
+  position: absolute; inset: 0; right: var(--chrome-right); bottom: var(--chrome-bottom); z-index: 4;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; cursor: pointer;
+  animation: intro-in 600ms ease;
+  transition: opacity 700ms ease, transform 700ms ease;
+}
+.drawing.away { opacity: 0; transform: scale(1.03); pointer-events: none; }
+.drawing-sheet {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.18); padding: 16px 18px 12px;
+  max-width: min(760px, 100%); width: 100%;
+}
+.drawing-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.drawing-head strong { font-size: 13px; }
+.drawing-head span { font-size: 11px; color: var(--ink-3); }
+.drawing table { border-collapse: separate; border-spacing: 3px; width: 100%; table-layout: fixed; }
+.drawing th { font-size: 10px; font-weight: 500; color: var(--ink-2); text-align: left; padding: 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drawing tbody th { width: 118px; }
+.drawing colgroup col:first-child { width: 124px; }
+.drawing thead th { writing-mode: vertical-rl; transform: rotate(180deg); height: 84px; text-align: left; vertical-align: bottom; }
+.drawing thead th:first-child { writing-mode: horizontal-tb; transform: none; height: auto; }
+.drawing td { height: 22px; border-radius: 3px; }
+.drawing td.g { background: #7bc47f; } .drawing td.a { background: #f2c14e; } .drawing td.r { background: #e06c75; } .drawing td.n { background: var(--panel-2); }
+.drawing-foot { display: flex; gap: 14px; align-items: center; margin-top: 8px; font-size: 11px; color: var(--ink-2); flex-wrap: wrap; }
+.drawing-foot .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.drawing-tap { margin-left: auto; color: var(--accent); font-weight: 600; }
+
+/* ---- the split view's divider and labels ---- */
+.graphwrap.split { --split: 50%; }
+.graphwrap.split:not(.stacked) { grid-template-columns: var(--split) 1fr; }
+.split-divider {
+  position: absolute; z-index: 7; top: 0; bottom: 0; width: 10px; margin-left: -5px;
+  left: var(--split); cursor: col-resize; touch-action: none;
+}
+.split-divider::after {
+  content: ''; position: absolute; top: 50%; left: 3px; width: 4px; height: 44px; margin-top: -22px;
+  border-radius: 2px; background: var(--ink-3); opacity: 0.55;
+}
+.split-divider:hover::after, .split-divider.dragging::after { opacity: 1; background: var(--accent); }
+.graphwrap.split.stacked .split-divider { display: none; }
+.half-title { font-size: clamp(12px, 0.5vw + 8px, 15px); padding: 5px 10px; }
+.half-title .half-note { font-size: 0.8em; }

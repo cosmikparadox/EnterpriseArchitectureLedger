@@ -57,9 +57,9 @@ export const SUBDOMAIN_COLOUR: Record<string, string> = {
 }
 export const NEUTRAL = '#8b929c'
 export const NEUTRAL_DIM = '#5d636c'
-/** Connectors: the darker grey, so they read apart from platforms without a colour. */
-export const CONNECTOR = '#2b3038'
-export const CONNECTOR_DARK = '#c3cad4'
+/** Connectors. A teal of their own, apart from the six domain colours and the platform grey. Not a vendor colour: every connector shares it. */
+export const CONNECTOR = '#1f7a8c'
+export const CONNECTOR_DARK = '#5fb8c9'
 
 export function buildGraph(estate: Estate, ix: Index): GraphData {
   const nodes: GNode[] = []

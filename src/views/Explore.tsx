@@ -1,15 +1,16 @@
 // View 1, Explore. Spec section 4.1.
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { DetailPanel } from '../components/DetailPanel'
-import { buildGraph, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
+import { buildGraph, CONNECTOR, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
 import type { AllocationRule, Estate } from '../model/types'
 import type { Index } from '../model/ledger'
 import { useLedger } from '../app/store'
 import { IntroCard, useIntro } from '../tour/Intro'
+import { Drawing } from '../tour/Drawing'
 import { usePrefersReducedMotion } from '../app/useNarrow'
 import { describeSubdomain } from '../model/describe'
 import { copy, fill } from '../copy'
@@ -46,6 +47,16 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // Outside the intro a tapped domain explains itself in a pop-up on the
   // canvas, with the same lines the intro's legend gave it.
   const [hullPop, setHullPop] = useState<string | null>(null)
+  // Chapter 7 puts the drawing over the graph; a tap or Next takes it away.
+  const tourStep = useLedger((s) => s.tourStep)
+  const [drawingAway, setDrawingAway] = useState(false)
+  useEffect(() => { setDrawingAway(false) }, [tourStep])
+  // Chapter 7 is the drawing, so the panel stays closed; chapter 8 opens it
+  // on the busiest node's first entry.
+  useEffect(() => {
+    if (tourStep === 7) setCollapsed(true)
+    if (tourStep === 8) setCollapsed(false)
+  }, [tourStep])
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -151,7 +162,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
 
         <Legend>
           <div><span className="glyph">O</span> platform, size is <Term k="fan_in" /></div>
-          <div><span className="glyph">&#9670;</span> <Term k="integration_node" /></div>
+          <div><span className="glyph" style={{ color: CONNECTOR }}>&#9670;</span> <Term k="integration_node" /></div>
           <div><span className="glyph">.</span> use case, coloured by subdomain</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>
             Hulls overlap where platforms are shared. The overlap is the point.
@@ -169,6 +180,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           </div>
         </Legend>
 
+        {tourStep === 7 && <Drawing estate={estate} ix={ix} away={drawingAway} onTap={() => setDrawingAway(true)} />}
         {intro.active && <IntroCard intro={intro} estate={estate} ix={ix} />}
 
         <DetailPanel

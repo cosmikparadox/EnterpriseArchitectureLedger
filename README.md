@@ -961,6 +961,57 @@ longer than the tour brief's twenty words where a shorter one would have left
 the word unexplained. Connectors are drawn in a darker grey than platforms,
 still grey, because colour means domain and nothing else.
 
+### 46. The story column, no dimming, and the drawing the estate is usually seen as
+
+The owner's read of the fifteen-chapter tour found four things wrong with how
+it was told, and they were one thing: the right column was not carrying the
+story. The card had become a sheet along the bottom on the owner's screen and
+overlapped the screen's panel; the spotlight greyed the whole canvas to point
+at one control, and the grey made the picture unreadable; the panel on the
+first ledger chapter said "Okta" and nothing else; and the chapter that
+explained why a ledger exists did so in words, over a graph that already
+looked like the answer.
+
+The card and the screen's panel now share one column on the right: the card
+at the top, the panel starting where the card ends, on every screen from
+1000px up, so the two cannot overlap and the story reads top to bottom. The
+card carries a part label, "Part one: the architecture" or "Part two: the
+ledger", the bars under the buttons break at the seam between the parts, and
+the name at the top of the canvas says which part is running. Below 1000px
+the card is a sheet along the bottom as before.
+
+The spotlight no longer dims anything. Each target gets a slow breathing
+outline and a label, and the rest of the screen is left exactly as readable as
+it was. The owner's alternative, greying only what is irrelevant, was tried on
+paper and rejected: on a canvas where every node is relevant to the next
+sentence, there is nothing to grey.
+
+Chapter 7 now shows the before as well as saying it. A matrix of the six
+domains against the sixteen systems, one colour per cell, sits over the graph:
+the capability heat map and the two-by-two of fit against value are what
+estates like this are shown as when decisions are made about them, in the
+Business Architecture Guild's method and in the portfolio tools built on it.
+The colours here are derived from the data, by how much of each domain's bill
+on each system is set by rule rather than read off a meter, so the drawing is
+of this estate; but it is a judgment scale by construction, and the card says
+so and says "Illustrative". A tap or Next dissolves it to the graph beneath.
+Automatically discovered dependency maps do exist, in observability and IT
+service management tooling; they are built for operations, and none found
+carries a per-use-case cost, risk or switching entry on the mined graph, which
+is the gap the paper names.
+
+Chapter text is shorter on the card, with the longer explanation under More
+detail, and each chapter's first sentence carries the last one forward, so the
+second part reads as one argument: the meter, then the rule, then what stops,
+then how much fails together, then what leaving costs, then whether spreading
+it out helps, then whose lines decided all of it.
+
+Connectors are drawn teal, one colour shared by all of them and by no domain
+and no platform. The owner asked for a colour twice. It is not a vendor
+colour: it belongs to the kind of node, not to any name on it. The split view
+has a draggable divider and larger captions. Card type is on a fluid scale
+between phone and desktop sizes.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two

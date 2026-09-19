@@ -228,6 +228,7 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
 
   return (
     <aside className={leaving ? 'intro intro-leaving' : 'intro'} aria-label="Introduction" ref={cardRef}>
+      {beat > 0 && <div className="intro-part">{copy.part_one}</div>}
       <h1 key={`h${beat > 0 ? 1 : 0}`}>{beat === 0 ? copy.landing_title : layers[beat - 1]}</h1>
       <p key={`l${beat}`} className="intro-line">{line}</p>
       {beat > 0 && <p key={`s${beat}`} className="intro-see">{fill(sees[beat - 1]!, values)}</p>}

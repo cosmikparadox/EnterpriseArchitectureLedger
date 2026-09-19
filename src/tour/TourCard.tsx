@@ -118,6 +118,7 @@ export function TourCard({ concentrated, bestOfBreed }: TourCardProps) {
     <>
     <Spotlight spots={def.spots} />
     <aside className="intro" aria-label="Guided tour" ref={cardRef}>
+      <div className="intro-part">{copy.part_two}</div>
       <h1 key={`h${step}`}>{def.closing ? copy.tour_15_layer : heading}</h1>
       {done && <div className="tour-tick" role="status">{copy.tour_did_it}</div>}
 

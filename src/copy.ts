@@ -180,99 +180,96 @@ export const copy = {
   // are live through fill(); nothing here is typed in.
   tour_7_layer: 'Why a ledger',
   tour_7_do:
-    'That is the whole picture. Before the numbers, a word on why there are ' +
-    'any.',
+    'That is the whole architecture. Before the numbers, look at how an ' +
+    'estate like this is usually shown. Tap the drawing.',
   tour_7_see:
-    'Harbourline makes its architecture decisions on drawings like this one: ' +
-    'what to keep, what to leave, what to share. Nobody prices those ' +
-    'decisions, because the systems are shared and the bills are split by ' +
-    'habit. A ledger is a book where every entry carries a number, a date and ' +
-    'the name of whoever wrote it. This tool keeps one for architecture. For ' +
-    'each use case it records three things: what it costs, what it risks, and ' +
-    'what leaving would cost. Never one total, because those three do not add.',
+    'A matrix, coloured by judgment: green, amber, red for each system in each ' +
+    'domain. Decisions are made on it. Nothing on it is a price.',
   tour_7_cost:
-    'The entries that follow are all about the lit node, {riders} use cases ' +
-    'deep. The panel on the right will fill in as we go.',
+    'Under the drawing is the graph you just built, with money on every line.',
   tour_7_more:
-    'The three entries are kept apart on purpose. A monthly cost, a bad year ' +
-    'and a price for leaving are three different kinds of number, and adding ' +
-    'them would produce a figure that means nothing. See the Ledger paper.',
+    'The colours come from scoring: someone rates each system for fit and ' +
+    'value on a five-point scale and the matrix takes the colour. That is ' +
+    'the common practice, and it is where architecture decisions are made. ' +
+    'A ledger is a book where every entry carries a number, a date and the ' +
+    'name of whoever wrote it. This tool keeps one for architecture: for ' +
+    'each use case, what it costs, what it risks, and what leaving would ' +
+    'cost. Never one total, because those three do not add. See the Ledger ' +
+    'paper.',
 
   tour_8_layer: 'What it meters',
   tour_8_do:
-    'Look at the panel. It shows one section: the meter. Then tap any other ' +
-    'grey circle to see its meter too.',
+    'The ledger starts with the busiest node. The panel has opened on its ' +
+    'first entry: the meter. Tap any other grey circle to see its meter too.',
   tour_8_see:
-    'Every platform has a bill in two parts. One part is a fixed pool: what it ' +
-    'costs whether anyone uses it or not, the licences and the team who run ' +
-    'it. The other is metered: counted on a meter that ticks with use, here ' +
-    'every login. The meter is the only part of the bill anyone actually ' +
-    'measures.',
+    'Every platform has a bill in two parts. A fixed pool, paid whether anyone ' +
+    'uses it or not, and a metered part counted on a meter that ticks with use.',
   tour_8_cost:
     'The work plugged into this node is metered at GBP {spend} a month.',
   tour_8_more:
-    'The meter\'s unit is called the driver: the thing that gets counted. ' +
-    'For an identity platform it is logins; for a policy engine it is policy ' +
-    'transactions.',
+    'The meter is the only part of the bill anyone actually measures. Its ' +
+    'unit is called the driver, the thing that gets counted: logins for an ' +
+    'identity platform, policy transactions for a policy engine. The fixed ' +
+    'pool here is the licences and the team who run the platform.',
 
   tour_9_layer: 'What it hands out by rule',
   tour_9_do:
-    'Watch three more use cases arrive on this node. Then move the slider ' +
-    'yourself.',
+    'The meter was the measured part. Now the other part. Watch three more use ' +
+    'cases arrive on this node, then move the slider yourself.',
   tour_9_see:
-    'The fixed pool is not measured. It is shared out among the use cases that ' +
-    'ride the platform, by a rule somebody chose: an equal split, or in ' +
-    'proportion to use. So the number a use case is told it costs moves when ' +
-    'a neighbour arrives or leaves, though it did nothing different. The ' +
-    'riders are the use cases riding the platform; their share of the pool is ' +
-    'their rule share.',
+    'The fixed pool is shared out among the use cases riding the platform by a ' +
+    'rule somebody chose. So a use case\'s number moves when a neighbour ' +
+    'arrives, though it did nothing different.',
   tour_9_cost:
     'The use case you were reading went from GBP {before} to GBP {after} a ' +
     'month with its own usage flat.',
   tour_9_more:
-    'A rule share should never inform a decision to leave a platform, because ' +
-    'leaving does not release it. The pool stays; it is simply shared among ' +
+    'The riders are the use cases riding the platform; their share of the pool ' +
+    'is their rule share, and the rule is an equal split or a split in ' +
+    'proportion to use. A rule share should never inform a decision to leave, ' +
+    'because leaving does not release it: the pool stays and is shared among ' +
     'fewer riders. See the Ledger paper, 9.2.6.',
 
   tour_10_layer: 'What happens when it stops',
   tour_10_do:
-    'Press Fail it on a different node and watch which use cases go dark.',
+    'That was the cost entry. The second entry is risk. Press Fail it on a ' +
+    'different node and watch which use cases go dark.',
   tour_10_see:
-    'This is the second entry: risk. When a shared platform stops, every use ' +
-    'case that depends on it stops too, across teams that never speak to each ' +
-    'other. How far that reaches is the blast radius. Then look at the pair of ' +
-    'figures on the right. Priced one use case at a time and added up, a bad ' +
-    'year for {sub} comes to one number. Priced together it comes to a ' +
-    'smaller one, because adding counts the same outage once per use case.',
+    'When a shared platform stops, everything riding it stops, across teams ' +
+    'that never speak. How far that reaches is the blast radius.',
   tour_10_cost:
-    'One at a time, GBP {sum}. Together, GBP {joint}.',
+    'A bad year for {sub}: one use case at a time, GBP {sum}. Together, GBP ' +
+    '{joint}.',
   tour_10_more:
-    'Both figures are a P99: a year worse than this comes about once in a ' +
-    'hundred. The first sums the P99s of each use case; the second is the P99 ' +
-    'of the whole domain\'s loss in one go. See the Ledger paper, 9.8.3.',
+    'The two figures on the right are the same domain priced two ways. The ' +
+    'first adds up each use case\'s bad year; the second prices the domain\'s ' +
+    'bad year in one go. Adding counts the same outage once per use case, so ' +
+    'the first is always larger. Both are a P99: a year worse than this comes ' +
+    'about once in a hundred. See the Ledger paper, 9.8.3.',
 
   tour_11_layer: 'How much they fail together',
   tour_11_do:
-    'Move the dependence slider, from one end to the other and back.',
+    'Those two figures depend on one thing nobody measures. Move the ' +
+    'dependence slider from one end to the other and back.',
   tour_11_see:
-    'Whether two platforms tend to fail on the same day changes the answer, ' +
-    'and it is the one thing nobody measures. At the left they fail ' +
-    'independently. At the right, always together. The honest reading is the ' +
-    'range, not a point on it.',
+    'At the left, platforms fail independently. At the right, always together. ' +
+    'The honest reading is the range, not a point on it.',
   tour_11_cost:
     'Across the full range the {sub} figure ran from GBP {lo} to GBP {hi}.',
   tour_11_more:
     'The slider is rho under a Student t copula with four degrees of freedom. ' +
-    'It is a declared input, not a measurement, and the tool says so.',
+    'It is a declared input, not a measurement, and the tool says so on the ' +
+    'screen rather than hiding it in a footnote.',
 
   tour_12_layer: 'How the footprint grew',
   tour_12_do:
-    'Drag the month handle back and forth across the marked month.',
+    'Cost, then risk. The third entry is what leaving would cost, and how that ' +
+    'grew without anyone deciding it should. Drag the month handle across the ' +
+    'marked month.',
   tour_12_see:
-    'This is the third entry: what leaving would cost, and how that cost grew ' +
-    'without anyone deciding it should. Use cases attached to this platform ' +
-    'one at a time, each for its own good reason. By the month the board ' +
-    'first saw it as a decision, the estate was already built on it.',
+    'Use cases attached to this platform one at a time, each for a good reason. ' +
+    'By the month the board first saw it as a decision, the estate was already ' +
+    'built on it.',
   tour_12_cost:
     'At that month the work of leaving had already reached about GBP {exec}.',
   tour_12_more:
@@ -283,35 +280,37 @@ export const copy = {
 
   tour_13_layer: 'What diversifying does',
   tour_13_do:
-    'Compare the two estates. On each side, find the node that would take ' +
-    'the most work down with it.',
+    'Three entries, all on one busy node. The obvious fix is not to have one. ' +
+    'Compare the two estates; on each side find the node that would take the ' +
+    'most work down with it.',
   tour_13_see:
     'On the left, one platform does most of the work. On the right the same ' +
-    'thirty use cases are spread across specialists. The shared point did not ' +
-    'disappear. It moved to the connectors, the diamonds, which now carry ' +
-    'everything between the specialists.',
+    'thirty use cases are spread across specialists, and the shared point ' +
+    'moved to the connectors.',
   tour_13_cost:
     'A bad year for {sub} runs GBP {left} on one side and GBP {right} on the ' +
     'other.',
   tour_13_more:
-    'Both figures are the joint P99 loss for {sub} at the dependence ' +
-    'currently set. Change the slider and both move.',
+    'Both figures are the joint P99 loss for {sub} at the dependence currently ' +
+    'set. Diversifying did not remove the concentration; it relocated it to ' +
+    'the diamonds, which now carry everything between the specialists. Drag ' +
+    'the divider to give either estate more room.',
 
   tour_14_layer: 'Where the lines are drawn',
   tour_14_do:
-    'Change the allocation basis, then move a use case into another domain ' +
-    'and watch the figures.',
+    'One last thing every figure so far depended on: the domain boundaries. ' +
+    'Pick a use case, move it to another domain, then change the basis.',
   tour_14_see:
-    'The graph was mined from the systems. The domain boundaries were drawn ' +
-    'by people, in a meeting. Under some rules, redrawing a boundary moves ' +
-    'money on paper before anything moves in the estate. The figures that ' +
-    'move when a line moves are the ones to trust least.',
+    'The graph was mined from the systems. The boundaries were drawn by ' +
+    'people. Under some rules, redrawing one moves money on paper before ' +
+    'anything moves in the estate.',
   tour_14_cost:
     'Under an equal split, no figure moves. Under a headcount split, they all ' +
     'do.',
   tour_14_more:
-    'The ledger permits only bases that ignore the boundary: an equal split ' +
-    'and a driver-proportional one. The headcount basis is shown here as the ' +
+    'The figures that move when a line moves are the ones to trust least. The ' +
+    'ledger permits only bases that ignore the boundary, an equal split and a ' +
+    'driver-proportional one; the headcount basis is shown as the ' +
     'counter-example. See the Ledger paper, 9.2.8.',
 
   tour_15_layer: 'The ledger, closed',
@@ -400,6 +399,10 @@ export const copy = {
   // travels to the top of the canvas and stays there for the intro.
   wordmark_name: 'Harbourline Insurance',
   wordmark_tag: 'An architecture ledger of one invented insurer',
+  wordmark_tag_one: 'Part one: the architecture',
+  wordmark_tag_two: 'Part two: the ledger',
+  part_one: 'Part one: the architecture',
+  part_two: 'Part two: the ledger',
   intro_back: 'Back',
   intro_next: 'Next',
   intro_skip: 'Skip the intro',
@@ -447,6 +450,16 @@ export const copy = {
   desc_ln_risk:
     'If {platform} goes down, {uc} goes down with it {pct} times in a hundred.',
 
+  // The drawing the estate is usually seen as, chapter 7. Synthetic, like
+  // everything else, and labelled so.
+  drawing_title: 'How this estate is usually shown',
+  drawing_sub: 'A matrix, one colour per judgment. Illustrative.',
+  drawing_green: 'fit',
+  drawing_amber: 'watch',
+  drawing_red: 'replace',
+  drawing_none: 'not used',
+  drawing_tap: 'Tap to see what the colours hide',
+
   // Panel notes that used to be typed into the component.
   panel_exec_note: 'What it costs to actually move: migration effort, dual running, retraining.',
   panel_spread_note:
@@ -472,6 +485,7 @@ export const copy = {
   // Spotlight labels. One short phrase beside each highlighted element, so
   // the dimmed screen says what the bright part is.
   tour_7_spot_node: 'the busiest node',
+  tour_7_spot_drawing: 'the drawing',
   tour_8_spot_meter: 'the meter',
   tour_9_spot_slider: 'the slider',
   tour_9_spot_list: 'what each rider is told',

@@ -1,14 +1,16 @@
-// The spotlight under the tour card.
+// The pointer under the chapter card.
 //
-// Dims everything except the parts a step is about, and puts a short label
-// beside each bright part so the dimmed screen says what it is pointing at. A
-// step names its targets by data-tour attribute; step 1 also asks for the
-// selected node, whose screen position the graph already publishes.
+// A slow pulse of outline around the parts a chapter is about, with a short
+// label beside each. Nothing else is touched: an earlier version dimmed the
+// rest of the screen, and the owner found the grey made the canvas unreadable
+// and the chapter harder to follow, not easier. A chapter names its targets by
+// data-tour attribute; some also ask for the selected node, whose screen
+// position the graph already publishes.
 //
-// It is an SVG with a mask rather than a stack of box shadows, so any number
-// of holes cost the same and the labels sit in the same coordinate space as the
-// holes they belong to. pointer-events is none throughout: the tool stays live
-// under the dimming, which is the whole premise of the tour.
+// One SVG over the page rather than a stack of box shadows, so any number of
+// outlines cost the same and the labels sit in the same coordinate space as
+// the outlines they belong to. pointer-events is none throughout: the tool
+// stays live, which is the whole premise of the tour.
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -70,15 +72,6 @@ export function Spotlight({ spots }: { spots: Spot[] }) {
 
   return createPortal(
     <svg className="spotlight" width={size.w} height={size.h} aria-hidden="true">
-      <defs>
-        <mask id="spotlight-mask">
-          <rect x={0} y={0} width={size.w} height={size.h} fill="white" />
-          {holes.map((h, i) => h.circle
-            ? <circle key={i} cx={h.x + h.r} cy={h.y + h.r} r={h.r} fill="black" />
-            : <rect key={i} x={h.x} y={h.y} width={h.w} height={h.h} rx={h.r} fill="black" />)}
-        </mask>
-      </defs>
-      <rect x={0} y={0} width={size.w} height={size.h} className="spotlight-dim" mask="url(#spotlight-mask)" />
       {holes.map((h, i) => h.circle
         ? <circle key={`o${i}`} cx={h.x + h.r} cy={h.y + h.r} r={h.r} className="spotlight-edge" />
         : <rect key={`o${i}`} x={h.x} y={h.y} width={h.w} height={h.h} rx={h.r} className="spotlight-edge" />)}
