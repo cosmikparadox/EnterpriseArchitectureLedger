@@ -57,7 +57,7 @@ into a view, which is the reason the store exists at all.
 
 | step | view | what it does when it opens | what it watches for |
 |---|---|---|---|
-| 0 | Explore | the title card over an empty canvas; the estate assembles in six beats behind it, domains first | tap a domain, a dot or a circle; Back, Next and Skip |
+| 0 | Explore | the company name on an empty canvas; on Next it moves to the top and the estate assembles in six chapters, domains first | tap a domain, a dot or a circle; open a named domain on the card; Back, Next and Skip |
 | 1 | Explore | flies to the identity node, selects it, hulls on | you select a different platform |
 | 2 | Fixed pool | selects identity, then animates three riders on over 1.5s | you change the basis or the slider |
 | 3 | Risk | fails identity, waits 2s, then sets the subdomain | you fail a different node |
@@ -905,6 +905,37 @@ it, and in ordinary use, tapping a domain opens a pop-up on the canvas with the
 same three lines the legend gave it, and the pop-up stays inside the canvas
 rather than sliding under the panel.
 
+### 44. The company name lives on the canvas, the card is headed by the chapter, and named domains stack
+
+The owner's review of the six-beat intro asked for three things. The title
+card kept the canvas empty and put every word on the card; the important words
+belong where the eye is. The card was headed by the product name on every beat,
+which said nothing the reader did not know. And a tapped domain replaced the
+one before it, so there was no going back to Finance after Claims.
+
+Now the title card carries the company name centred on the canvas, with one
+line under it saying what this is: an architecture ledger of one invented
+insurer. On Next the name does not fade out; it travels to the top of the
+canvas and settles small, and stays there for the whole intro, because that is
+what the picture is of. The card's heading becomes the chapter: Domains, Use
+cases, Platforms, Lines, Connectors, The busiest node. The counter is gone; the
+six bars under the buttons say how many chapters there are without a number.
+
+Each domain the viewer names becomes an entry on the card, in the order named,
+and every entry opens and closes on a tap, so all six can be read side by side
+and returned to. The latest tap opens itself. This list is built only in the
+intro, which is where the tool is taught; afterwards the pop-up on the canvas
+carries the same three lines.
+
+The three lines now explain their own words. "Units of work" meant nothing to
+an architect who had not read the paper, so a domain's entry says what a use
+case is (one thing the business does, such as paying a claim), what a unit of
+work is (one instance of it, one claim paid), and what a platform is (a system
+the work happens in), in the sentence that first uses each. The hull fade was
+also too quick to read as a fade at 720 ms; hulls now take 1400 ms, nodes keep
+720. Acceptance T7 samples the hull alphas 220 ms after Next and expects all
+six strictly between nothing and full.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -1033,7 +1064,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths: all sized, none under the panel, none short of the card. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
-| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden and no hull built; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
+| T7 | the intro builds the estate layer by layer and hands over to step 1 | PASS | Started at #/tour/0 with chrome hidden, no hull built and the company name centred on the canvas; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |

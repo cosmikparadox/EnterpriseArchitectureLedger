@@ -169,6 +169,12 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           </div>
         </Legend>
 
+        {intro.active && (
+          <div className={`wordmark${intro.beat > 0 ? ' wordmark-top' : ''}${intro.leaving ? ' wordmark-leaving' : ''}`} aria-hidden="true">
+            <div className="wordmark-name">{copy.wordmark_name}</div>
+            <div className="wordmark-tag">{copy.wordmark_tag}</div>
+          </div>
+        )}
         {intro.active && <IntroCard intro={intro} estate={estate} ix={ix} />}
 
         <DetailPanel

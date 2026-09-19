@@ -255,8 +255,9 @@ export const copy = {
     '{n_sub} domains: {sub_list}.',
   intro_1_see:
     'Each coloured shape is one domain: a part of the business and the work ' +
-    'it owns. Tap a domain to name it. The legend on this card builds as you ' +
-    'go, and only here.',
+    'it owns. Tap a domain to name it. Each one you name joins the list on ' +
+    'this card, where it can be opened again, and this is the only place ' +
+    'that list is built.',
   intro_2:
     'Between them the domains do {n_uc} things every month, from selling a ' +
     'policy to paying a claim.',
@@ -292,12 +293,18 @@ export const copy = {
     'That is the lit node. The tour starts here, with what this concentration ' +
     'costs and who is paying for it.',
 
-  intro_1_layer: 'The domains',
-  intro_2_layer: 'The use cases',
-  intro_3_layer: 'The platforms',
-  intro_4_layer: 'The lines',
-  intro_5_layer: 'The connectors',
+  // Chapter names. They head the card; the bars beneath the buttons count them.
+  intro_1_layer: 'Domains',
+  intro_2_layer: 'Use cases',
+  intro_3_layer: 'Platforms',
+  intro_4_layer: 'Lines',
+  intro_5_layer: 'Connectors',
   intro_6_layer: 'The busiest node',
+
+  // The name on the canvas. Large and centred on the title card; on Next it
+  // travels to the top of the canvas and stays there for the intro.
+  wordmark_name: 'Harbourline Insurance',
+  wordmark_tag: 'An architecture ledger of one invented insurer',
   intro_back: 'Back',
   intro_next: 'Next',
   intro_begin: 'Begin the tour',
@@ -305,7 +312,7 @@ export const copy = {
 
   // The legend that builds as coloured regions are tapped.
   intro_legend_head: 'Domains',
-  intro_legend_prompt: 'Tap a domain on the canvas to name it.',
+  intro_legend_prompt: 'Tap a domain on the canvas to name it. Tap a name here to open or close it.',
   intro_legend_done: 'All {n_sub} named. The rest of the tool calls a domain a subdomain, the paper\'s word.',
   // The pulsing marker on the canvas.
   intro_callout_domain: 'Tap a domain',
@@ -317,11 +324,13 @@ export const copy = {
   // src/model/describe.ts; no line here names a product on its own.
   desc_sd_what: '{name} covers {scope}.',
   desc_sd_count:
-    '{n_uc} use cases, handling {volume} units of work a month between them, ' +
-    'riding {n_pf} platforms.',
+    'It owns {n_uc} use cases, {volume} units of work a month between them. ' +
+    'A use case is one thing the business does, such as paying a claim; a ' +
+    'unit of work is one instance of it, one claim paid.',
   desc_sd_shared:
-    '{n_shared} of those platforms are shared with other parts of the ' +
-    'business. That sharing is where the rest of this tool starts.',
+    'That work runs on {n_pf} platforms, the systems it happens in, and ' +
+    '{n_shared} of them are shared with other domains. That sharing is where ' +
+    'the rest of this tool starts.',
 
   desc_uc_what:
     '{name} is one of the {n_sub_uc} things {sub} does. It handles {volume} ' +

@@ -49,6 +49,9 @@ export interface IntroState {
   clearFocus: () => void
   /** The pulsing marker on the canvas, if this beat has one. */
   callout: { kind: 'hull' | 'node'; id: string; text: string } | null
+  /** The named domain whose entry is open on the card. */
+  openSub: string | null
+  toggleSub: (id: string) => void
 }
 
 export function useIntro(estate: Estate, ix: Index): IntroState {
@@ -63,6 +66,8 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
   const [leaving, setLeaving] = useState(false)
   const [focusSub, setFocusSub] = useState<string | null>(null)
   const [named, setNamed] = useState<string[]>([])
+  /** Which named domain is open on the card. Tapping one opens it, tapping again closes it. */
+  const [openSub, setOpenSub] = useState<string | null>(null)
 
   const ids = useMemo(() => {
     const useCases = estate.use_cases.map((u) => u.id)
@@ -82,6 +87,7 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     setBeat(reduced ? LAST_BEAT : 0)
     setFocusSub(null)
     setNamed([])
+    setOpenSub(null)
     setSelectedId(null)
     setShowHulls(true)
   }, [active, reduced, setSelectedId, setShowHulls])
@@ -126,9 +132,10 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
   const back = () => setBeat((b) => Math.max(0, b - 1))
   const skip = () => setLeaving(true)
   // A region and a node are not both in focus: tapping one lets go of the other.
-  const tapSub = (id: string) => { setSelectedId(null); setFocusSub(id); setNamed((n) => (n.includes(id) ? n : [...n, id])) }
+  const tapSub = (id: string) => { setSelectedId(null); setFocusSub(id); setOpenSub(id); setNamed((n) => (n.includes(id) ? n : [...n, id])) }
   const tapNode = (id: string) => { setFocusSub(null); setSelectedId(id) }
   const clearFocus = () => { setFocusSub(null); setSelectedId(null) }
+  const toggleSub = (id: string) => setOpenSub((cur) => (cur === id ? null : id))
 
   // The marker moves to the next domain not yet named, and at the platform
   // beat to the largest platform until one has been tapped. Then it is gone.
@@ -154,11 +161,11 @@ export function useIntro(estate: Estate, ix: Index): IntroState {
     return null
   }, [active, leaving, beat, named, selectedId, estate, ix])
 
-  return { active, beat, dimNodes, hideLinksOf, dimHulls, leaving, advance, back, skip, focusSub, named, tapSub, tapNode, clearFocus, callout }
+  return { active, beat, dimNodes, hideLinksOf, dimHulls, leaving, advance, back, skip, focusSub, named, tapSub, tapNode, clearFocus, callout, openSub, toggleSub }
 }
 
 export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Estate; ix: Index }) {
-  const { beat, leaving, advance, back, skip, focusSub, named, clearFocus } = intro
+  const { beat, leaving, advance, back, skip, focusSub, named, clearFocus, openSub, toggleSub } = intro
   const selectedId = useLedger((s) => s.selectedId)
   const rule = useLedger((s) => s.rule)
   const estateValues = useMemo(() => describeEstate(ix), [ix])
@@ -176,12 +183,14 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
       const v = describePlatform(ix, selectedId, rule)
       return { colour: undefined, lines: [copy.desc_pf_what, copy.desc_pf_rides, copy.desc_pf_cost, copy.desc_pf_how, copy.desc_pf_rule].map((t) => fill(t, v)) }
     }
-    if (focusSub) {
-      const v = describeSubdomain(ix, focusSub)
-      return { colour: SUBDOMAIN_COLOUR[focusSub], lines: [copy.desc_sd_what, copy.desc_sd_count, copy.desc_sd_shared].map((t) => fill(t, v)) }
-    }
     return null
-  }, [focusSub, selectedId, ix, rule])
+  }, [selectedId, ix, rule])
+  void focusSub
+  // One description per named domain, built once each.
+  const domainLines = useMemo(() => new Map(named.map((id) => {
+    const v = describeSubdomain(ix, id)
+    return [id, [copy.desc_sd_what, copy.desc_sd_count, copy.desc_sd_shared].map((t) => fill(t, v))] as const
+  })), [named, ix])
   // Publish the card's real height so the canvas ends where the card begins
   // when it is anchored to the bottom, the same way the tour card does.
   const cardRef = useRef<HTMLDivElement | null>(null)
@@ -204,10 +213,7 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
 
   return (
     <aside className={leaving ? 'intro intro-leaving' : 'intro'} aria-label="Introduction" ref={cardRef}>
-      <h1>{copy.landing_title}</h1>
-      {beat > 0 && (
-        <div className="intro-layer">{beat} of {LAST_BEAT}, {layers[beat - 1]}</div>
-      )}
+      <h1 key={`h${beat > 0 ? 1 : 0}`}>{beat === 0 ? copy.landing_title : layers[beat - 1]}</h1>
       <p key={`l${beat}`} className="intro-line">{line}</p>
       {beat > 0 && <p key={`s${beat}`} className="intro-see">{fill(sees[beat - 1]!, values)}</p>}
 
@@ -215,13 +221,24 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
         <div className="intro-legend" data-tour="intro-legend">
           <div className="intro-legend-head">{copy.intro_legend_head}</div>
           {named.length === 0 && <div className="intro-legend-prompt">{copy.intro_legend_prompt}</div>}
-          {named.map((id) => (
-            <div key={id} className="intro-legend-row">
-              <span className="intro-swatch" style={{ background: SUBDOMAIN_COLOUR[id] }} />
-              <span>{subById.get(id)?.name ?? id}</span>
-              <span className="intro-legend-n">{estate.use_cases.filter((u) => u.subdomain === id).length}</span>
-            </div>
-          ))}
+          {named.map((id) => {
+            const open = openSub === id
+            return (
+              <div key={id} className={open ? 'intro-entry open' : 'intro-entry'} style={{ borderLeftColor: SUBDOMAIN_COLOUR[id] }}>
+                <button type="button" className="intro-legend-row" aria-expanded={open} onClick={() => toggleSub(id)}>
+                  <span className="intro-swatch" style={{ background: SUBDOMAIN_COLOUR[id] }} />
+                  <span>{subById.get(id)?.name ?? id}</span>
+                  <span className="intro-legend-n">{estate.use_cases.filter((u) => u.subdomain === id).length}</span>
+                  <span className="intro-chevron" aria-hidden="true" />
+                </button>
+                {open && (
+                  <div className="intro-entry-body">
+                    {(domainLines.get(id) ?? []).map((t, i) => <p key={i} className={i === 0 ? 'intro-focus-lead' : ''}>{t}</p>)}
+                  </div>
+                )}
+              </div>
+            )
+          })}
           {named.length === estate.subdomains.length && (
             <div className="intro-legend-prompt">{fill(copy.intro_legend_done, { n_sub: estate.subdomains.length })}</div>
           )}
@@ -242,7 +259,7 @@ export function IntroCard({ intro, estate, ix }: { intro: IntroState; estate: Es
         <button className="tour-skip" onClick={skip}>{copy.intro_skip}</button>
       </div>
       <div className="intro-beats" aria-hidden="true">
-        {[1, 2, 3, 4, 5].map((b) => <span key={b} className={b <= beat ? 'on' : ''} />)}
+        {Array.from({ length: LAST_BEAT }, (_, i) => i + 1).map((b) => <span key={b} className={b <= beat ? 'on' : ''} />)}
       </div>
     </aside>
   )

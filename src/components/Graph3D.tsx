@@ -241,6 +241,7 @@ export function Graph3D(props: Graph3DProps) {
         camera: g.cameraPosition(),
         nodes: (g.graphData().nodes as (GNode & Positioned)[]).map((n) => ({ id: n.id, kind: n.kind, sub: n.subdomain, x: n.x, y: n.y, z: n.z })),
       })
+      ;(window as unknown as { __hullAlpha?: unknown }).__hullAlpha = () => Object.fromEntries([...hullAlpha.current].map(([k, a]) => [k, a.cur]))
       ;(window as unknown as { __nodeScreen?: unknown }).__nodeScreen = () => {
         const el = holder.current
         if (!el) return []
@@ -581,6 +582,8 @@ export function Graph3D(props: Graph3DProps) {
   // target. Nothing is allocated per frame and no React state is touched, so
   // a layer of the intro fading in costs a few multiplications a frame.
   const FADE_MS = 720
+  /** Hulls are large and few; a slower arrival reads as a fade rather than a blink. */
+  const HULL_FADE_MS = 1400
   const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
   const fadeRaf = useRef(0)
   const hullAlpha = useRef(new Map<string, { cur: number; from: number; to: number; t0: number }>())
@@ -600,7 +603,7 @@ export function Graph3D(props: Graph3DProps) {
       }
       for (const a of hullAlpha.current.values()) {
         if (a.cur === a.to) continue
-        const t = Math.min(1, (now - a.t0) / FADE_MS)
+        const t = Math.min(1, (now - a.t0) / HULL_FADE_MS)
         a.cur = t >= 1 ? a.to : a.from + (a.to - a.from) * easeOut(t)
         if (t < 1) moving = true
       }
