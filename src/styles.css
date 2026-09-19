@@ -691,7 +691,11 @@ button, input, select { font: inherit; color: inherit; }
 /* The company name on the canvas during the intro. Centred and large on the
    title card; on Next it travels to the top and settles small, and stays. */
 .wordmark {
-  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  /* Centred on the canvas the viewer can see, not on the box under the card. */
+  position: absolute;
+  left: calc((100% - var(--chrome-right, 0px)) / 2);
+  top: calc((100% - var(--chrome-bottom, 0px)) * 0.42);
+  transform: translate(-50%, -50%);
   text-align: center; pointer-events: none; z-index: 2; white-space: nowrap;
   animation: intro-in 900ms ease;
   transition: top 800ms cubic-bezier(.2,.7,.2,1), transform 800ms cubic-bezier(.2,.7,.2,1), opacity 500ms;

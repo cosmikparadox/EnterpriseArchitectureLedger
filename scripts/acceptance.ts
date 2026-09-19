@@ -414,6 +414,10 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const hullsAtStart = (await page.evaluate(() => ((window as unknown as { __hullScreen?: () => unknown[] }).__hullScreen?.() ?? []).length))
   // The company name sits centred on the canvas over the title card.
   const wordmarkAtStart = await page.locator('.wordmark:not(.wordmark-top)').innerText().catch(() => '')
+  // Centred on the canvas the viewer can see, not on the box under the card.
+  const holderBox = await page.locator('.graph-holder').boundingBox()
+  const markBox = await page.locator('.wordmark').boundingBox()
+  const centred = !!holderBox && !!markBox && Math.abs((markBox.x + markBox.width / 2) - (holderBox.x + holderBox.width / 2)) <= 2
   // Beat 1 is the domains alone, fading in, with the marker on the canvas
   // asking for a tap; the name travels to the top and the card heads itself
   // with the chapter.
@@ -483,10 +487,10 @@ const STEP_SETTLE = [2200, 2600, 4200, 5200, 4200, 4200, 1200]
   const hashAtEnd = await page.evaluate(() => location.hash)
   const railBack = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '1')
   const cardUp = (await page.locator('.tour-count').innerText().catch(() => '')).trim().toLowerCase() === '1 of 7'
-  const ok = hashAtStart === '#/tour/0' && railHidden && hullsAtStart === 0 && wordmarkAtStart.includes('Harbourline') && fading && wordmarkAtTop && chapterHeading && calloutAtOne === 'Tap a domain' && unresolved.length === 0 && legendGrew && allOwn && stacked && calloutGone && described && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
+  const ok = hashAtStart === '#/tour/0' && railHidden && hullsAtStart === 0 && wordmarkAtStart.includes('Harbourline') && centred && fading && wordmarkAtTop && chapterHeading && calloutAtOne === 'Tap a domain' && unresolved.length === 0 && legendGrew && allOwn && stacked && calloutGone && described && wentBack && hashAtEnd === '#/tour/1' && railBack && cardUp && errors.length === 0
   add('T7 the intro builds the estate layer by layer and hands over to step 1', ok ? 'PASS' : 'FAIL',
-    ok ? 'started at #/tour/0 with chrome hidden, no hull built and the company name centred on the canvas; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
-       : `start ${hashAtStart}, rail hidden ${railHidden}, hulls at start ${hullsAtStart}, wordmark "${wordmarkAtStart.slice(0, 20)}", mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, at top ${wordmarkAtTop}, heading ${chapterHeading}, stacked ${stacked} (${entries}), callout "${calloutAtOne}", gone ${calloutGone}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew}, own region ${ownHull.length} of ${hulls.length}, described ${described}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
+    ok ? 'started at #/tour/0 with chrome hidden, no hull built and the company name centred on the visible canvas to within 2 px; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; ended at #/tour/1 with chrome back and the card on 1 of 7'
+       : `start ${hashAtStart}, rail hidden ${railHidden}, hulls at start ${hullsAtStart}, wordmark "${wordmarkAtStart.slice(0, 20)}", centred ${centred}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, at top ${wordmarkAtTop}, heading ${chapterHeading}, stacked ${stacked} (${entries}), callout "${calloutAtOne}", gone ${calloutGone}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew}, own region ${ownHull.length} of ${hulls.length}, described ${described}, back ${wentBack}, end ${hashAtEnd}, rail back ${railBack}, card ${cardUp}, errors ${errors.length}`)
   await ctx.close()
 }
 
