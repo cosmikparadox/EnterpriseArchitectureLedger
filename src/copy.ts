@@ -32,8 +32,8 @@ export const copy = {
     'moved anyway.',
 
   view3_nonadd:
-    'These differ because the use cases share platforms. Adding them counts ' +
-    'the same failure many times.',
+    'These differ because each use case has its worst month at a different ' +
+    'time. Adding them assumes every worst month lands at once.',
 
   view4_ratify:
     'By the time this platform reached the board, {n_uc} use cases in {n_sub} ' +
@@ -48,7 +48,7 @@ export const copy = {
   view5_land:
     'In the concentrated estate identity carries the largest blast radius and ' +
     'a business platform is a close second. In best of breed all four ' +
-    'integration nodes reach every use case, and the three largest blast radii ' +
+    'integration nodes reach every use case. The three largest blast radii ' +
     'are all integration. The graph shows where it went. The org chart does not.',
 
   view6_top:
@@ -77,10 +77,11 @@ export const copy = {
     'This is one number divided in two, not two numbers added together.',
 
   // Canon 9.2.8 (R23). Shown on screen in view 6, not only in the README.
-  basis_prohibited: 'Prohibited by 9.2.8, shown as a counter-example.',
+  basis_prohibited: 'Prohibited by the Ledger paper, 9.2.8, shown as a counter-example.',
   basis_permitted: 'Permitted basis. Partition-independent.',
   basis_outside_list:
-    'Partition-independent, but not one of the two bases 9.2.8 permits.',
+    'Partition-independent, but not one of the two bases the Ledger paper, ' +
+    '9.2.8, permits.',
 
   // Canon 9.3.8 forbids the Gaussian copula the spec asked for.
   copula_note:
@@ -115,7 +116,7 @@ export const copy = {
   dependence_high: 'platforms fail together',
   dependence_low_tip:
     'Under the t copula the extremes still move together even at zero ' +
-    'correlation. That is deliberate. See 9.3.8.',
+    'correlation. That is deliberate. See the Ledger paper, 9.3.8.',
 
   rail_tour: 'Tour',
 
@@ -199,7 +200,7 @@ export const copy = {
   // 1. The title beat, after the welcome.
   b_title_h: 'The Architecture Ledger',
   b_title:
-    'An interactive model of one invented insurer, built to show what ' +
+    'An interactive model of one invented insurer. It shows what ' +
     'architecture decisions cost when you price them in money instead of ' +
     'colours.',
   b_title_see: 'Everything here is synthetic and says so. Next takes you through it.',
@@ -238,7 +239,7 @@ export const copy = {
     'Each line joins a use case to a platform it cannot run without. ' +
     '{example_uc} alone needs {example_n}.',
   b_lines_see:
-    'A line is a dependency, and a dependency is also a bill: work flows ' +
+    'A line is a dependency, and a dependency is also a bill. Work flows ' +
     'along it every month and money flows back.',
   b_lines_more:
     'The thicker the line, the more money moves along it. Tap a line to see ' +
@@ -253,21 +254,19 @@ export const copy = {
   b_flow_h: 'What flows through it',
   b_flow:
     'Every line carries work, and work carries value. Warm lines carry work ' +
-    'that reaches a customer; cooler lines carry work that reaches a ' +
-    'reinsurer, a supplier or a regulator; cool lines carry the work that ' +
+    'that reaches a customer. Cooler lines carry work that reaches a ' +
+    'reinsurer, a supplier or a regulator. Cool lines carry the work that ' +
     'keeps the company running. The width is how much.',
   b_flow_see:
     'Not a figure. Where each use case\'s value lands was declared by the ' +
-    'finance function, and {cust_share} percent of the work reaches a ' +
-    'customer. {top_flow} carries the most of it.',
+    'finance function. {cust_share} percent of the work reaches a customer, ' +
+    'and {top_flow} carries the most of it.',
   b_flow_more:
-    'The flag on each use case is a declared fact about the business, ' +
-    'recorded with an owner and a date like the domain boundaries, and the ' +
-    'tool derives nothing from it but the picture: no revenue figure, no ' +
-    'value score, because those do not add and the ledger refuses them. ' +
-    'What the picture does show is where customer-facing work concentrates, ' +
-    'which is what a finance reader wants to know about a platform before ' +
-    'asking what it costs.',
+    'The flag on each use case is a declared fact about the business. It is ' +
+    'recorded with an owner and a date, like the domain boundaries. The tool ' +
+    'derives nothing from it but the picture: no revenue figure, no value ' +
+    'score. Those do not add, and the ledger refuses them. What the picture ' +
+    'does show is where customer-facing work concentrates.',
   b_busiest_h: 'The busiest node',
   b_busiest:
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
@@ -281,7 +280,7 @@ export const copy = {
     'dated, and ageing from the day it is saved.',
   b_docs_see:
     'Six kinds, kept in six places, none the same age. Open one: each is ' +
-    'honest about something, and silent on the three questions a decision ' +
+    'right about something, and silent on the three questions a decision ' +
     'needs.',
   b_docs_more:
     'The method calls the whole collection an architecture repository, and ' +
@@ -289,34 +288,38 @@ export const copy = {
     'built is not in it; it would have to be drawn.',
   b_matrix_h: 'What decisions are made on',
   b_matrix:
-    'When a decision is needed, all of that is boiled down to one drawing: a ' +
-    'matrix, one colour per judgment.',
+    'When a decision is needed, all of that is often boiled down to one ' +
+    'drawing. A matrix, one colour per judgment.',
   b_matrix_see:
     'Someone scores each system for fit and value, and the cell takes the ' +
     'colour. Nothing on it is a price.',
   b_matrix_more:
     'This is the common practice: capability heat maps, and the two-by-two ' +
-    'of business value against technical fit, each scored one to five by a ' +
-    'person. The colours here are derived from this estate\'s data so the ' +
-    'drawing is of Harbourline, but it is judgment by construction, and it ' +
+    'of business value against technical fit. Each is scored one to five by ' +
+    'a person. The colours here are derived from this estate\'s data, so the ' +
+    'drawing is of Harbourline. But it is judgment by construction, and it ' +
     'is labelled illustrative.',
   b_silos_h: 'Three questions, three places',
   b_silos:
     'What it costs is in a finance spreadsheet, by cost centre. What it risks ' +
     'is in a register, high, medium or low. What leaving would cost is ' +
-    'written down nowhere.',
-  b_silos_see: 'None of the three mentions a use case, and none can see the other two.',
+    'rarely written down at all.',
+  b_silos_see:
+    'Tools exist that meter cost per unit of work, and methods exist that ' +
+    'price risk in money. They are rarely joined to each other, or to a use ' +
+    'case.',
   b_graph_today_h: 'The graph already exists',
   b_graph_today:
-    'The picture from part one is not imaginary. Operations tools discover it ' +
-    'every day, to find outages.',
+    'The system half of that picture is not imaginary. Operations tools ' +
+    'discover which systems call which, every day, to find outages.',
   b_graph_today_see:
-    'It carries no money. Nobody has put the finance spreadsheet, the risk ' +
-    'register and the missing exit figure onto it, one use case at a time.',
+    'The use cases and the domains are not discovered. People declare them. ' +
+    'The graph carries no money. In most estates nobody has joined the ' +
+    'spreadsheet, the register and the exit figure to it per use case.',
   b_graph_today_more:
-    'That is the gap the Ledger paper names: the graph is mined, the numbers ' +
-    'are elsewhere, and the decisions are made on a colour. See the Ledger ' +
-    'paper.',
+    'That is the gap the Ledger paper names. The graph is mined, the numbers ' +
+    'are elsewhere, and the decision is often made on a colour. See the ' +
+    'Ledger paper.',
 
   // Part three: the ledger, on the busiest node.
   b_why_h: 'Why a ledger',
@@ -328,17 +331,16 @@ export const copy = {
     'because they do not add.',
   b_mine_h: 'The blueprint fills the book',
   b_mine:
-    'Nothing new is collected. The three entries for {top} are read off the ' +
-    'picture from part one: who rides it, how much work they send it, what ' +
-    'stops when it stops.',
+    'The graph supplies the start of all three entries for {top}. Who rides ' +
+    'it, how much work they send it, what stops when it stops.',
   b_mine_see:
-    'The lines run from the node to the book. We fill all three on {top}, ' +
-    'one at a time, starting with the one that can be measured.',
+    'The rest is declared or estimated, and each entry says which. We fill ' +
+    'all three on {top}, starting with the one that can be measured.',
   b_mine_more:
-    'This is the whole idea in one picture. The graph on the left is the ' +
-    'blueprint operations already keeps; the book on the right is a balance ' +
-    'sheet with one page per use case. The ledger is the wiring between them, ' +
-    'and every entry it writes can be traced back along a wire to the graph.',
+    'This is the whole idea in one picture. The graph on the left is mined ' +
+    'from the systems. The book on the right has one page per use case. The ' +
+    'ledger is the wiring between them, and every entry can be traced back ' +
+    'along a wire to the graph.',
   b_meter_h: 'Entry one: cost. The meter',
   b_meter:
     'Start with what can be measured. {top} has a meter that ticks with use: ' +
@@ -347,12 +349,12 @@ export const copy = {
     'Watch the reading beside the node: the meter is the only part of the ' +
     'bill anyone actually measures.',
   b_meter_more:
-    'The meter\'s unit is called the driver, the thing that gets counted: ' +
-    'logins for an identity platform, policy transactions for a policy ' +
+    'The meter\'s unit is called the driver, the thing that gets counted. ' +
+    'Logins for an identity platform, policy transactions for a policy ' +
     'engine. Tap another grey circle to see its meter.',
   b_pool_h: 'The fixed pool',
   b_pool:
-    'The rest of the bill is a fixed pool: licences and the team who run it, ' +
+    'The rest of the bill is a fixed pool. Licences and the team who run it, ' +
     'paid whether anyone logs in or not.',
   b_pool_see:
     'The block beside the node is the pool. Nobody meters a pool. It has to ' +
@@ -383,26 +385,30 @@ export const copy = {
     'When a shared platform stops, everything riding it stops, across teams ' +
     'that never speak. Fail it and watch which use cases go dark.',
   b_fail_see: 'How far that reaches is the blast radius.',
-  b_together_h: 'A bad year, two ways',
+  b_together_h: 'A bad month, two ways',
   b_together:
-    'Price a bad year for {sub} one use case at a time and add them up: GBP ' +
+    'Price a bad month for {sub} one use case at a time and add them up: GBP ' +
     '{sum}. Price the domain together: GBP {joint}.',
-  b_together_see: 'Adding counts the same outage once per use case. Together is the honest one.',
+  b_together_see:
+    'Adding assumes every use case has its worst month in the same month. ' +
+    'They rarely do. Together is the figure to read.',
   b_together_more:
-    'Both are a P99: a year worse than this comes about once in a hundred. ' +
-    'See the Ledger paper, 9.8.3.',
+    'Both are a P99: a month worse than this comes about one month in a ' +
+    'hundred. The two would match only if every loss moved in lockstep. See ' +
+    'the Ledger paper, 9.8.3.',
   b_rho_h: 'How much they fail together',
   b_rho:
-    'Those figures depend on one thing nobody measures: whether platforms ' +
-    'fail on the same day. Move the slider from one end to the other.',
+    'Those figures depend on one input this tool does not measure: how ' +
+    'strongly platform failures are linked. Move the slider from one end to ' +
+    'the other.',
   b_rho_see: 'Across the range the {sub} figure ran from GBP {lo} to GBP {hi}. The honest reading is the range.',
   b_rho_more:
-    'The slider is a dependence parameter, rho, from 0 to 1, under a Student ' +
-    't copula with four degrees of freedom. A declared input, not a ' +
-    'measurement, and the tool says so. On the canvas the picture is the ' +
-    'mechanism: at the left end a failure reaches only the use cases on the ' +
-    'failed node; as the slider moves right, the platforms those use cases ' +
-    'also ride go down with it, and the failure reaches their use cases too.',
+    'The slider is a dependence parameter, rho, from 0 to 1. It runs under a ' +
+    'Student t copula with four degrees of freedom. It is a declared input, ' +
+    'not a measurement, and the tool says so. At the left end failures are ' +
+    'uncorrelated, though the extremes still move together. As the slider ' +
+    'moves right, the other platforms those use cases ride go down more ' +
+    'often in the same month.',
   b_grow_h: 'Entry three: leaving. How the footprint grew',
   b_grow:
     'Now the cloud data platform. Watch the months run: use cases attach to ' +
@@ -410,16 +416,17 @@ export const copy = {
   b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
   b_exit_h: 'What leaving would cost',
   b_exit:
-    'At that month the work of leaving had already reached about GBP {exec}: ' +
-    'migration, rewiring, running two systems for a while.',
+    'At that month the work of leaving had already reached about GBP {exec}. ' +
+    'Migration, rewiring, running two systems for a while.',
   b_exit_see:
     'Month {cursor}: {attached_now} use cases attached, and the work of ' +
     'leaving stands at {exit_now}. Drag the handle either way. No single ' +
     'decision created it.',
   b_exit_more:
-    'That figure is the execution component. There is a second part, the ' +
-    'value of the choices given up, which the ledger declines to state ' +
-    'without evidence of what the alternative was. See the Ledger paper, 9.5.',
+    'That figure is the execution component, an engineering estimate rather ' +
+    'than a measurement. There is a second part, the value of the choices ' +
+    'given up. The ledger declines to state it without evidence of what the ' +
+    'alternative was. See the Ledger paper, 9.5.',
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
     'Same {n_uc} use cases, wired two ways. On the left, one platform does ' +
@@ -427,35 +434,34 @@ export const copy = {
     'run on both at once: cost, then risk, then leaving.',
   b_diversify_see:
     'The shared point did not disappear. It moved to the connectors. A bad ' +
-    'year for {sub}: GBP {left} on the left, GBP {right} on the right.',
+    'month for {sub}: GBP {left} on the left, GBP {right} on the right.',
   b_diversify_more:
     'Neither shape is right, and the ledger does not pick one. Concentration ' +
-    'inside a domain boundary is cheap to reason about: the pool is shared ' +
-    'by one domain, so its rule share does not move when a line moves, and ' +
-    'an outage stays in one domain. A domain standardising on an approved ' +
-    'vendor is that case. Concentration across boundaries is where the rule ' +
-    'share, the blast radius and the exit grow together, because every ' +
-    'domain rides the same node. Spreading it out moves the shared point to ' +
-    'the connectors and multiplies the contracts; it does not remove it. And ' +
-    'at full dependence the two bad years converge, because when platforms ' +
-    'fail together it stops mattering how many there are. What these three ' +
-    'entries do not price, the coordination cost of many vendors and the ' +
-    'latency of a process that crosses them, belongs in the decision record, ' +
-    'not in a figure here.',
+    'inside a domain boundary is cheap to reason about. One domain shares ' +
+    'the pool, and an outage stays in that domain. In this estate no ' +
+    'platform sits inside one domain, so that case is not on screen. ' +
+    'Concentration across boundaries is where the blast radius and the exit ' +
+    'grow together, because every domain rides the same node. Spreading it ' +
+    'out moves the shared point to the connectors and multiplies the ' +
+    'contracts. It does not remove it. At full dependence the two bad months ' +
+    'converge. When platforms fail together it stops mattering how many ' +
+    'there are. These three entries do not price the coordination cost of ' +
+    'many vendors. Nor the latency of a process that crosses them. Both ' +
+    'belong in the decision record, not in a figure here.',
   // The three phases of the comparison, on the card under the control.
   shapes_cost:
     'Cost. One pool of GBP {left_pool} on {left_top}, shared by {left_riders} ' +
-    'use cases; on the right the largest pool is GBP {right_pool} on ' +
+    'use cases. On the right the largest pool is GBP {right_pool} on ' +
     '{right_top}, shared by {right_riders}. Rule share of what riders are ' +
     'told: {left_c1} percent on the left, {right_c1} on the right.',
   shapes_risk:
     'Risk. The busiest node fails on each side. Left: {left_aff} use cases ' +
     'stop. Right: {right_aff}, because the shared point is a connector now. ' +
-    'A bad year for {sub}: GBP {left} against GBP {right}.',
+    'A bad month for {sub}: GBP {left} against GBP {right}.',
   shapes_exit:
     'Leaving. The largest single exit is GBP {left_exec} of work, off ' +
-    '{left_exit}, on the left; GBP {right_exec} off {right_exit} on the ' +
-    'right, with more contracts behind it.',
+    '{left_exit}, on the left. On the right, GBP {right_exec} off ' +
+    '{right_exit}, with more contracts behind it.',
   ctl_shapes_cost: 'Cost',
   ctl_shapes_risk: 'Risk',
   ctl_shapes_exit: 'Leaving',
@@ -464,26 +470,25 @@ export const copy = {
   shapes_note_exit: 'Largest exit: {name}, GBP {exec} of work',
   b_lines_drawn_h: 'Whose lines decided all of it',
   b_lines_drawn:
-    'Every figure so far depended on the domain boundaries. The graph was ' +
-    'mined from the systems. The boundaries, the coloured shapes, were ' +
-    'drawn by people, and drawing them well is a large part of what ' +
-    'enterprise architecture is for.',
+    'The domain figures so far, such as a bad month for {sub}, depend on ' +
+    'where the domain lines sit. The graph was mined from the systems. The ' +
+    'lines were drawn by people.',
   b_lines_drawn_see:
     'The faint dashed lines cross a boundary. A redraw touches every figure ' +
     'that reads one, and none of the systems.',
   b_lines_drawn_more:
     'The graph is the same whichever way the lines are drawn. What the lines ' +
-    'decide is which figures belong to whom: the rule share of a pool, the ' +
-    'bad year of a domain, whose leaving strands what. That is why the ' +
-    'ledger records the decomposition and its owner on every entry, and why ' +
-    'a figure that moves when a line moves is the one to trust least.',
+    'decide is which figures belong to whom. So the lines must already exist ' +
+    'and belong to someone other than whoever is measuring. The ledger ' +
+    'records the owner on every entry. A figure that moves when a line moves ' +
+    'is the one to trust least.',
   b_move_h: 'Move one use case',
   b_move:
     'Move {mover} out of {mover_from} into another domain, and watch the ' +
     'new domain take it in. Nothing in the estate changes; only the line moved.',
   b_move_see:
-    'Under an equal split, {moved_equal} reported figures moved. A person ' +
-    'redrew a line, and the figures that read it followed.',
+    'Under an equal split, {moved_equal} reported cost figures moved. That ' +
+    'is the point: a permitted rule does not read the line.',
   decision_head: 'A line redrawn',
   decision_pending:
     '{uc} belongs to {from}. The domain architecture function has decided ' +
@@ -491,7 +496,7 @@ export const copy = {
   decision_line:
     'The domain architecture function moved {uc} from {from} to {to}. No ' +
     'system changed and no line on the graph moved. Only the declared ' +
-    'boundary did, and every figure that reads the boundary moved with it.',
+    'boundary did. Under a permitted rule, no cost figure reads it.',
   b_basis_h: 'Change the rule',
   b_basis:
     'Now change the allocation basis to by headcount, which reads the ' +
@@ -499,31 +504,53 @@ export const copy = {
   b_basis_see: 'Under {basis}, {moved_basis} figures moved, by up to GBP {moved_max} a month, with no change in usage.',
   b_basis_more:
     'The figures that move when a line moves are the ones to trust least. ' +
-    'The ledger permits only bases that ignore the boundary; the headcount ' +
-    'basis is shown as the counter-example. See the Ledger paper, 9.2.8.',
+    'The ledger permits two rules, an equal split and a split in proportion ' +
+    'to use. Neither reads the boundary. The headcount basis is shown as the ' +
+    'counter-example. See the Ledger paper, 9.2.8.',
   b_close_h: 'The ledger, closed',
   b_close:
     'Three entries on one node, kept apart. No total, because they do not ' +
-    'add. Every deviation from the source is in the README.',
+    'add.',
   b_close_see: 'Explore on your own from here. The rail on the left has the six screens.',
+  // The closing card's blocks. Text salvaged unchanged from the old tour's
+  // last chapter where it existed; the caveat is the owner's sentence, word
+  // for word, and is reused elsewhere, so it must stay character-identical.
+  close_h_what: 'What this is',
+  close_what:
+    'An invented insurer and a way of pricing its architecture: three ' +
+    'entries per use case, kept apart. Nothing here is a real measurement.',
+  close_h_not: 'What it does not do',
+  close_not:
+    'It will not add the estate up to one number. It cannot say where a ' +
+    'boundary belongs, or what leaving would really cost.',
+  close_caveat:
+    'It prices the choices a commitment removes. It does not yet price the ' +
+    'ones a commitment creates. That work is parked on an open problem.',
+  close_h_read: 'Read the argument',
+  close_read: 'Archived at DOI {doi}.',
+  close_read_link: 'Part 1 of the written argument.',
+  close_built:
+    'Built with heavy AI assistance, under a written specification and an ' +
+    'acceptance suite. Every deviation from the source document is listed in ' +
+    'the README.',
 
   story_ledger_head: 'The ledger so far',
   row_metered: 'Metered, a month',
   row_pool: 'Fixed pool, a month',
   row_rule_first: 'Rule share, {first}',
-  row_sum: 'Bad year, {sub}, one at a time',
-  row_joint: 'Bad year, {sub}, together',
+  row_sum: 'Bad month, {sub}, one at a time',
+  row_joint: 'Bad month, {sub}, together',
   row_range: 'Dependence range',
   row_exec: 'Leaving, execution work at month {ratified}',
-  row_left: 'Bad year, {sub}, concentrated',
-  row_right: 'Bad year, {sub}, best of breed',
+  row_left: 'Bad month, {sub}, concentrated',
+  row_right: 'Bad month, {sub}, best of breed',
   row_moved: 'Figures moved under {basis}',
 
   ctl_fanin: 'Add use cases riding this node',
   ctl_fail: 'Fail it',
-  ctl_rho: 'How often the platforms fail on the same day',
-  ctl_rho_lo: 'never together',
-  ctl_rho_hi: 'always together',
+  ctl_rho: 'How strongly platform failures are linked',
+  ctl_rho_lo: 'not correlated',
+  ctl_rho_hi: 'fail together',
   ctl_month: 'Month',
   ctl_basis: 'Allocation basis',
   ctl_move_to: 'Move it to',
@@ -566,7 +593,7 @@ export const copy = {
     'month, not what breaks when it stops.',
   docpic_4_gap:
     'High, medium, low is a judgment, not a loss. Nothing here says which ' +
-    'use cases an outage reaches, or what a bad year costs a domain.',
+    'use cases an outage reaches, or what a bad month costs a domain.',
   docpic_5_gap:
     'The price of staying, by vendor. The price of leaving, by use case, is ' +
     'written nowhere.',
@@ -592,8 +619,8 @@ export const copy = {
   docpic_4_impact: 'impact',
   docpic_4_likelihood: 'likelihood',
   docpic_4_sub:
-    'Each risk is a row and a dot on a five by five grid: likelihood times ' +
-    'impact, high, medium or low. Not a number, not a use case, not a month.',
+    'Each risk is a row and a dot on a five by five grid. Likelihood times ' +
+    'impact, high, medium or low. Not a number, not a use case.',
   docpic_5_tag: 'renewals in four currencies',
   docpic_5_soon: 'in 60 days',
   docpic_5_sub:
@@ -610,14 +637,14 @@ export const copy = {
   silo_risk: 'What it risks',
   silo_risk_sub: 'risk register, high / medium / low',
   silo_exit: 'What leaving would cost',
-  silo_exit_sub: 'not recorded anywhere',
+  silo_exit_sub: 'rarely recorded',
   silo_note: 'No line joins them. None names a use case.',
   silo_ask_head: 'What a decision needs, for one use case',
   silo_ask: 'What it costs. What it risks. What leaving would cost.',
   silo_fail:
-    'Three sources, three vocabularies, no shared key. None of them reaches ' +
-    'the question in a form a finance director can use, so the decision is ' +
-    'made on a colour.',
+    'Three sources, three vocabularies, no shared key. None reaches the ' +
+    'question in a form a finance director can use, so the colour often ' +
+    'decides.',
 
   // ---- Part two, the ledger. Chapters 7 to 15. ----
   //
@@ -896,7 +923,7 @@ export const copy = {
   basis_equal: 'This is the default, an equal split. Change the basis above to see which figures move.',
   basis_same: 'Under {basis} every figure on this node is what it was under an equal split.',
   reach_note:
-    '{direct} interrupted on the failed node; {reached} more reached through ' +
+    '{direct} interrupted on the failed node. {reached} more reached through ' +
     'the {platforms} platforms that went down with it at this dependence.',
   // The explorer's walkthrough: one node, six steps, the same rhythm as the story.
   walk_play: 'Walk me through it',
@@ -908,13 +935,14 @@ export const copy = {
     'the work that depends on it.',
   walk_p_runs_h: 'What runs on it',
   walk_p_runs:
-    '{rider_list}. Between them, that is the business value on this node: ' +
-    'not a figure, but a list of things the company does that stop if it does.',
+    '{rider_list}. Between them, that is the business value on this node. ' +
+    'Not a figure, but a list of things the company does that stop if it does.',
   walk_p_billed_h: 'How it is billed',
   walk_p_billed:
     'Two parts. A meter on {driver}, GBP {metered} a month, counted and ' +
     'billed. And a fixed pool of GBP {pool} a month, licences and the team ' +
-    'who run it, shared out among the riders by a rule: allocated, not billed.',
+    'who run it. That is shared out among the riders by a rule: allocated, ' +
+    'not billed.',
   walk_p_stops_h: 'When it stops',
   walk_p_stops:
     'Everything riding it stops with it: {riders} use cases across {n_sub} ' +
@@ -924,8 +952,8 @@ export const copy = {
   walk_p_leaving:
     'The work of moving off it today is about GBP {exec}: migration, ' +
     'rewiring, running two systems for a while. There is a second part, the ' +
-    'value of the choices given up, which the ledger declines to price ' +
-    'without a dated decision record, and this estate has none.',
+    'value of the choices given up. The ledger declines to price it without ' +
+    'a dated decision record, and this estate has none.',
   walk_p_when_h: 'When it arrived',
   walk_p_when:
     'Adopted at month {adopted}, ratified as strategic at month {ratified}. ' +
@@ -943,8 +971,8 @@ export const copy = {
   walk_u_told_h: 'What it is told it costs',
   walk_u_told:
     'GBP {reported} a month, of which GBP {metered} was read off a meter. ' +
-    'The rest is its share of each platform\'s pool under the current rule, ' +
-    'and moves when the rule or the crowd moves, though it did nothing different.',
+    'The rest is its share of each platform\'s pool under the current rule. ' +
+    'It moves when the rule or the crowd moves, though it did nothing different.',
   walk_u_none: 'no single platform',
   walk_u_exit_h: 'What would strand it',
   walk_u_exit:
@@ -959,7 +987,7 @@ export const copy = {
   desc_sd_what: '{name} covers {scope}.',
   desc_sd_count:
     'It owns {n_uc} use cases, {volume} units of work a month between them. ' +
-    'A use case is one thing the business does, such as paying a claim; a ' +
+    'A use case is one thing the business does, such as paying a claim. A ' +
     'unit of work is one instance of it, one claim paid.',
   desc_sd_shared:
     'That work runs on {n_pf} platforms, the systems it happens in, and ' +
@@ -983,7 +1011,7 @@ export const copy = {
     'This line joins {uc} to {platform}. {uc} cannot run without it.',
   desc_ln_flow:
     'Every month about {units} {driver} cross it, and GBP {spend} goes with ' +
-    'them: that is the metered part of what {uc} is told it costs here.',
+    'them. That is the metered part of what {uc} is told it costs here.',
   desc_ln_risk:
     'If {platform} goes down, {uc} goes down with it {pct} times in a hundred.',
 
@@ -998,9 +1026,12 @@ export const copy = {
   drawing_tap: 'Tap to see what the colours hide',
 
   // Panel notes that used to be typed into the component.
-  panel_exec_note: 'What it costs to actually move: migration effort, dual running, retraining.',
+  panel_exec_note: 'An engineering estimate of what it costs to move: migration effort, dual running, retraining.',
+  // View 2's annotation, named for what it is rather than by a label the
+  // canon uses for a reading principle.
+  c1_annotation: 'Share set by rule',
   panel_spread_note:
-    'The spread across allocation rules is the honest number. The metered part ' +
+    'The spread across allocation rules is the number to read. The metered part ' +
     'is observed. The rest is a rule.',
   panel_section_metered: 'What it meters',
   panel_section_riders: 'Who rides it, and the rule',
@@ -1077,7 +1108,7 @@ export const glossary = {
     tip: 'What a use case is told it costs here. Metered spend plus its share of the fixed pool.',
   },
   c1: {
-    label: 'C1',
+    label: 'Share set by rule',
     tip: 'How much of a bill came from a rule rather than a meter. Higher means less of it was measured.',
   },
   fan_in: {
@@ -1094,15 +1125,15 @@ export const glossary = {
   },
   joint_p99: {
     label: 'Joint P99 loss',
-    tip: 'A bad year for the whole group taken together. Worse than this in about one year in a hundred.',
+    tip: 'A bad month for the whole group taken together. Worse than this in about one month in a hundred.',
   },
   sum_of_p99: {
     label: 'Sum of P99s',
-    tip: 'Each use case\u2019s bad year added up. It counts the same outage once per use case, so it overstates.',
+    tip: 'Each use case\u2019s bad month added up. It assumes every worst month lands at once, which is the extreme case.',
   },
   execution_component: {
     label: 'Execution component',
-    tip: 'The part of leaving you can price: migration, rewiring, running both for a while.',
+    tip: 'The part of leaving you can price: migration, rewiring, running both for a while. An engineering estimate, not a measurement.',
   },
   integration_node: {
     label: 'Integration node',
@@ -1128,7 +1159,7 @@ export type GlossaryKey = keyof typeof glossary
 export const viewPurpose: Record<number, string> = {
   1: 'Turn the estate around. Click any node to see what it costs and what rides on it.',
   2: 'Part of every bill is handed out by a rule. Move the slider and watch a number change that nobody chose.',
-  3: 'Break a node and see what stops. Then see why adding the damage up overstates it.',
+  3: 'Break a node and see what stops. Then see why each bad month added up is not the group\'s bad month.',
   4: 'Watch things pile onto one node month by month, and what leaving would have taken by the time anyone decided.',
   5: 'The same thirty use cases wired two ways. Concentration does not go away when you diversify. It moves.',
   6: 'Move a use case into another group and watch the reported numbers move with it.',
@@ -1207,20 +1238,20 @@ export const summary = {
     'Fail {name} and {affected} use cases stop, stalling {volume} units of ' +
     'monthly work.',
   s3_number:
-    'A bad year for {sub} looks like GBP {sum} priced one use case at a time. ' +
+    'A bad month for {sub} looks like GBP {sum} priced one use case at a time. ' +
     'Taken together it is GBP {joint}.',
   s3_mechanism:
-    'The first figure counts the same outage once per use case. Shared ' +
-    'platforms fail together, so adding them up overstates.',
+    'The first figure assumes every use case has its worst month at once. ' +
+    'Priced together, the worst months do not all coincide.',
 
   // View 4.
   s4_head:
     'By month {ratified}, when {name} was ratified, {n} use cases already ' +
     'depended on it.',
   s4_number:
-    'Leaving would already have taken about GBP {exec} of execution work, ' +
-    'plus an option component the ledger declines to state without an ' +
-    'evidenced counterfactual.',
+    'Leaving would already have taken about GBP {exec} of execution work. ' +
+    'There is also an option component, which the ledger declines to state ' +
+    'without an evidenced counterfactual.',
   s4_head_before:
     'At month {ratified} {name} had not arrived yet. It was adopted in month ' +
     '{adopted}.',
@@ -1235,11 +1266,11 @@ export const summary = {
     'Same {n_uc} use cases, wired two ways. The busiest node carries ' +
     '{left_top} on one side and {right_top} on the other.',
   s5_number:
-    'A bad year for {sub} runs GBP {left} on one side and GBP {right} on the ' +
-    'other, at the dependence currently set.',
+    'A bad month for {sub} runs GBP {left} on one side and GBP {right} on the ' +
+    'other. Both are at the dependence currently set.',
   s5_mechanism:
     'Splitting the estate moved the shared point to the connectors. The ' +
-    'concentration relocated. It did not leave.',
+    'concentration relocated.',
 
   // View 6.
   s6_head_none:

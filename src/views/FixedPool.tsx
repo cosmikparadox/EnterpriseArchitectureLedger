@@ -102,7 +102,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
         <RuleSelect rule={rule} setRule={setRule} />
         <Hint tip={glossary.c1.tip}>
           <button className="ctl" aria-pressed={showC1} onClick={() => setShowC1((v) => !v)}>
-            C1 annotation
+            {copy.c1_annotation}
           </button>
         </Hint>
         <Hint tip={copy.rank_tip}>
@@ -223,7 +223,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
 
               {showC1 && watchedRow && (
                 <section>
-                  <h3>C1 annotation</h3>
+                  <h3>{copy.c1_annotation}</h3>
                   <div className="callout">
                     Of the {gbp(watchedRow.reported)} this use case is told it costs here,{' '}
                     {gbp(watchedRow.byRule)} ({(watchedRow.share * 100).toFixed(0)} percent) is
