@@ -199,8 +199,10 @@ export const copy = {
 
   // 1. The title beat, after the welcome.
   b_title_h: 'The Architecture Ledger',
+  // The owner's sentence, reproduced unchanged by instruction, and exempt
+  // from the twenty-word rule.
   b_title:
-    'An interactive model of one invented insurer. It shows what ' +
+    'An interactive model of one invented insurer, built to show what ' +
     'architecture decisions cost when you price them in money instead of ' +
     'colours.',
   b_title_see: 'Everything here is synthetic and says so. Next takes you through it.',
@@ -393,8 +395,8 @@ export const copy = {
     'Adding assumes every use case has its worst month in the same month. ' +
     'They rarely do. Together is the figure to read.',
   b_together_more:
-    'Both are a P99: a month worse than this comes about one month in a ' +
-    'hundred. The two would match only if every loss moved in lockstep. See ' +
+    'Both are a P99: a month worse than this comes about once in a hundred ' +
+    'months. The two would match only if every loss moved in lockstep. See ' +
     'the Ledger paper, 9.8.3.',
   b_rho_h: 'How much they fail together',
   b_rho:
@@ -531,8 +533,7 @@ export const copy = {
   close_read_link: 'Part 1 of the written argument.',
   close_built:
     'Built with heavy AI assistance, under a written specification and an ' +
-    'acceptance suite. Every deviation from the source document is listed in ' +
-    'the README.',
+    'acceptance suite.',
 
   story_ledger_head: 'The ledger so far',
   row_metered: 'Metered, a month',

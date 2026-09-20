@@ -112,6 +112,11 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
     </div>
   ) : null
 
+  // The closing card. The DOI line always shows; the Medium line is
+  // rendered only once the address is real, because a link to the
+  // placeholder host would be a dead link on a public site.
+  const mediumReady = !copy.tour_medium_url.includes(copy.tour_medium_placeholder_host)
+
   const style = pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined
   return (
     <aside className="story" aria-label="The story" ref={cardRef} style={style}>
@@ -162,6 +167,25 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
           </div>
         )}
         {rows}
+        {beat.closing && (
+          <div className="story-close" data-tour="close">
+            <h3>{copy.close_h_what}</h3>
+            <p>{copy.close_what}</p>
+            <h3>{copy.close_h_not}</h3>
+            <p>{copy.close_not}</p>
+            <p className="close-caveat">{copy.close_caveat}</p>
+            <h3>{copy.close_h_read}</h3>
+            <p>
+              {mediumReady && (
+                <>
+                  <a href={copy.tour_medium_url} target="_blank" rel="noreferrer">{copy.close_read_link}</a>{' '}
+                </>
+              )}
+              {fill(copy.close_read, { doi: copy.tour_doi })}
+            </p>
+            <p className="close-built">{copy.close_built}</p>
+          </div>
+        )}
       </div>
       <footer className="story-foot">
         <div className="intro-actions">
