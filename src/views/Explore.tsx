@@ -86,6 +86,28 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [dragged, setDragged] = useState(gestureSeen)
   // The walkthrough: a play button on the panel, and the node's figures
   // arrive one step at a time with the canvas focused on each.
+  // The value flow picture. On the explorer it is a button; in the story
+  // it is a beat. Warmth per use case from the declared flag, share per
+  // line from the work it carries against the busiest line.
+  const [flowOn, setFlowOn] = useState(false)
+  const flow = useMemo(() => {
+    if (!(inStory ? scene.flow : flowOn)) return null
+    const WARMTH = { customer: 1, counterparty: 0.5, internal: 0 } as const
+    const warmth = new Map<string, number>()
+    const share = new Map<string, number>()
+    const maxVol = Math.max(1, ...estate.use_cases.map((u) => u.volume_per_month))
+    for (const u of estate.use_cases) {
+      warmth.set(u.id, WARMTH[u.value_flow])
+      for (const e of u.edges) share.set(`${u.id}>${e.platform_id}`, u.volume_per_month / maxVol)
+    }
+    return { warmth, share }
+  }, [inStory, scene.flow, flowOn, estate])
+  const flowByDomain = useMemo(() => estate.subdomains.map((sd) => {
+    const ucs = estate.use_cases.filter((u) => u.subdomain === sd.id)
+    const all = ucs.reduce((a, u) => a + u.volume_per_month, 0)
+    const cust = ucs.filter((u) => u.value_flow === 'customer').reduce((a, u) => a + u.volume_per_month, 0)
+    return { id: sd.id, name: sd.name, share: all === 0 ? 0 : cust / all }
+  }), [estate])
   const [walk, setWalk] = useState<string | null>(null)
   const [walkStep, setWalkStep] = useState(0)
   const [walkFocus, setWalkFocus] = useState<Focus | null>(null)
@@ -172,6 +194,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
         <button className="ctl" aria-pressed={showHulls} onClick={() => setShowHulls(!showHulls)}>
           Boundaries
         </button>
+        <button className="ctl" aria-pressed={flowOn} onClick={() => setFlowOn((v) => !v)}>{copy.flow_button}</button>
         <button className="ctl" onClick={() =>
           setLabelMode((m) => (m === 'none' ? 'selected' : m === 'selected' ? 'all' : 'none'))}>
           Labels: {labelMode}
@@ -205,6 +228,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
           focus={!inStory && walk ? walkFocus : null}
+          flow={flow}
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}
           onSelectNode={(id) => {
@@ -243,6 +267,19 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
         />
 
         <Legend>
+          {flow && (
+            <div className="flow-legend">
+              <div className="flow-head">{copy.flow_legend_head}</div>
+              <div className="flow-bar" />
+              <div className="flow-ends"><span>{copy.flow_cool}</span><span>{copy.flow_mid}</span><span>{copy.flow_warm}</span></div>
+              <div className="flow-note">{copy.flow_width}</div>
+              <div className="flow-head">{copy.flow_domain_head}</div>
+              {flowByDomain.map((d) => (
+                <div key={d.id} className="flow-row"><span className="intro-swatch" style={{ background: SUBDOMAIN_COLOUR[d.id] }} /><span className="flow-name">{d.name}</span><span className="flow-track"><span className="flow-fill" style={{ width: `${Math.round(d.share * 100)}%` }} /></span><span className="flow-pct">{Math.round(d.share * 100)}%</span></div>
+              ))}
+              <div className="flow-note">{fill(copy.flow_declared, { owner: estate.provenance.value_flags_owner, date: estate.provenance.value_flags_declared })}</div>
+            </div>
+          )}
           <div><span className="glyph">O</span> platform, size is <Term k="fan_in" /></div>
           <div><span className="glyph" style={{ color: CONNECTOR }}>&#9670;</span> <Term k="integration_node" /></div>
           <div><span className="glyph">.</span> use case, coloured by subdomain</div>

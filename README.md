@@ -47,7 +47,7 @@ npm run build        # static build into dist/
 ## The story
 
 Launching the app is a grey canvas and a welcome. From there the story runs in
-33 beats at `#/tour/1` to `#/tour/32`, one thing per Next, on one card. The
+34 beats at `#/tour/1` to `#/tour/33`, one thing per Next, on one card. The
 card floats: drag it by its header, resize it by its corner; its header and
 footer stay put and only its body scrolls, so Back and Next are always where
 they were. The screens' own rails, top bars and panels are never shown during
@@ -83,18 +83,19 @@ pictures. Arrow keys walk the story; a tap anywhere passes a title.
 | 0 | a grey canvas and a welcome | a tap |
 | 1 | the company name, and the card with what this is | Next |
 | 2 | Part one: the architecture | a tap or Next |
-| 3 to 8 | domains, use cases, platforms, lines, connectors, the busiest node, each arriving one by one | tap a domain, a dot, a circle or a line to have it describe itself |
-| 9, 10 | end of part one; Part two: how it is decided today | a tap or Next |
-| 11 to 14 | the documents, each opening into a drawing of itself; the matrix; the three silos; the graph that already exists, pulled back to its full extent | tap a document; Next |
-| 15, 16 | end of part two; Part three: the ledger | a tap or Next |
-| 17, 18 | why a ledger, on the whole graph; the book in the corner, wired to the busiest node | Next |
-| 19, 20 | the meter, counting up beside the node; the fixed pool, stamped beside the node | select another platform |
-| 21, 22 | the rule; the crowd changes, one rider arriving at a time, with the fan-in slider on the card | you move the slider |
-| 23 to 25 | fail it, with the button on the card; a bad year two ways; the dependence slider on the card | you fail it; you move the slider |
-| 26, 27 | the months run; the month handle on the card | you move the handle |
-| 28 | two shapes, with a draggable divider | nothing |
-| 29 to 31 | the lines people drew; move one use case, on the card; change the basis, on the card | you move it; you change the basis |
-| 32 | the ledger, closed | Explore on your own |
+| 3 to 7 | domains, use cases, platforms, lines, connectors, each arriving one by one | tap a domain, a dot, a circle or a line to have it describe itself |
+| 8, 9 | the value flow, every line tinted by where its work's value lands and widened by how much; the busiest node | Next |
+| 10, 11 | end of part one; Part two: how it is decided today | a tap or Next |
+| 12 to 15 | the documents, each opening into a drawing of itself; the matrix; the three silos; the graph that already exists, pulled back to its full extent | tap a document; Next |
+| 16, 17 | end of part two; Part three: the ledger | a tap or Next |
+| 18, 19 | why a ledger, on the whole graph; the book in the corner, wired to the busiest node | Next |
+| 20, 21 | the meter, counting up beside the node; the fixed pool, stamped beside the node | select another platform |
+| 22, 23 | the rule; the crowd changes, one rider arriving at a time, with the fan-in slider on the card | you move the slider |
+| 24 to 26 | fail it, with the button on the card; a bad year two ways; the dependence slider on the card | you fail it; you move the slider |
+| 27, 28 | the months run; the month handle on the card | you move the handle |
+| 29 | two shapes, with a draggable divider | nothing |
+| 30 to 32 | the lines people drew; move one use case, on the card; change the basis, on the card | you move it; you change the basis |
+| 33 | the ledger, closed | Explore on your own |
 
 Every figure in a beat's sentences and in the ledger rows is read from the
 running tool through `fill()`, never typed into the copy deck. A beat's
@@ -1311,6 +1312,46 @@ the work each platform carries, with the revenue-bearing share of it as a
 warmer tint on the lines, so a reader sees where revenue-bearing work
 concentrates without anyone claiming what it is worth.
 
+### 52. The value flow
+
+The owner asked for a revenue vector: the value flowing through the graph,
+something a finance director can read, as a gradient of magnitude rather
+than a measured figure, and not a "revenue versus cost" story. Built under
+three rules.
+
+The flag is declared, never derived. Each use case carries `value_flow`,
+one of customer, counterparty and internal: where the value of its work
+lands. It is a fact about the business from the finance function, recorded
+in provenance with an owner and a date, `value_flags_owner` and
+`value_flags_declared`, exactly as the decomposition is. The tool reads it
+and derives nothing from it but the picture. In this synthetic estate the
+customer-facing use cases are the quote, bind, renewal, adjustment, portal,
+notification, settlement, correspondence, complaint and payment flows; the
+counterparty ones reach a reinsurer, a supplier, a regulator or an auditor;
+the rest keep the company running.
+
+The magnitude is work, not money. A line's width in the flow picture is the
+work it carries, units a month against the busiest line, and the particles
+that run along it are sized and paced the same way. No line, node or legend
+carries a value figure, and no total is drawn, because value figures do not
+add and the ledger refuses them.
+
+The gradient is where the value lands. Warm for a customer, a middle tone
+for an outside counterparty, cool for inside; one gradient, no opposing
+pair, so it reads as flow and not as a contest. The legend says what the
+ends mean, that width is work and not money, and who declared the flags
+and when. It also gives the share of each domain's work that reaches a
+customer, as a bar, because that is the one reading a finance director
+asks for first about a platform: how much of what runs on it is
+customer-facing.
+
+It is a button on the explorer, "Value flow", and a beat in part one,
+after the connectors and before the busiest node, so the reader meets it
+as part of the picture and before any money. The beat's figures are read
+from the data: the share of all work that reaches a customer, and the
+platform that carries the most of it. The particles are on only in the
+flow picture; they cost a draw each per frame and mean nothing elsewhere.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -1432,12 +1473,12 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
 | 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 47.5 KB. |
-| T1 | the story walks all 33 beats on Next alone | PASS | 33 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
+| T1 | the story walks all 34 beats on Next alone | PASS | 34 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
 | T2 | on 390 by 844, the card never covers the node the beat is about | PASS | The ledger beats with a selected node on screen; none under the card. |
 | T3 | each waitFor fires on the action it describes | PASS | 7 of 7 fired, each through the control on the card. |
-| T4 | deep link to one beat cold-loads into it | PASS | #/tour/27 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
+| T4 | deep link to one beat cold-loads into it | PASS | #/tour/28 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
-| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 22 and 28 among them: all sized, none under the panel. |
+| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 23 and 29 among them: all sized, none under the panel. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
 | T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/17. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |

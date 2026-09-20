@@ -250,6 +250,24 @@ export const copy = {
   b_connectors_see:
     'The teal diamonds are those connectors: {int_list}. Nearly every use ' +
     'case passes through them.',
+  b_flow_h: 'What flows through it',
+  b_flow:
+    'Every line carries work, and work carries value. Warm lines carry work ' +
+    'that reaches a customer; cooler lines carry work that reaches a ' +
+    'reinsurer, a supplier or a regulator; cool lines carry the work that ' +
+    'keeps the company running. The width is how much.',
+  b_flow_see:
+    'Not a figure. Where each use case\'s value lands was declared by the ' +
+    'finance function, and {cust_share} percent of the work reaches a ' +
+    'customer. {top_flow} carries the most of it.',
+  b_flow_more:
+    'The flag on each use case is a declared fact about the business, ' +
+    'recorded with an owner and a date like the domain boundaries, and the ' +
+    'tool derives nothing from it but the picture: no revenue figure, no ' +
+    'value score, because those do not add and the ledger refuses them. ' +
+    'What the picture does show is where customer-facing work concentrates, ' +
+    'which is what a finance reader wants to know about a platform before ' +
+    'asking what it costs.',
   b_busiest_h: 'The busiest node',
   b_busiest:
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
@@ -807,6 +825,14 @@ export const copy = {
   intro_legend_done: 'All {n_sub} named. The rest of the tool calls a domain a subdomain, the paper\'s word.',
   // The pulsing marker on the canvas.
   intro_callout_domain: 'Tap a domain',
+  flow_button: 'Value flow',
+  flow_legend_head: 'Where the work\'s value lands',
+  flow_warm: 'reaches a customer',
+  flow_mid: 'reaches an outside counterparty',
+  flow_cool: 'stays inside the company',
+  flow_width: 'width is work a month, not money',
+  flow_declared: 'Declared by {owner}, {date}. Not a value figure.',
+  flow_domain_head: 'Share of each domain\'s work that reaches a customer',
   canvas_gesture: 'Drag to look around. Scroll or pinch to zoom.',
   book_title: 'The ledger, {name}',
   book_row_1: 'Entry one: what it costs',

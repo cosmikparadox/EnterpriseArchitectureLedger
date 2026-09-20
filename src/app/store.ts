@@ -30,7 +30,7 @@ export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6
  * happens when it stops, how much things fail together, how the footprint
  * grew, what diversifying does, where the lines are drawn, and a close.
  */
-export const TOUR_STEPS = 32
+export const TOUR_STEPS = 33
 /** The first beat of the third part, where the numbers start. Kept for the router. */
 export const FIRST_LEDGER_CHAPTER = 18
 
@@ -56,10 +56,12 @@ export interface Scene {
   book: boolean
   /** What the beat's control is about; everything else on the canvas ghosts. */
   focus: 'riders' | 'blast' | 'footprint' | 'lines' | 'move' | null
+  /** The value flow picture: lines tinted by where their work's value lands. */
+  flow: boolean
 }
 
-export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null }
-export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false, focus: null }
+export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null, flow: false }
+export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false, focus: null, flow: false }
 
 /**
  * A request to fail a platform, raised from anywhere. The nonce is what makes

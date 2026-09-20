@@ -192,50 +192,56 @@ export interface UseCaseSpec {
   // First entry is the primary system of record for this use case and carries
   // the highest conditional failure probability.
   platforms: string[]
+  // Where the value of this work lands: with a customer, with an outside
+  // counterparty (a reinsurer, a supplier, a regulator), or inside the
+  // company. A declared fact from the finance function, like the domain
+  // boundaries, recorded in provenance with an owner and a date. Never a
+  // figure: the tool derives nothing from it but the picture.
+  value_flow: 'customer' | 'counterparty' | 'internal'
 }
 
 export const USE_CASES: UseCaseSpec[] = [
   // Sales and Distribution
-  { id: 'uc_quote_bind', name: 'Quote and bind (direct)', subdomain: 'sales', volume_per_month: 48000, adopted_month: 4, platforms: ['policycenter', 'salesforce', 'apigee', 'okta', 'meridian'] },
-  { id: 'uc_broker_quote', name: 'Broker quote submission', subdomain: 'sales', volume_per_month: 31000, adopted_month: 10, platforms: ['policycenter', 'conduit', 'apigee', 'okta', 'meridian'] },
-  { id: 'uc_renewal', name: 'Renewal invitation', subdomain: 'sales', volume_per_month: 22000, adopted_month: 15, platforms: ['policycenter', 'marketingcloud', 'kafka', 'okta', 'meridian'] },
-  { id: 'uc_mta', name: 'Mid-term adjustment', subdomain: 'sales', volume_per_month: 14500, adopted_month: 12, platforms: ['policycenter', 'billingcenter', 'apigee', 'okta'] },
-  { id: 'uc_broker_portal', name: 'Broker portal servicing', subdomain: 'sales', volume_per_month: 9800, adopted_month: 21, platforms: ['salesforce', 'policycenter', 'conduit', 'okta', 'opentext'] },
+  { id: 'uc_quote_bind', name: 'Quote and bind (direct)', subdomain: 'sales', volume_per_month: 48000, adopted_month: 4, platforms: ['policycenter', 'salesforce', 'apigee', 'okta', 'meridian'], value_flow: 'customer' },
+  { id: 'uc_broker_quote', name: 'Broker quote submission', subdomain: 'sales', volume_per_month: 31000, adopted_month: 10, platforms: ['policycenter', 'conduit', 'apigee', 'okta', 'meridian'], value_flow: 'customer' },
+  { id: 'uc_renewal', name: 'Renewal invitation', subdomain: 'sales', volume_per_month: 22000, adopted_month: 15, platforms: ['policycenter', 'marketingcloud', 'kafka', 'okta', 'meridian'], value_flow: 'customer' },
+  { id: 'uc_mta', name: 'Mid-term adjustment', subdomain: 'sales', volume_per_month: 14500, adopted_month: 12, platforms: ['policycenter', 'billingcenter', 'apigee', 'okta'], value_flow: 'customer' },
+  { id: 'uc_broker_portal', name: 'Broker portal servicing', subdomain: 'sales', volume_per_month: 9800, adopted_month: 21, platforms: ['salesforce', 'policycenter', 'conduit', 'okta', 'opentext'], value_flow: 'customer' },
 
   // Claims. Spec 3.5 requires this subdomain to ride ClaimCenter, ServiceNow,
   // Salesforce, OpenText, Adyen and Kafka.
-  { id: 'uc_fnol', name: 'First notification of loss', subdomain: 'claims', volume_per_month: 12400, adopted_month: 6, platforms: ['claimcenter', 'salesforce', 'kafka', 'okta', 'apigee'] },
-  { id: 'uc_claim_triage', name: 'Claim triage', subdomain: 'claims', volume_per_month: 11800, adopted_month: 18, platforms: ['claimcenter', 'servicenow', 'meridian', 'okta', 'kafka'] },
-  { id: 'uc_claim_settle', name: 'Claim settlement', subdomain: 'claims', volume_per_month: 7600, adopted_month: 11, platforms: ['claimcenter', 'adyen', 'billingcenter', 'okta', 'opentext'] },
-  { id: 'uc_fraud_referral', name: 'Fraud referral', subdomain: 'claims', volume_per_month: 1450, adopted_month: 26, platforms: ['claimcenter', 'meridian', 'servicenow', 'okta', 'kafka'] },
-  { id: 'uc_claim_docs', name: 'Claim document handling', subdomain: 'claims', volume_per_month: 18900, adopted_month: 8, platforms: ['opentext', 'claimcenter', 'conduit', 'okta'] },
+  { id: 'uc_fnol', name: 'First notification of loss', subdomain: 'claims', volume_per_month: 12400, adopted_month: 6, platforms: ['claimcenter', 'salesforce', 'kafka', 'okta', 'apigee'], value_flow: 'customer' },
+  { id: 'uc_claim_triage', name: 'Claim triage', subdomain: 'claims', volume_per_month: 11800, adopted_month: 18, platforms: ['claimcenter', 'servicenow', 'meridian', 'okta', 'kafka'], value_flow: 'internal' },
+  { id: 'uc_claim_settle', name: 'Claim settlement', subdomain: 'claims', volume_per_month: 7600, adopted_month: 11, platforms: ['claimcenter', 'adyen', 'billingcenter', 'okta', 'opentext'], value_flow: 'customer' },
+  { id: 'uc_fraud_referral', name: 'Fraud referral', subdomain: 'claims', volume_per_month: 1450, adopted_month: 26, platforms: ['claimcenter', 'meridian', 'servicenow', 'okta', 'kafka'], value_flow: 'internal' },
+  { id: 'uc_claim_docs', name: 'Claim document handling', subdomain: 'claims', volume_per_month: 18900, adopted_month: 8, platforms: ['opentext', 'claimcenter', 'conduit', 'okta'], value_flow: 'customer' },
 
   // Finance
-  { id: 'uc_gl_close', name: 'General ledger close', subdomain: 'finance', volume_per_month: 620, adopted_month: 1, platforms: ['sap_s4', 'meridian', 'conduit', 'okta'] },
-  { id: 'uc_reins_settle', name: 'Reinsurance settlement', subdomain: 'finance', volume_per_month: 310, adopted_month: 16, platforms: ['sap_s4', 'billingcenter', 'conduit', 'okta', 'meridian'] },
-  { id: 'uc_ifrs17', name: 'IFRS 17 reporting', subdomain: 'finance', volume_per_month: 240, adopted_month: 29, platforms: ['sap_s4', 'meridian', 'powerbi', 'okta'] },
-  { id: 'uc_premium_recon', name: 'Premium reconciliation', subdomain: 'finance', volume_per_month: 4200, adopted_month: 13, platforms: ['billingcenter', 'sap_s4', 'adyen', 'okta', 'kafka'] },
-  { id: 'uc_supplier_pay', name: 'Supplier payment run', subdomain: 'finance', volume_per_month: 1900, adopted_month: 5, platforms: ['sap_s4', 'adyen', 'conduit', 'okta'] },
+  { id: 'uc_gl_close', name: 'General ledger close', subdomain: 'finance', volume_per_month: 620, adopted_month: 1, platforms: ['sap_s4', 'meridian', 'conduit', 'okta'], value_flow: 'internal' },
+  { id: 'uc_reins_settle', name: 'Reinsurance settlement', subdomain: 'finance', volume_per_month: 310, adopted_month: 16, platforms: ['sap_s4', 'billingcenter', 'conduit', 'okta', 'meridian'], value_flow: 'counterparty' },
+  { id: 'uc_ifrs17', name: 'IFRS 17 reporting', subdomain: 'finance', volume_per_month: 240, adopted_month: 29, platforms: ['sap_s4', 'meridian', 'powerbi', 'okta'], value_flow: 'counterparty' },
+  { id: 'uc_premium_recon', name: 'Premium reconciliation', subdomain: 'finance', volume_per_month: 4200, adopted_month: 13, platforms: ['billingcenter', 'sap_s4', 'adyen', 'okta', 'kafka'], value_flow: 'counterparty' },
+  { id: 'uc_supplier_pay', name: 'Supplier payment run', subdomain: 'finance', volume_per_month: 1900, adopted_month: 5, platforms: ['sap_s4', 'adyen', 'conduit', 'okta'], value_flow: 'counterparty' },
 
   // Customer Service
-  { id: 'uc_contact_centre', name: 'Contact centre handling', subdomain: 'service', volume_per_month: 64000, adopted_month: 4, platforms: ['salesforce', 'servicenow', 'apigee', 'okta', 'policycenter'] },
-  { id: 'uc_self_service', name: 'Self-service portal', subdomain: 'service', volume_per_month: 88000, adopted_month: 20, platforms: ['salesforce', 'apigee', 'okta', 'policycenter', 'billingcenter'] },
-  { id: 'uc_complaints', name: 'Complaints handling', subdomain: 'service', volume_per_month: 3400, adopted_month: 9, platforms: ['servicenow', 'salesforce', 'opentext', 'okta', 'meridian'] },
-  { id: 'uc_cust_docs', name: 'Customer correspondence', subdomain: 'service', volume_per_month: 41000, adopted_month: 3, platforms: ['opentext', 'salesforce', 'conduit', 'okta'] },
-  { id: 'uc_payment_query', name: 'Payment query', subdomain: 'service', volume_per_month: 12700, adopted_month: 14, platforms: ['billingcenter', 'adyen', 'salesforce', 'okta', 'apigee'] },
+  { id: 'uc_contact_centre', name: 'Contact centre handling', subdomain: 'service', volume_per_month: 64000, adopted_month: 4, platforms: ['salesforce', 'servicenow', 'apigee', 'okta', 'policycenter'], value_flow: 'customer' },
+  { id: 'uc_self_service', name: 'Self-service portal', subdomain: 'service', volume_per_month: 88000, adopted_month: 20, platforms: ['salesforce', 'apigee', 'okta', 'policycenter', 'billingcenter'], value_flow: 'customer' },
+  { id: 'uc_complaints', name: 'Complaints handling', subdomain: 'service', volume_per_month: 3400, adopted_month: 9, platforms: ['servicenow', 'salesforce', 'opentext', 'okta', 'meridian'], value_flow: 'customer' },
+  { id: 'uc_cust_docs', name: 'Customer correspondence', subdomain: 'service', volume_per_month: 41000, adopted_month: 3, platforms: ['opentext', 'salesforce', 'conduit', 'okta'], value_flow: 'customer' },
+  { id: 'uc_payment_query', name: 'Payment query', subdomain: 'service', volume_per_month: 12700, adopted_month: 14, platforms: ['billingcenter', 'adyen', 'salesforce', 'okta', 'apigee'], value_flow: 'customer' },
 
   // People
-  { id: 'uc_onboarding', name: 'Employee onboarding', subdomain: 'people', volume_per_month: 260, adopted_month: 13, platforms: ['workday', 'okta', 'servicenow', 'conduit'] },
-  { id: 'uc_payroll', name: 'Payroll run', subdomain: 'people', volume_per_month: 4000, adopted_month: 13, platforms: ['workday', 'sap_s4', 'okta', 'conduit'] },
-  { id: 'uc_learning', name: 'Learning and compliance', subdomain: 'people', volume_per_month: 3800, adopted_month: 24, platforms: ['workday', 'okta', 'meridian'] },
-  { id: 'uc_leaver', name: 'Leaver process', subdomain: 'people', volume_per_month: 190, adopted_month: 13, platforms: ['workday', 'okta', 'servicenow', 'conduit'] },
-  { id: 'uc_people_report', name: 'People reporting', subdomain: 'people', volume_per_month: 140, adopted_month: 27, platforms: ['workday', 'meridian', 'powerbi', 'conduit'] },
+  { id: 'uc_onboarding', name: 'Employee onboarding', subdomain: 'people', volume_per_month: 260, adopted_month: 13, platforms: ['workday', 'okta', 'servicenow', 'conduit'], value_flow: 'internal' },
+  { id: 'uc_payroll', name: 'Payroll run', subdomain: 'people', volume_per_month: 4000, adopted_month: 13, platforms: ['workday', 'sap_s4', 'okta', 'conduit'], value_flow: 'internal' },
+  { id: 'uc_learning', name: 'Learning and compliance', subdomain: 'people', volume_per_month: 3800, adopted_month: 24, platforms: ['workday', 'okta', 'meridian'], value_flow: 'internal' },
+  { id: 'uc_leaver', name: 'Leaver process', subdomain: 'people', volume_per_month: 190, adopted_month: 13, platforms: ['workday', 'okta', 'servicenow', 'conduit'], value_flow: 'internal' },
+  { id: 'uc_people_report', name: 'People reporting', subdomain: 'people', volume_per_month: 140, adopted_month: 27, platforms: ['workday', 'meridian', 'powerbi', 'conduit'], value_flow: 'internal' },
 
   // Data and Analytics. Spec 3.5 requires HIGH fan-in to the cloud data
   // platform from this subdomain.
-  { id: 'uc_pricing_refresh', name: 'Pricing model refresh', subdomain: 'data', volume_per_month: 45, adopted_month: 19, platforms: ['meridian', 'policycenter', 'powerbi', 'okta', 'conduit'] },
-  { id: 'uc_reg_report', name: 'Regulatory reporting', subdomain: 'data', volume_per_month: 26, adopted_month: 23, platforms: ['meridian', 'sap_s4', 'powerbi', 'conduit'] },
-  { id: 'uc_mi_dashboards', name: 'Management dashboards', subdomain: 'data', volume_per_month: 320, adopted_month: 21, platforms: ['meridian', 'powerbi', 'okta', 'kafka'] },
-  { id: 'uc_cust_analytics', name: 'Customer analytics', subdomain: 'data', volume_per_month: 180, adopted_month: 25, platforms: ['meridian', 'salesforce', 'powerbi', 'okta', 'marketingcloud'] },
-  { id: 'uc_claims_analytics', name: 'Claims analytics', subdomain: 'data', volume_per_month: 95, adopted_month: 30, platforms: ['meridian', 'claimcenter', 'powerbi', 'okta', 'kafka'] },
+  { id: 'uc_pricing_refresh', name: 'Pricing model refresh', subdomain: 'data', volume_per_month: 45, adopted_month: 19, platforms: ['meridian', 'policycenter', 'powerbi', 'okta', 'conduit'], value_flow: 'internal' },
+  { id: 'uc_reg_report', name: 'Regulatory reporting', subdomain: 'data', volume_per_month: 26, adopted_month: 23, platforms: ['meridian', 'sap_s4', 'powerbi', 'conduit'], value_flow: 'counterparty' },
+  { id: 'uc_mi_dashboards', name: 'Management dashboards', subdomain: 'data', volume_per_month: 320, adopted_month: 21, platforms: ['meridian', 'powerbi', 'okta', 'kafka'], value_flow: 'internal' },
+  { id: 'uc_cust_analytics', name: 'Customer analytics', subdomain: 'data', volume_per_month: 180, adopted_month: 25, platforms: ['meridian', 'salesforce', 'powerbi', 'okta', 'marketingcloud'], value_flow: 'internal' },
+  { id: 'uc_claims_analytics', name: 'Claims analytics', subdomain: 'data', volume_per_month: 95, adopted_month: 30, platforms: ['meridian', 'claimcenter', 'powerbi', 'okta', 'kafka'], value_flow: 'internal' },
 ]

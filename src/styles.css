@@ -1087,3 +1087,20 @@ button, input, select { font: inherit; color: inherit; }
 .panel section.reveal { animation: intro-in 520ms cubic-bezier(.2,.7,.2,1); }
 .book-v { display: block; font-size: 11.5px; color: var(--ink-2); margin-top: 1px; }
 @media (prefers-reduced-motion: reduce) { .ov-curve path { animation: none; stroke-dashoffset: 34; } .ov-curve circle { animation: none; opacity: 1; } .panel section.reveal { animation: none; } }
+
+
+/* ---- the value flow legend ---- */
+/* The legend lays its direct children out as rows; this block is a block. */
+.legend .legend-body > .flow-legend { display: block; margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.flow-legend .flow-row { display: flex; }
+.flow-head { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin: 4px 0 4px; }
+.flow-bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #4a7bb5, #9a8f7b, #f2a541); }
+.flow-ends { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--ink-3); margin-top: 3px; gap: 6px; }
+.flow-ends span:nth-child(2) { text-align: center; }
+.flow-ends span:last-child { text-align: right; }
+.flow-note { font-size: 10px; color: var(--ink-3); margin-top: 4px; }
+.flow-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; font-size: 10.5px; }
+.flow-name { flex: 0 0 118px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flow-track { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.flow-fill { display: block; height: 100%; background: #f2a541; transition: width 600ms ease; }
+.flow-pct { width: 32px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }

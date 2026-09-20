@@ -391,6 +391,8 @@ export function withSyntheticRiders(estate: Estate, platformId: string, n: numbe
     subdomain: subs[i % subs.length]!,
     volume_per_month: Math.round(vol),
     adopted_month: 60,
+    // A hypothetical rider carries no declared flag; it counts as inside work.
+    value_flow: 'internal' as const,
     edges: [{
       platform_id: platformId,
       driver_units_per_volume_unit: units,

@@ -19,6 +19,8 @@ const PROVENANCE = {
   graph_as_at: '2026-09-05',
   decomposition_owner: 'Harbourline domain architecture function (synthetic)',
   decomposition_revised: '2026-02',
+  value_flags_owner: 'Harbourline finance function (synthetic)',
+  value_flags_declared: '2026-03',
   seed: SEED,
   synthetic: true as const,
 }
@@ -170,6 +172,7 @@ function buildBobUseCases(rng: Rng, specById: Map<string, PlatformSpec>): UseCas
     return {
       id: uc.id, name: uc.name, subdomain: uc.subdomain,
       volume_per_month: uc.volume_per_month, adopted_month: uc.adopted_month,
+      value_flow: uc.value_flow,
       edges: buildEdges(rng, spec, specById, 'bestofbreed'),
     }
   })
@@ -367,6 +370,7 @@ function main(): void {
     use_cases: USE_CASES.map((uc) => ({
       id: uc.id, name: uc.name, subdomain: uc.subdomain,
       volume_per_month: uc.volume_per_month, adopted_month: uc.adopted_month,
+      value_flow: uc.value_flow,
       edges: buildEdges(rngA, uc, specById, 'concentrated'),
     })),
   }

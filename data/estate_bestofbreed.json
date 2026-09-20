@@ -5,6 +5,8 @@
     "graph_as_at": "2026-09-05",
     "decomposition_owner": "Harbourline domain architecture function (synthetic)",
     "decomposition_revised": "2026-02",
+    "value_flags_owner": "Harbourline finance function (synthetic)",
+    "value_flags_declared": "2026-03",
     "seed": 20260905,
     "synthetic": true
   },
@@ -423,6 +425,7 @@
       "subdomain": "sales",
       "volume_per_month": 48000,
       "adopted_month": 4,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "policy_pl",
@@ -467,6 +470,7 @@
       "subdomain": "sales",
       "volume_per_month": 31000,
       "adopted_month": 10,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "policy_cl",
@@ -506,6 +510,7 @@
       "subdomain": "sales",
       "volume_per_month": 22000,
       "adopted_month": 15,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "policy_pl",
@@ -550,6 +555,7 @@
       "subdomain": "sales",
       "volume_per_month": 14500,
       "adopted_month": 12,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "policy_pl",
@@ -589,6 +595,7 @@
       "subdomain": "sales",
       "volume_per_month": 9800,
       "adopted_month": 21,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "portal_cx",
@@ -633,6 +640,7 @@
       "subdomain": "claims",
       "volume_per_month": 12400,
       "adopted_month": 6,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "claims_core",
@@ -672,6 +680,7 @@
       "subdomain": "claims",
       "volume_per_month": 11800,
       "adopted_month": 18,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "claims_core",
@@ -716,6 +725,7 @@
       "subdomain": "claims",
       "volume_per_month": 7600,
       "adopted_month": 11,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "claims_core",
@@ -765,6 +775,7 @@
       "subdomain": "claims",
       "volume_per_month": 1450,
       "adopted_month": 26,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "claims_core",
@@ -809,6 +820,7 @@
       "subdomain": "claims",
       "volume_per_month": 18900,
       "adopted_month": 8,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "doc_store",
@@ -848,6 +860,7 @@
       "subdomain": "finance",
       "volume_per_month": 620,
       "adopted_month": 1,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "ledger_fin",
@@ -887,6 +900,7 @@
       "subdomain": "finance",
       "volume_per_month": 310,
       "adopted_month": 16,
+      "value_flow": "counterparty",
       "edges": [
         {
           "platform_id": "ledger_fin",
@@ -931,6 +945,7 @@
       "subdomain": "finance",
       "volume_per_month": 240,
       "adopted_month": 29,
+      "value_flow": "counterparty",
       "edges": [
         {
           "platform_id": "ledger_fin",
@@ -970,6 +985,7 @@
       "subdomain": "finance",
       "volume_per_month": 4200,
       "adopted_month": 13,
+      "value_flow": "counterparty",
       "edges": [
         {
           "platform_id": "billing_core",
@@ -1014,6 +1030,7 @@
       "subdomain": "finance",
       "volume_per_month": 1900,
       "adopted_month": 5,
+      "value_flow": "counterparty",
       "edges": [
         {
           "platform_id": "ledger_fin",
@@ -1053,6 +1070,7 @@
       "subdomain": "service",
       "volume_per_month": 64000,
       "adopted_month": 4,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "crm_core",
@@ -1097,6 +1115,7 @@
       "subdomain": "service",
       "volume_per_month": 88000,
       "adopted_month": 20,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "portal_cx",
@@ -1141,6 +1160,7 @@
       "subdomain": "service",
       "volume_per_month": 3400,
       "adopted_month": 9,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "workflow_svc",
@@ -1190,6 +1210,7 @@
       "subdomain": "service",
       "volume_per_month": 41000,
       "adopted_month": 3,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "doc_store",
@@ -1229,6 +1250,7 @@
       "subdomain": "service",
       "volume_per_month": 12700,
       "adopted_month": 14,
+      "value_flow": "customer",
       "edges": [
         {
           "platform_id": "billing_core",
@@ -1273,6 +1295,7 @@
       "subdomain": "people",
       "volume_per_month": 260,
       "adopted_month": 13,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "people_core",
@@ -1312,6 +1335,7 @@
       "subdomain": "people",
       "volume_per_month": 4000,
       "adopted_month": 13,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "people_core",
@@ -1351,6 +1375,7 @@
       "subdomain": "people",
       "volume_per_month": 3800,
       "adopted_month": 24,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "people_core",
@@ -1390,6 +1415,7 @@
       "subdomain": "people",
       "volume_per_month": 190,
       "adopted_month": 13,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "people_core",
@@ -1429,6 +1455,7 @@
       "subdomain": "people",
       "volume_per_month": 140,
       "adopted_month": 27,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "people_core",
@@ -1468,6 +1495,7 @@
       "subdomain": "data",
       "volume_per_month": 45,
       "adopted_month": 19,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "lakehouse",
@@ -1507,6 +1535,7 @@
       "subdomain": "data",
       "volume_per_month": 26,
       "adopted_month": 23,
+      "value_flow": "counterparty",
       "edges": [
         {
           "platform_id": "lakehouse",
@@ -1546,6 +1575,7 @@
       "subdomain": "data",
       "volume_per_month": 320,
       "adopted_month": 21,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "lakehouse",
@@ -1580,6 +1610,7 @@
       "subdomain": "data",
       "volume_per_month": 180,
       "adopted_month": 25,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "lakehouse",
@@ -1619,6 +1650,7 @@
       "subdomain": "data",
       "volume_per_month": 95,
       "adopted_month": 30,
+      "value_flow": "internal",
       "edges": [
         {
           "platform_id": "lakehouse",

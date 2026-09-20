@@ -109,6 +109,13 @@ export interface Graph3DProps {
   dashedFaint?: boolean
   /** A note in the corner of the canvas, in the book's frame, with its own content. */
   note?: ReactNode | null
+  /**
+   * Value flow. Each line is tinted by where its use case's value lands,
+   * warm for a customer, cooler for an outside counterparty, cool for
+   * inside, and widened by the work it carries; particles run along it.
+   * warmth is per use case id, 0 to 1; share is per link key, 0 to 1.
+   */
+  flow?: { warmth: Map<string, number>; share: Map<string, number> } | null
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -123,6 +130,12 @@ const HULL_EDGE = 0.3
 const SECTOR_PULL = 0.1
 /** What a node outside the focus fades to: a trace, so the shape of the estate stays. */
 const GHOST = 0.2
+/** The value flow gradient: inside the company, an outside counterparty, a customer. */
+const FLOW_COOL = new THREE.Color('#4a7bb5')
+const FLOW_WARM = new THREE.Color('#f2a541')
+function flowColour(warmth: number): string {
+  return '#' + FLOW_COOL.clone().lerp(FLOW_WARM, Math.max(0, Math.min(1, warmth))).getHexString()
+}
 
 interface Positioned { x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number }
 
@@ -1036,6 +1049,7 @@ export function Graph3D(props: Graph3DProps) {
       const key = `${l.ucId}>${l.platformId}`
       if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
       if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return dark ? '#2a2f37' : '#dcdcd8'
+      if (props.flow) return flowColour(props.flow.warmth.get(l.ucId) ?? 0)
       if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
       if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
       return dark ? '#7d848e' : '#9aa0a8'
@@ -1066,7 +1080,7 @@ export function Graph3D(props: Graph3DProps) {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
-      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave])
+      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
@@ -1081,11 +1095,26 @@ export function Graph3D(props: Graph3DProps) {
     if (!g) return
     g.linkWidth((raw: object) => {
       const l = raw as GLink
-      const lit = propsRef.current.litLinks?.has(`${l.ucId}>${l.platformId}`) === true
+      const key = `${l.ucId}>${l.platformId}`
+      const flow = propsRef.current.flow
+      // In the flow picture the width is the work the line carries, not the spend.
+      if (flow) return 0.35 + 3.4 * Math.sqrt(flow.share.get(key) ?? 0)
+      const lit = propsRef.current.litLinks?.has(key) === true
       return (lit ? 1.6 : 0) + 0.25 + 2.6 * Math.sqrt(l.spend / maxSpend)
     })
+    // The particles that carry the flow. On only in the flow picture: they
+    // cost a draw per particle per frame, and they mean nothing elsewhere.
+    const flow = props.flow
+    if (flow) {
+      g.linkDirectionalParticles((raw: object) => { const l = raw as GLink; return Math.round(1 + 4 * (flow.share.get(`${l.ucId}>${l.platformId}`) ?? 0)) })
+        .linkDirectionalParticleWidth((raw: object) => { const l = raw as GLink; return 1.2 + 1.6 * (flow.share.get(`${l.ucId}>${l.platformId}`) ?? 0) })
+        .linkDirectionalParticleSpeed((raw: object) => { const l = raw as GLink; return 0.004 + 0.006 * (flow.share.get(`${l.ucId}>${l.platformId}`) ?? 0) })
+        .linkDirectionalParticleColor((raw: object) => flowColour(flow.warmth.get((raw as GLink).ucId) ?? 0))
+    } else {
+      g.linkDirectionalParticles(0)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [maxSpend, litKey])
+  }, [maxSpend, litKey, props.flow])
   useEffect(() => {
     const g = gRef.current
     if (!g) return

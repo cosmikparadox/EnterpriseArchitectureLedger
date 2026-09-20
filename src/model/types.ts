@@ -50,12 +50,16 @@ export interface UseCaseEdge {
   conditional_failure_prob: number
 }
 
+/** Where the value of a use case's work lands. Declared, never derived. */
+export type ValueFlow = 'customer' | 'counterparty' | 'internal'
+
 export interface UseCase {
   id: string
   name: string
   subdomain: string
   volume_per_month: number
   adopted_month: number
+  value_flow: ValueFlow
   edges: UseCaseEdge[]
 }
 
@@ -73,6 +77,10 @@ export interface Provenance {
   graph_as_at: string
   decomposition_owner: string
   decomposition_revised: string
+  // Who declared where each use case's value lands, and when. Canon treats a
+  // declared input like the decomposition: named, dated, never derived.
+  value_flags_owner: string
+  value_flags_declared: string
   seed: number
   synthetic: true
 }

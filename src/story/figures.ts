@@ -55,6 +55,21 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const attachedNow = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= cursor).length : 0
   const execNow = dataPlatform && cursor >= dataPlatform.adopted_month ? executionComponent(dataPlatform, attachedNow, Math.max(0, cursor - dataPlatform.adopted_month)) : 0
 
+  // The value flow: which platform carries the most customer-facing work,
+  // and what share of all the work reaches a customer. Work, not money.
+  const flowFigures = useMemo(() => {
+    const byPlatform = new Map<string, number>()
+    let customer = 0, all = 0
+    for (const u of concentrated.use_cases) {
+      all += u.volume_per_month
+      if (u.value_flow !== 'customer') continue
+      customer += u.volume_per_month
+      for (const e of u.edges) byPlatform.set(e.platform_id, (byPlatform.get(e.platform_id) ?? 0) + u.volume_per_month)
+    }
+    const top = [...byPlatform.entries()].sort((a, b) => b[1] - a[1])[0]
+    return { top_flow: top ? (ix.platformById.get(top[0])?.name ?? top[0]) : '', cust_share: all === 0 ? 0 : Math.round((customer / all) * 100) }
+  }, [concentrated, ix])
+
   // Boundaries: how many reported figures move under each basis once the
   // moves in the store are applied.
   const drift = useMemo(() => {
@@ -92,6 +107,7 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     attached,
     exec: gbp(exec),
     cursor,
+    ...flowFigures,
     attached_now: attachedNow,
     exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `GBP ${gbp(execNow)}` : PLACEHOLDER_NOT_YET,
     left: sub ? gbp(sub.jointP99) : PLACEHOLDER,
