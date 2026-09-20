@@ -142,7 +142,7 @@ async function capture(browser: Browser, shot: Shot, size: { width: number; heig
   page.on('pageerror', (e) => errors.push(String(e)))
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
-  await page.goto('http://localhost:5178/', { waitUntil: 'load' })
+  await page.goto('http://localhost:5178/#/explore', { waitUntil: 'load' })
   await page.waitForSelector('canvas', { timeout: 30_000 })
   // Let the force layout settle so the shot is not of a tangle.
   await page.waitForTimeout(3500)

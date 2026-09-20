@@ -463,12 +463,16 @@ values at the midpoint, not fixed properties of the two estates.
 
 | joint P99 loss, at rho = 0.5 | concentrated | best of breed |
 |---|---|---|
-| Sales and Distribution | GBP 361,290 | GBP 418,024 |
-| Claims | GBP 203,758 | GBP 261,507 |
-| Finance | GBP 150,511 | GBP 197,060 |
-| Customer Service | GBP 217,837 | GBP 241,969 |
-| People | GBP 4,831 | GBP 6,740 |
-| Data and Analytics | GBP 11,859 | GBP 12,391 |
+| Sales and Distribution | GBP 361,290 | GBP 418,183 |
+| Claims | GBP 203,758 | GBP 243,275 |
+| Finance | GBP 150,511 | GBP 191,690 |
+| Customer Service | GBP 217,837 | GBP 232,620 |
+| People | GBP 4,831 | GBP 6,489 |
+| Data and Analytics | GBP 11,859 | GBP 11,873 |
+
+Both columns are on seed 20260905 since deviation 74; the right column
+used to run on its own seed. On screen these show to two significant
+figures, "about GBP 240,000" for Claims on the right.
 
 The mechanism is visible in the graph. In the best of breed estate every use
 case routes through all four integration nodes at a high conditional failure
@@ -1206,8 +1210,10 @@ purchased and whether it aligns with strategy; the estate has no decision
 record, and the paper refuses an unevidenced counterfactual, so the
 walkthrough says value as the work that runs on the node, and says in one
 line that a real ledger would link the decision record here and this estate
-has none. Nothing is invented about a vendor. Recorded as a deviation from
-the ask.
+has none. No vendor is named anywhere on screen: every platform carries a
+generic name from its category (deviation 71), because the estate is
+synthetic and a real name beside invented figures would read as a claim
+about that product. Recorded as a deviation from the ask.
 
 ### 50. The corrections to 49: no wall, no dead area, and the real cost of a slider step
 
@@ -1375,8 +1381,8 @@ figure in it is read from `src/model/shapes.ts`. The longer text under
 More detail carries the position: concentration inside a boundary is
 cheap to reason about, a case this estate does not contain; concentration
 across boundaries is where the blast radius and the exit grow together;
-spreading it out moves the shared point to the connectors and multiplies
-the contracts; at full dependence the two bad months converge; and the
+spreading it out multiplies the shared connectors and the contracts; at
+full dependence the two bad months converge; and the
 coordination cost and the latency of a process that crosses vendors belong
 in the decision record, not in a figure here. (As first written this text
 also counted the rule share among what grows with concentration across
@@ -1547,8 +1553,8 @@ cases and the domains are declared.
 The label "C1" named a reading principle in the canon, not this measure.
 The glossary label and the two literals in the fixed pool view now read
 "Share set by rule"; those two literals were the only ones outside the copy
-deck and now read from it. The execution component is described once per
-surface as an engineering estimate, not a measurement. The value flow
+deck and now read from it. The exit figure is described once per surface
+as an engineering estimate, not a measurement. The value flow
 beat's closing clause about what a finance reader wants was an unsupported
 assertion and is cut. Bare citations of "9.2.8" and "9.3.8" now read "the
 Ledger paper, 9.2.8" and "the Ledger paper, 9.3.8". Of five uses of the
@@ -1599,34 +1605,154 @@ A real estate may differ, because joint failures can lengthen recovery.
 The dependence beat's longer text now says so. The model, the data, the
 run count and the seed are unchanged.
 
+### 66. One platform per estate sits inside one domain
+
+Part one said "no platform sits inside one domain" and the two shapes text
+said the same of this estate. In the concentrated estate the HR platform's
+five riders are all in People; in best of breed the people platform's
+five riders are all in People. Nothing else is single-domain in either.
+Part one now says almost every platform is shared across domains, and the
+two shapes text says that in each estate only one platform sits inside
+one domain.
+
+### 67. Two "told" figures, named for what they cover
+
+The story's rule share beat and the fixed pool summaries quote the figure
+a use case is told for one platform; the tap card, the walkthrough, the
+use case summary and the book row quote the sum over every platform it
+rides. Both said "is told", with figures forty times apart. Each per-node
+string now says "for this platform alone" or "on this platform", and each
+all-platform string says "across all its platforms". The percentage
+strings and the ones that already say "here" were left alone.
+
+### 68. The shared point was a connector on both sides
+
+The two shapes copy said the shared point "moved to the connectors". In
+the concentrated estate the busiest node is a connector with 28 of 30
+riders; in best of breed all four connectors carry 30 of 30. Nothing
+moved; spreading out multiplied it. Every claim of movement is gone: the
+beat gives the two counts through `{left_riders}` and `{n_int}`, the
+summary says the shared point was multiplied across the connectors, the
+screen purpose says "It multiplies", and the landing note says the graph
+shows the shared point and the org chart does not.
+
+### 69. A failed platform exposes its riders; it does not stop them all
+
+Each edge carries a conditional failure probability and the fail control
+samples it. Failing the busiest node with the story's own seed stops 19
+of its 28 riders directly; the slider adds riders of the platforms that go
+down with it, 28 at rho 0.5 and 30 at rho 1.0. Every string that said all
+riders stop now says "is exposed", "can stop", or "up to", on the fail
+beat, the busiest node beat, the summaries, the walkthrough, the book rows
+and the blast radius tip. Nothing in the fail beat or the risk view
+implies the slider changes how many of the failed node's own riders stop.
+
+### 70. Two small ones
+
+Every use case in both estates has at least one connector edge, so the
+connectors beat says "every use case" rather than "nearly every". The
+retired tour's comment block and six unreferenced chrome keys are deleted.
+
+### 71. Generic platform names
+
+Every platform on screen now carries a generic name from its category, in
+both estates: CRM, Service management, ERP and ledger, HR core, Policy
+administration, Claims administration, Billing, Data cloud, Business
+intelligence, Marketing automation, Document management, Payments,
+Integration hub, API gateway, Identity service, Event bus. The two
+invented names were renamed too, because it cannot be verified offline
+that no real product bears them. Names only: the estate source was
+edited, both estates regenerated, and a check proved every number and id
+identical. The internal ids stay because nothing renders them; acceptance
+N4 searches the built file for every retired name as written and the
+rendered text of ten routes for every vendor word regardless of case. The
+screenshot script's search term followed the rename.
+
+### 72. The work of leaving, unsplit
+
+The figure shown as the work of leaving was `kCommitted` minus
+`exit_k_reversible`, which rests on an alternative that every platform
+flags `counterfactual_evidenced: false`; the option part was refused for
+lack of that evidence while this figure used it. Canon 9.5.7 makes the
+split rest on an evidenced counterfactual. A new function, `workOfLeaving`,
+returns the execution component where the counterfactual is evidenced and
+the committed work whole where it is not; `kCommitted`,
+`executionComponent` and the data are untouched. It is used by the story,
+the book, the walkthrough, the detail panel, the footprint view and the
+two shapes. On this estate every platform is unevidenced, so every exit
+figure rose by its `exit_k_reversible`: the cloud data platform at month
+31 from 3,492,720 to 3,742,720, shown as about 3,700,000. The copy says
+"work of leaving" wherever the unsplit figure is shown, and the exit
+beat's longer text says the ledger would split it and declines to.
+
+### 73. What hardens the exit figure
+
+The 0.15 per rider and 0.02 per month coefficients in `kCommitted` stay.
+The exit beat's longer text now says the model hardens the figure by a
+made-up rate each month, and that after the last use case attaches only
+that grows it.
+
+### 74. One seed, two significant figures
+
+The right-hand estate ran on its own seed, so the two shapes compared two
+draws. Both estates now run on seed 20260905 in the views, the story
+figures and the precomputed frames; the run count is unchanged. Every
+simulated GBP figure (the P99s, their sum, the slider's range, the two
+estates' bad months) and every exit estimate is shown rounded to two
+significant figures, preceded by "about" where the sentence allows, through
+`sig2` and `gbpAbout` in the model. Metered spend, fixed pools and rule
+shares are exact arithmetic and stay exact. Acceptance N5 reads the
+figures on screen and fails on a third significant figure.
+
+### 75. The primary flexibility measure is named as not shown
+
+The closing card's "what it does not do" now says, before the caveat,
+that the tool does not show the cost of adding the next use case and that
+the paper treats that as the primary flexibility measure. Nothing is
+built for it. The caveat stays last and is checked character for character.
+
+### 76. The customer share is gone
+
+`{cust_share}` (the share of all work reaching a customer) and `{top_flow}`
+(the platform carrying most customer-facing work) added volumes across
+use cases whose units differ, and so did the per-domain share bars under
+the value flow legend. All three are removed; the flow beat's sentence
+says only that where each use case's value lands was declared by the
+finance function. The line width per use case, which compares each use
+case with itself, stays. The legend's declared-by line stays.
+
 ## Open items, no action
 
 - Displayed P99 figures vary by up to 13 percent across seeds at 10,000
   runs (Claims joint P99 at rho 0 ran from 191,894 to 217,002 over five
-  seeds) but are printed to the pound. Display decision pending.
+  seeds). Resolved at deviation 74: every simulated figure and exit
+  estimate now shows two significant figures.
 - The closing card scrolls at 900px of viewport height, so the caveat is
   below the fold until the reader scrolls. Owner's UX decision.
 - The sentence "Nothing is invented about a vendor" in deviation 49 depends
   on the open decision about replacing the real product names in the
   concentrated estate, as the second estate already does. Not edited.
-- D1. The exit figure shown as "the work of leaving" is `kCommitted` minus
+- D1. The exit figure shown as "the work of leaving" was `kCommitted` minus
   `exit_k_reversible` (3,742,720 minus 250,000 at month 31), and that
   alternative is flagged `counterfactual_evidenced: false`. The option part
-  is refused for lack of evidence while this figure uses the same
-  unevidenced alternative. Owner decision pending.
-- D2. From month 31 to 60 the exit figure grows from 3.49m to 5.19m with no
-  new use case attaching. The growth is the 0.02 per month coefficient
-  alone. Owner decision pending.
-- D3. The left and right estates run on different Monte Carlo seeds,
+  was refused for lack of evidence while this figure used the same
+  unevidenced alternative. Resolved at deviation 72: shown unsplit.
+- D2. From month 31 to 60 the exit figure grows with no new use case
+  attaching (3.74m to 5.44m unsplit). The growth is the 0.02 per month
+  coefficient alone. Resolved at deviation 73: the coefficients stay and
+  the card says what they are.
+- D3. The left and right estates ran on different Monte Carlo seeds,
   20260905 and 20260906. On a common seed the right Claims figure at rho
-  0.5 is 243,275, not 261,507. Owner decision pending.
+  0.5 is 243,275, not 261,507. Resolved at deviation 74: one seed.
 - D4. The dependence slider's low and high are the minimum and maximum of
   noisy 10,000-run estimates (185,887 to 210,729). At 200,000 runs the span
-  is about 175,000 to 203,000. Owner decision pending.
-- Whether to add the cost of the next use case (canon 9.4) as a beat;
-  whether `{cust_share}` stays in the value flow beat, given it adds unlike
-  units of work; and whether figures should be shown as ranges rather than
-  points. Owner decisions pending.
+  is about 175,000 to 203,000. Shown to two significant figures since
+  deviation 74; the run count is unchanged and the span is still an
+  estimate of an estimate.
+- Whether to add the cost of the next use case (canon 9.4) as a beat. Not
+  built; the closing card now says it is not shown (deviation 75). The
+  customer share is gone (deviation 76). Whether figures should be shown
+  as ranges rather than points is still open.
 
 ## Acceptance check 3, replaced
 
@@ -1763,6 +1889,8 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | N1 | the copy deck: no dashes, no sentence over twenty words, no retired phrase | PASS | Every string in `src/copy.ts` scanned; two named exemptions, deviation 63. |
 | N2 | the closing card carries the caveat, the DOI, and no placeholder link | PASS | The caveat on screen character for character; the DOI line shown; the Medium line not rendered while the address is the placeholder; blocks in order. |
 | N3 | the literal C1 appears nowhere on screen | PASS | Ten routes read, including the pool view with its annotation open. |
+| N4 | no real product or company name in the bundle or on screen | PASS | Seventeen retired names absent from dist; ten routes rendered with no vendor word. |
+| N5 | simulated and estimated figures show two significant figures | PASS | Read from the story ledger, the risk view, the two shapes and the footprint. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
