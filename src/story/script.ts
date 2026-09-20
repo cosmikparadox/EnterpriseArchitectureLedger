@@ -19,7 +19,7 @@ export const MOVER_TO = 'service'
 
 export type Part = 0 | 1 | 2 | 3
 export type Overlay = 'welcome' | 'title' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
-export type Control = 'fanin' | 'fail' | 'rho' | 'month' | 'basis' | 'move' | null
+export type Control = 'fanin' | 'fail' | 'rho' | 'month' | 'basis' | 'move' | 'shapes' | null
 export type Row = 'metered' | 'pool' | 'rule_first' | 'sum' | 'joint' | 'range' | 'exec' | 'left' | 'right' | 'moved'
 
 export interface EnterContext { store: LedgerState; timeline: Timeline; reduced: boolean }
@@ -135,16 +135,27 @@ export const BEATS: Beat[] = [
   { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, control: 'month', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec'],
     enter: ({ store }) => { store.setSelectedId(DATA_PLATFORM_ID); store.setCursor(store.ratified) },
     waitFor: (now, at) => now.cursor !== at.cursor },
-  { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
-    enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN) } },
+  // Three entries, both shapes at once: the pool and its rule share, then
+  // the busiest node failing on each side, then the largest exit. The
+  // phases run on their own and the card's control replays any of them.
+  { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, control: 'shapes', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
+    enter: ({ store, timeline, reduced }) => {
+      store.setSubdomain(TOUR_SUBDOMAIN); store.setShapesPhase(0)
+      timeline.after(5000, () => store.setShapesPhase(1), reduced)
+      timeline.after(10500, () => store.setShapesPhase(2), reduced)
+    },
+    settleMs: 10500 },
   { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE, focus: 'lines' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
     enter: ({ store }) => { store.setMoves({}); store.setRule('equal'); store.setSelectedId(null) } },
-  { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'move', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
+  // The move, in order: the picture ghosts to the use case and its two
+  // domains and the camera comes in on it; the ring and the note say what
+  // is about to happen; then the line moves and the domain takes it in.
+  { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move', callout: { kind: 'node', id: MOVER_ID, text: '' } }, card: true, control: 'move', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
     enter: ({ store, timeline, reduced }) => {
-      store.setRule('equal'); store.setSelectedId(MOVER_ID)
-      timeline.after(700, () => store.setMoves({ [MOVER_ID]: MOVER_TO }), reduced)
+      store.setRule('equal'); store.setSelectedId(MOVER_ID); store.setFlyToId(`${MOVER_ID}!near`)
+      timeline.after(3400, () => store.setMoves({ [MOVER_ID]: MOVER_TO }), reduced)
     },
-    settleMs: 700,
+    settleMs: 3400 + 4500,
     waitFor: (now, at) => JSON.stringify(now.moves) !== JSON.stringify(at.moves) },
   { part: 3, stem: 'basis', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'basis', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
     enter: ({ store }) => { if (Object.keys(store.moves).length === 0) store.setMoves({ [MOVER_ID]: MOVER_TO }) },

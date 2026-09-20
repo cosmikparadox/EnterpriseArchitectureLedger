@@ -11,7 +11,7 @@ import { ExceedanceCurve } from '../components/ExceedanceCurve'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
 import { useMonteCarlo } from '../app/useMonteCarlo'
-import { makeRng } from '../model/rng'
+import { reachAt, sampleFailure, type Failure } from '../model/reach'
 import type { Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy, fill, summary } from '../copy'
@@ -20,14 +20,6 @@ import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
 
 export interface RiskProps { estate: Estate; ix: Index; dark: boolean }
-
-interface FailureRun {
-  platformId: string
-  affected: Set<string>
-  litLinks: Set<string>
-  subdomains: Set<string>
-  volume: number
-}
 
 export function Risk({ estate, ix, dark }: RiskProps) {
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
@@ -46,7 +38,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   const [runs, setRuns] = useState(10_000)
   const [budget, setBudget] = useState(500_000)
   const [collapsed, setCollapsed] = useState(false)
-  const [failure, setFailure] = useState<FailureRun | null>(null)
+  const [failure, setFailure] = useState<Failure | null>(null)
   const [phase, setPhase] = useState(0)
   const tourStep = useLedger((s) => s.tourStep)
   const sceneFocus = useLedger((s) => s.scene.focus)
@@ -64,22 +56,9 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   // spec section 4.3 asks for a fresh pattern each press.
   useEffect(() => {
     if (!failRequest) return
-    const p = ix.platformById.get(failRequest.nodeId)
-    if (!p) return
-    const rng = makeRng(0xf1a1 ^ (failRequest.nonce * 2654435761))
-    const affected = new Set<string>()
-    const litLinks = new Set<string>()
-    const subdomains = new Set<string>()
-    let volume = 0
-    for (const r of ix.ridersOf.get(p.id)!) {
-      if (rng.next() < r.edge.conditional_failure_prob) {
-        affected.add(r.uc.id)
-        litLinks.add(`${r.uc.id}>${p.id}`)
-        subdomains.add(r.uc.subdomain)
-        volume += r.uc.volume_per_month
-      }
-    }
-    setFailure({ platformId: p.id, affected, litLinks, subdomains, volume })
+    const f = sampleFailure(ix, failRequest.nodeId, 0xf1a1 ^ (failRequest.nonce * 2654435761))
+    if (!f) return
+    setFailure(f)
     setPhase(1)
   }, [failRequest, ix])
 
@@ -95,28 +74,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   // slider only the failed node's own riders go; as it moves right, the
   // platforms those riders also ride go down with it, most shared first,
   // and their riders go with them. The picture of what rho means.
-  const reach = useMemo(() => {
-    if (!failure) return null
-    const affected = new Set(failure.affected)
-    const litLinks = new Set(failure.litLinks)
-    const hop = new Map<string, number>()
-    const count = new Map<string, number>()
-    for (const id of failure.affected) for (const e of ix.useCaseById.get(id)!.edges) if (e.platform_id !== failure.platformId) count.set(e.platform_id, (count.get(e.platform_id) ?? 0) + 1)
-    const ranked = [...count.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([id]) => id)
-    const also = ranked.slice(0, Math.round(rho * ranked.length))
-    const rng = makeRng(0xc0de ^ ((failRequest?.nonce ?? 0) * 2654435761))
-    for (const q of also) {
-      hop.set(q, 1)
-      for (const id of failure.affected) if (ix.useCaseById.get(id)!.edges.some((e) => e.platform_id === q)) { litLinks.add(`${id}>${q}`); hop.set(`${id}>${q}`, 1) }
-      for (const r of ix.ridersOf.get(q)!) {
-        if (affected.has(r.uc.id)) continue
-        if (rng.next() < r.edge.conditional_failure_prob) { affected.add(r.uc.id); litLinks.add(`${r.uc.id}>${q}`); hop.set(r.uc.id, 2); hop.set(`${r.uc.id}>${q}`, 2) }
-      }
-    }
-    const subdomains = new Set([...affected].map((id) => ix.useCaseById.get(id)!.subdomain))
-    const volume = [...affected].reduce((a, id) => a + ix.useCaseById.get(id)!.volume_per_month, 0)
-    return { affected, litLinks, platforms: new Set(also), hop, subdomains, volume, reached: affected.size - failure.affected.size }
-  }, [failure, rho, ix, failRequest])
+  const reach = useMemo(() => failure ? reachAt(ix, failure, rho, 0xc0de ^ ((failRequest?.nonce ?? 0) * 2654435761)) : null, [failure, rho, ix, failRequest])
   // The nonce's thousands are the failure; the rest is how far it reaches,
   // so a slider move that changes nothing replays nothing.
   const wave = useMemo(() => failure && reach ? { from: failure.platformId, nonce: (failRequest?.nonce ?? 0) * 1000 + reach.platforms.size, hop: reach.hop } : null, [failure, reach, failRequest])

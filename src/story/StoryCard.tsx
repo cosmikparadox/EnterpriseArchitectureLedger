@@ -39,6 +39,7 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
   const rule = useLedger((s) => s.rule)
   const focus = useLedger((s) => s.focus)
   const named = useLedger((s) => s.namedDomains)
+  const shapesPhase = useLedger((s) => s.shapesPhase)
   const figures = useStoryFigures(estate, bestOfBreed)
   const c = copy as unknown as CopyMap
   const [more, setMore] = useState(false)
@@ -123,6 +124,9 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
         <p key={`l${n}`} className="intro-line">{line}</p>
         {see && <p key={`s${n}`} className="intro-see">{see}</p>}
         {beat.control && <Controls control={beat.control} estate={estate} />}
+        {beat.control === 'shapes' && (
+          <p key={`p${shapesPhase}`} className="intro-see story-phase-line">{fill(c[`shapes_${(['cost', 'risk', 'exit'] as const)[shapesPhase]}`] ?? '', figures)}</p>
+        )}
         {moreText && (
           <>
             <button className="tour-more" aria-expanded={more} onClick={() => setMore((v) => !v)}>{copy.story_more}</button>

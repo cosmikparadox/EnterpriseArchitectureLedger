@@ -7,21 +7,22 @@
 // rule D and canon 9.8.3.
 
 import type React from 'react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
 import { Hint, Term, ViewName } from '../components/Hint'
 import { PanelShell } from '../components/PanelShell'
 import { gbp } from '../components/DetailPanel'
-import { buildGraph } from '../app/graph'
+import { buildGraph, type GNode } from '../app/graph'
 import { useMonteCarlo } from '../app/useMonteCarlo'
 import {
-  buildIndex, c1, edgeSpend, executionComponent, kCommitted, reportedCost, ruleShare,
+  buildIndex, c1, edgeSpend, executionComponent, kCommitted, meteredSpend, reportedCost, ruleShare,
 } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
 import { copy, fill, summary } from '../copy'
 import { Summary } from '../components/Summary'
 import { useLedger, DEFAULT_RHO } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
+import { shapeEntry, SHAPES_SEED, type ShapeEntry } from '../model/shapes'
 
 export interface TwoShapesProps {
   concentrated: Estate
@@ -32,6 +33,7 @@ export interface TwoShapesProps {
 }
 
 const AS_AT = 60
+const gbpPlain = (n: number) => Math.round(n).toLocaleString('en-GB')
 
 interface Shape {
   label: string
@@ -148,6 +150,63 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   }
   const hl = { left: headline(left), right: headline(right) }
 
+  // The story's three entries, on both halves at once. Cost: the largest
+  // pool, ringed, with its riders; the rest of each picture ghosts. Risk:
+  // the busiest node fails on each side and the wave runs as far as the
+  // dependence carries it. Leaving: the largest single exit and what it
+  // strands. The card's tabs replay any of them.
+  const tourStep = useLedger((s) => s.tourStep)
+  const phase = useLedger((s) => s.shapesPhase)
+  const inStory = tourStep !== null
+  const entries = useMemo(() => ({
+    left: shapeEntry(left.estate, left.ix, rho, SHAPES_SEED.left),
+    right: shapeEntry(right.estate, right.ix, rho, SHAPES_SEED.right),
+  }), [left, right, rho])
+  const nodeRingFor = (shape: Shape) => (n: GNode) => {
+    if (n.kind === 'use_case') return null
+    const p = shape.ix.platformById.get(n.id)
+    if (!p) return null
+    const metered = meteredSpend(shape.ix, n.id)
+    const total = metered + p.fixed_pool_gbp_month
+    return { meteredFrac: total === 0 ? 1 : metered / total }
+  }
+  const ringLeft = useMemo(() => nodeRingFor(left), [left])
+  const ringRight = useMemo(() => nodeRingFor(right), [right])
+  const staged = (shape: Shape, e: ShapeEntry, ring: (n: GNode) => { meteredFrac: number } | null, visit: number) => {
+    if (!inStory) return {}
+    const riders = (id: string) => (shape.ix.ridersOf.get(id) ?? []).map((r) => r.uc.id)
+    if (phase === 0) return {
+      nodeRing: ring,
+      selectedId: e.topId,
+      focus: { nodes: new Set([e.topId, ...riders(e.topId)]) },
+      note: <div className="shape-note">{fill(copy.shapes_note_cost, { pool: gbpPlain(e.pool), riders: e.riders, c1: (e.c1 * 100).toFixed(0) })}</div>,
+    }
+    if (phase === 1) {
+      const affected = e.reach ? new Set([...e.reach.affected, ...e.reach.platforms]) : new Set<string>()
+      return {
+        failedNodeId: e.topId,
+        affectedUseCases: affected,
+        litLinks: e.reach?.litLinks,
+        wave: e.reach ? { from: e.topId, nonce: 1000 * visit + e.reach.platforms.size, hop: e.reach.hop } : null,
+        focus: { nodes: new Set([e.topId, ...affected]) },
+        note: <div className="shape-note">{fill(copy.shapes_note_risk, { aff: e.affected })}</div>,
+      }
+    }
+    return {
+      selectedId: e.exitId,
+      focus: { nodes: new Set([e.exitId, ...e.exitRiders]) },
+      note: <div className="shape-note">{fill(copy.shapes_note_exit, { name: e.exitName, exec: gbpPlain(e.exec) })}</div>,
+    }
+  }
+  // Each entry into the risk phase replays the wave from the source; a
+  // change of dependence within it grows the wave instead.
+  const riskVisits = useRef(0)
+  const riskVisit = useMemo(() => (phase === 1 ? ++riskVisits.current : riskVisits.current), [phase])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stagedLeft = useMemo(() => staged(left, entries.left, ringLeft, riskVisit), [inStory, phase, left, entries, ringLeft, riskVisit])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stagedRight = useMemo(() => staged(right, entries.right, ringRight, riskVisit), [inStory, phase, right, entries, ringRight, riskVisit])
+
   const subId = useLedger((s) => s.subdomain) ?? 'claims'
   const subName = concentrated.subdomains.find((s) => s.id === subId)?.name ?? subId
 
@@ -210,6 +269,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             data={leftData} dark={dark} showHulls={false} labelMode="hubs"
             selectedId={null} isolatedSubdomain={null} flyToId={null}
             onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
+            {...stagedLeft}
           />
         </div>
         <div className="half">
@@ -224,6 +284,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             data={rightData} dark={dark} showHulls={false} labelMode="hubs"
             selectedId={null} isolatedSubdomain={null} flyToId={null}
             onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
+            {...stagedRight}
           />
         </div>
 

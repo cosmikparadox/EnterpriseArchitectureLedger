@@ -93,8 +93,8 @@ pictures. Arrow keys walk the story; a tap anywhere passes a title.
 | 22, 23 | the rule; the crowd changes, one rider arriving at a time, with the fan-in slider on the card | you move the slider |
 | 24 to 26 | fail it, with the button on the card; a bad year two ways; the dependence slider on the card | you fail it; you move the slider |
 | 27, 28 | the months run; the month handle on the card | you move the handle |
-| 29 | two shapes, with a draggable divider | nothing |
-| 30 to 32 | the lines people drew; move one use case, on the card; change the basis, on the card | you move it; you change the basis |
+| 29 | two shapes, the three entries running on both halves at once: cost, then risk, then leaving; the three tabs on the card replay any of them | nothing, or a tab |
+| 30 to 32 | the lines people drew; the camera comes in on one use case, the ring names it, the note says what was decided, then the line moves and the domain takes it in; change the basis, on the card | you move it; you change the basis |
 | 33 | the ledger, closed | Explore on your own |
 
 Every figure in a beat's sentences and in the ledger rows is read from the
@@ -1351,6 +1351,78 @@ as part of the picture and before any money. The beat's figures are read
 from the data: the share of all work that reaches a customer, and the
 platform that carries the most of it. The particles are on only in the
 flow picture; they cost a draw each per frame and mean nothing elsewhere.
+
+### 53. The three entries on both shapes, the move as a sequence, the theme switch, and the canvas at rest
+
+The owner's reading of the two shapes beat was that the comparison made no
+sense: two grey clouds and a divider, with the lesson somewhere in the
+panel. It now runs the three entries of part three on both halves at once,
+and the message is the nuanced one: neither shape is right, and the ledger
+does not pick.
+
+**Cost.** The largest pool on each side is ringed, metered against rule,
+with its riders held and the rest of each picture ghosted. The note beside
+each half gives the pool, the riders and the rule share of what riders are
+told. **Risk.** The busiest node fails on each side and the wave runs as
+far as the dependence slider carries it, using the same reach model as the
+risk view (`src/model/reach.ts`, one sample per side on a fixed seed, so
+the picture and the card agree). The note counts what stopped. On the
+right the shared point is a connector, which is the point. **Leaving.**
+The largest single execution component of leaving on each side, with what
+it strands. The three run on a timeline on entry and the card's three tabs
+replay any of them; the card's sentence changes with the phase, and every
+figure in it is read from `src/model/shapes.ts`. The longer text under
+More detail carries the position: concentration inside a boundary is
+cheap to reason about and a domain standardising on an approved vendor is
+that case; concentration across boundaries is where the rule share, the
+blast radius and the exit grow together; spreading it out moves the shared
+point to the connectors and multiplies the contracts; at full dependence
+the two bad years converge; and the coordination cost and the latency of a
+process that crosses vendors belong in the decision record, not in a
+figure here.
+
+**The move, as a sequence.** The boundaries beat now comes in on the use
+case first: the picture ghosts to it, its platforms and the two domains
+either side of the line, the camera travels in over two seconds (a `!near`
+fly, a closer stand-off than a search result), the ring names it, and the
+note says what has been decided and by whom with the arrow held empty.
+Then the line moves, the node travels to its new domain over a longer
+cooldown with the hulls reshaping every fourth tick, and the note's arrow
+fills and its text changes to what moved. The story's pull back to the
+whole estate is slower than a search result's, for the same reason.
+
+The note is pinned beside the use case rather than in the corner, so the
+decision reads next to the thing it is about. Two faults under this beat
+were found and fixed on the way. A change to the picture (a moved line, an
+added rider) overwrote every surviving node's position with the seeded
+starting position it is built with before pinning it, so the whole estate
+snapped to its seed layout at the moment of the move; the live position is
+kept now. And the graph library empties the element it is given, which
+swept away anything React had rendered beside the canvas on a deep link
+and crashed the page later when React went to remove it; the library now
+has a child of its own under the holder.
+
+**The theme.** A switch on the canvas, top right, in and out of the
+story, sets light or dark; the choice is remembered in the browser and
+applied before the first paint, and until a choice is made the system's
+setting is followed. The stylesheet reads the choice from the root, so
+every colour is one token in two blocks.
+
+**The wait, armed on idle.** A beat that moves a value itself, the
+dependence slider running to one and back, used to arm its wait for the
+reader at a fixed time after entry. A late frame could put the beat's own
+last change after that moment and count it as the reader's. The timeline
+now knows what it started, timers and animations alike, and the wait is
+armed once all of it has finished and the settle has passed. The root
+says when (`data-story-armed`), and the acceptance check acts on that
+signal rather than on a guessed delay.
+
+**The canvas at rest.** Leaving the story resets everything the story set
+in the store (scene, focus, moves, riders, dependence, months, basis,
+failure, subdomain, phase, camera request), and the canvas has a check of
+its own: when nothing is asked of the picture, every node is put back to
+its baseline and any wave timing is cleared, whatever a beat left on it.
+The link colours also follow the theme immediately, which they did not.
 
 ## Acceptance check 3, replaced
 

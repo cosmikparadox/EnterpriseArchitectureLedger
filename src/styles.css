@@ -16,6 +16,8 @@
   --refuse-bg: #f7eef0;
   --refuse-line: #9b3b4a;
   --graph-bg: #ececea;
+  --on-accent: #fff;
+  --spot-dim: none;
   --rail: 60px;
   --footer: 30px;
   /* Bottom sheet on narrow viewports: opens at 40 percent of the screen and is
@@ -26,8 +28,10 @@
   font-synthesis-weight: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/* The theme. The reader's choice on the root wins; before a choice is
+   made the system's setting is followed. The two blocks say the same thing
+   because a media query and an attribute cannot share one selector. */
+:root[data-theme="dark"] {
     --bg: #131519;
     --panel: #1b1e24;
     --panel-2: #23272e;
@@ -41,6 +45,26 @@
     --refuse-bg: #2b1c20;
     --refuse-line: #d4808f;
     --graph-bg: #0f1114;
+    --on-accent: #10131a;
+    --spot-dim: rgba(0, 0, 0, 0.62);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131519;
+    --panel: #1b1e24;
+    --panel-2: #23272e;
+    --ink: #eceef2;
+    --ink-2: #b3b9c4;
+    --ink-3: #808893;
+    --line: #2f343d;
+    --accent: #7fb2e5;
+    --warn-bg: #2a2517;
+    --warn-line: #c9a227;
+    --refuse-bg: #2b1c20;
+    --refuse-line: #d4808f;
+    --graph-bg: #0f1114;
+    --on-accent: #10131a;
+    --spot-dim: rgba(0, 0, 0, 0.62);
   }
 }
 
@@ -135,8 +159,7 @@ button, input, select { font: inherit; color: inherit; }
   cursor: pointer;
   color: var(--ink-2);
 }
-.ctl[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-@media (prefers-color-scheme: dark) { .ctl[aria-pressed="true"] { color: #10131a; } }
+.ctl[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .ctl:focus-visible, .rail button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .search { position: relative; }
@@ -171,6 +194,7 @@ button, input, select { font: inherit; color: inherit; }
   position: absolute; inset: 0;
   right: var(--chrome-right); bottom: var(--chrome-bottom);
 }
+.graph-lib { position: absolute; inset: 0; }
 
 /* The panel used to sit on top of the canvas, so a third of the estate was
    behind it and the picture could never be seen whole. Above the phone
@@ -268,10 +292,9 @@ button, input, select { font: inherit; color: inherit; }
 .landing-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .cta {
   background: var(--accent); border: 1px solid var(--accent);
-  color: #fff; border-radius: 6px;
+  color: var(--on-accent); border-radius: 6px;
   padding: 8px 16px; cursor: pointer;
 }
-@media (prefers-color-scheme: dark) { .cta { color: #10131a; } }
 .cta.secondary {
   background: none; border-color: var(--line); color: var(--ink-2);
 }
@@ -335,8 +358,7 @@ button, input, select { font: inherit; color: inherit; }
   pointer-events: none;
 }
 /* No dimming. The outline breathes, slowly, and that is the whole pointer. */
-.spotlight-dim { display: none; }
-@media (prefers-color-scheme: dark) { .spotlight-dim { fill: rgba(0, 0, 0, 0.62); } }
+.spotlight-dim { display: none; fill: var(--spot-dim); }
 .spotlight-edge {
   fill: none; stroke: var(--accent); stroke-width: 2;
   animation: spot-breathe 2.4s ease-in-out infinite;
@@ -919,6 +941,11 @@ button, input, select { font: inherit; color: inherit; }
 .canvas-wires .w2 { animation-delay: 500ms; } .canvas-wires .w3 { animation-delay: 1000ms; }
 @keyframes wire-draw { to { stroke-dashoffset: 0; } }
 .canvas-note { width: min(340px, 60%); }
+/* Pinned beside the node it is about: the anchor sits on the node and the
+   body hangs below it, kept on the canvas like the pop-up. */
+.canvas-book.canvas-note-at { left: 0; top: 0; bottom: auto; width: 0; height: 0; padding: 0; border: 0; background: none; box-shadow: none; overflow: visible; }
+.canvas-note-at > .decision { position: absolute; left: -130px; top: 18px; width: 260px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.16); }
+.canvas-note-at > .decision::before { content: ''; position: absolute; left: 122px; top: -7px; width: 12px; height: 12px; background: var(--panel); border-left: 1px solid var(--line); border-top: 1px solid var(--line); transform: rotate(45deg); }
 .canvas-book {
   position: absolute; left: 22px; bottom: 22px; z-index: 4; width: min(320px, 58%);
   background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 10px;
@@ -1043,7 +1070,8 @@ button, input, select { font: inherit; color: inherit; }
 .play { display: inline-flex; align-items: center; gap: 6px; margin: 2px 0 10px; }
 .play::before { content: ''; width: 0; height: 0; border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
 @media (max-width: 720px) { .story.walk { top: auto; left: 0; right: 0; } }
-@media (prefers-reduced-motion: reduce) { .flash, .decision-arrow::after { animation: none; } .decision-arrow::after { transform: none; } }
+.decision-arrow.pending::after { animation: none; transform: translateX(-100%); }
+@media (prefers-reduced-motion: reduce) { .flash, .decision-arrow::after { animation: none; } .decision-arrow:not(.pending)::after { transform: none; } }
 
 
 /* ---- what a document cannot answer, under its drawing ---- */
@@ -1104,3 +1132,29 @@ button, input, select { font: inherit; color: inherit; }
 .flow-track { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .flow-fill { display: block; height: 100%; background: #f2a541; transition: width 600ms ease; }
 .flow-pct { width: 32px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+
+
+/* ---- the theme switch, on the canvas ---- */
+.theme-toggle {
+  position: absolute; z-index: 45; top: 46px; right: 12px;
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 6px 4px 9px;
+  border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-2);
+  font-size: 11px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: top 400ms ease, right 400ms ease;
+}
+.theme-toggle:hover { color: var(--ink); }
+.theme-toggle .tt-track { width: 28px; height: 16px; border-radius: 8px; background: var(--line); position: relative; transition: background 300ms; }
+.theme-toggle .tt-knob { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--panel); box-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: transform 300ms cubic-bezier(.2,.7,.2,1); }
+.theme-toggle[aria-checked="true"] .tt-track { background: var(--accent); }
+.theme-toggle[aria-checked="true"] .tt-knob { transform: translateX(12px); }
+/* Beside the panel when one is open, beside the card in the story: always on the canvas. */
+@media (min-width: 721px) { .app:not(.story-open) .main:has(.graphwrap.panel-open) .theme-toggle { right: calc(330px + 12px); } }
+.app.story-open .main .theme-toggle { top: 12px; right: calc(var(--wm-right, 0px) + 12px); }
+@media (max-width: 720px) { .theme-toggle { top: 8px; right: 8px; } .theme-toggle .tt-label { display: none; } .app.story-open .theme-toggle { top: 8px; right: 8px; } }
+
+/* ---- the three entries of the two shapes, on the card ---- */
+.story-phases { display: flex; gap: 6px; }
+.story-phases .ctl { flex: 1 1 0; text-align: center; padding: 5px 8px; }
+.story-phase-line { animation: intro-in 500ms ease; }
+.shape-note { font-size: 12px; color: var(--ink); line-height: 1.4; }
+.app.story-open.dock-bottom .canvas-note { left: 12px; bottom: 12px; width: min(300px, 70%); padding: 8px 10px; }

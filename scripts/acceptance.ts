@@ -253,7 +253,7 @@ const BEAT_HEADING: Record<number, string> = {
 const NO_CARD = new Set([0, 2, 10, 11, 16, 17])
 // Long enough for each beat's own animations to finish before the card is
 // read: 18 wires the book, 19 counts the meter, 22 adds riders for 3s, 23 fails after 0.9s, 25 sweeps for about 4s, 26 runs the months for 3.2s.
-const BEAT_SETTLE: Record<number, number> = { 19: 3000, 20: 3000, 23: 3600, 24: 2800, 26: 5000, 27: 4200, 31: 1600 }
+const BEAT_SETTLE: Record<number, number> = { 19: 3000, 20: 3000, 23: 3600, 24: 2800, 26: 5000, 27: 4200, 29: 11000, 31: 8600 }
 const LAST = 33
 const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   if (i === 0) await page.locator('.overlay-welcome').click()
@@ -342,7 +342,11 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   for (const a of actions) {
     await page.goto(`http://localhost:5190/#/tour/${a.step}`, { waitUntil: 'load' })
     await page.waitForSelector('.story')
-    await page.waitForTimeout(BEAT_SETTLE[a.step] ?? 1600)
+    // The engine arms the wait once the beat's own work has finished and
+    // says so on the root; acting before that would be acting for the beat.
+    const armed = await page.waitForFunction((step) => document.documentElement.dataset.storyArmed === String(step), a.step, { timeout: 25000 }).then(() => true).catch(() => false)
+    if (!armed) { silent.push(`beat ${a.step} never armed its wait`); continue }
+    await page.waitForTimeout(200)
     if (await page.locator('.tour-tick').count() > 0) { silent.push(`beat ${a.step} ticked before the action`); continue }
     await a.run()
     await page.waitForTimeout(900)

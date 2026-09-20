@@ -109,6 +109,8 @@ export interface Graph3DProps {
   dashedFaint?: boolean
   /** A note in the corner of the canvas, in the book's frame, with its own content. */
   note?: ReactNode | null
+  /** A node the note is pinned beside, instead of the corner. */
+  noteAt?: string | null
   /**
    * Value flow. Each line is tinted by where its use case's value lands,
    * warm for a customer, cooler for an outside counterparty, cool for
@@ -210,6 +212,7 @@ function disposeNode(o: NodeObjs): void {
 
 export function Graph3D(props: Graph3DProps) {
   const holder = useRef<HTMLDivElement>(null)
+  const libEl = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const gRef = useRef<any>(null)
   const hullGroup = useRef<THREE.Group | null>(null)
@@ -220,8 +223,13 @@ export function Graph3D(props: Graph3DProps) {
   // ---- create once ----
   useEffect(() => {
     const el = holder.current
-    if (!el) return
-    const g = ForceGraph3D()(el)
+    const lib = libEl.current
+    if (!el || !lib) return
+    // The library empties the element it is given. It gets one of its own,
+    // under the holder, so the ring, the note, the book and the hint that
+    // React renders beside it are not swept away on a deep link or when a
+    // theme change rebuilds the nodes.
+    const g = ForceGraph3D()(lib)
     gRef.current = g
 
     // Broad device support. A 3x display pays nine times the fill for a graph
@@ -309,6 +317,10 @@ export function Graph3D(props: Graph3DProps) {
         nodes: (g.graphData().nodes as (GNode & Positioned)[]).map((n) => ({ id: n.id, kind: n.kind, sub: n.subdomain, x: n.x, y: n.y, z: n.z })),
       })
       ;(window as unknown as { __hullAlpha?: unknown }).__hullAlpha = () => Object.fromEntries([...hullAlpha.current].map(([k, a]) => [k, a.cur]))
+      // Every node's material state, so a check can tell a canvas at rest
+      // from one a story left something on.
+      ;(window as unknown as { __nodeState?: unknown }).__nodeState = () =>
+        [...objs.current].map(([id, o]) => ({ id, opacity: Math.round(o.solid.opacity * 100) / 100, wire: o.mesh.material === o.wire, visible: o.mesh.visible, lit: !!o.lit, halo: o.halo.visible, ring: o.ring.visible, fail: o.fail.visible, emissive: o.solid.emissiveIntensity }))
       ;(window as unknown as { __nodeScreen?: unknown }).__nodeScreen = () => {
         const el = holder.current
         if (!el) return []
@@ -335,7 +347,9 @@ export function Graph3D(props: Graph3DProps) {
 
     let ticks = 0
     let framed = false
-    g.onEngineTick(() => { if (++ticks % 8 === 0) rebuildHulls() })
+    // Every fourth tick: the hulls follow a travelling node closely enough
+    // to read as the domain taking it in, without paying for every frame.
+    g.onEngineTick(() => { if (++ticks % 4 === 0) rebuildHulls() })
     g.onEngineStop(() => {
       // Nodes held in place while an addition settled are let go once it has.
       for (const n of pinned.current) { delete n.fx; delete n.fy; delete n.fz }
@@ -353,7 +367,8 @@ export function Graph3D(props: Graph3DProps) {
       if (!framed) {
         framed = true
         const ms = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600
-        fit(ms)
+        // Unless a beat has already flown to a node, on a deep link.
+        if (!cameraTaken.current) fit(ms)
       }
     })
 
@@ -405,6 +420,7 @@ export function Graph3D(props: Graph3DProps) {
     // without this the graph stays framed for a box that no longer exists and
     // drifts off to one side. Once somebody has orbited, their camera is theirs.
     let userMovedCamera = false
+    cameraTaken.current = false
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const controls = g.controls() as any
     controls?.addEventListener?.('start', () => { userMovedCamera = true })
@@ -432,9 +448,9 @@ export function Graph3D(props: Graph3DProps) {
       // Only once the layout has settled. Fitting while the simulation is still
       // spreading the nodes frames an estate a fraction of its final size, and
       // the graph ends up zoomed into the middle of itself.
-      if (userMovedCamera || !framed) return
+      if (userMovedCamera || cameraTaken.current || !framed) return
       clearTimeout(refit)
-      refit = setTimeout(() => { if (!userMovedCamera && framed) fit(300) }, 300)
+      refit = setTimeout(() => { if (!userMovedCamera && !cameraTaken.current && framed) fit(300) }, 300)
     })
     ro.observe(el)
     g.width(el.clientWidth).height(el.clientHeight)
@@ -442,7 +458,7 @@ export function Graph3D(props: Graph3DProps) {
     const mo = new MutationObserver(() => {
       const before = insetNow
       applyOffset()
-      if (before !== insetNow && framed && !userMovedCamera) fit(400)
+      if (before !== insetNow && framed && !userMovedCamera && !cameraTaken.current) fit(400)
     })
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'data-story-dock'] })
 
@@ -614,7 +630,11 @@ export function Graph3D(props: Graph3DProps) {
         const was = before.get(n.id)
         if (was && was.x !== undefined) {
           const movedSub = was.subdomain !== n.subdomain
-          Object.assign(was, n)
+          // The fresh node carries the seeded starting position every node
+          // is built with; the live one keeps where the layout put it, or
+          // the whole picture snaps back to its seeds at every change.
+          const { x, y, z, vx, vy, vz } = was as Positioned & { vx?: number; vy?: number; vz?: number }
+          Object.assign(was, n, { x, y, z, vx, vy, vz })
           // A use case moved to another part of the business is free to
           // travel to its new sector; everything else holds still.
           if (!movedSub) { was.fx = was.x; was.fy = was.y; was.fz = was.z; pinned.current.push(was) }
@@ -643,13 +663,14 @@ export function Graph3D(props: Graph3DProps) {
       // A move travels: the released node is carried to its sector by the
       // forces over a couple of seconds, the hulls reshaping as it goes. An
       // addition settles before the frame, in a short warm-up.
-      if (travelling > 0 && freshIds.current.size === 0) g.warmupTicks(0).cooldownTicks(150)
+      if (travelling > 0 && freshIds.current.size === 0) g.warmupTicks(0).cooldownTicks(260)
       // Thirty ticks settle a rider beside its platform; the profile put the
       // eighty this used to run at most of a slider step's cost.
       else g.warmupTicks(30).cooldownTicks(0)
       const t0 = performance.now()
       g.graphData({ nodes, links } as unknown as { nodes: object[]; links: object[] })
       if (import.meta.env.DEV) perf('graphData', performance.now() - t0)
+      if (pendingFly.current && flyNow(pendingFly.current)) pendingFly.current = null
       return
     }
     g.graphData(props.data as unknown as { nodes: object[]; links: object[] })
@@ -960,6 +981,16 @@ export function Graph3D(props: Graph3DProps) {
     stateCtx.current = { neighbours, dimmed }
     arriving.current = 0
 
+    // Nothing asked of the picture: every node goes back to its baseline,
+    // whatever a wave, a focus or a story scene left on it. The state
+    // functions are meant to arrive there on their own; this is the check
+    // that they did, so a canvas after the story looks like one before it.
+    const atRest = !props.focus && !props.wave && !props.flow && !props.failedNodeId && !props.affectedUseCases?.size
+      && !props.litLinks?.size && !props.dimNodes?.size && !props.dimHulls?.size && !isolatedSubdomain
+    if (atRest) {
+      litAt.current.clear()
+      for (const o of objs.current.values()) { o.lit = false; o.pulseUntil = 0 }
+    }
     for (const n of data.nodes) {
       const o = objs.current.get(n.id)
       if (!o) continue
@@ -1080,7 +1111,7 @@ export function Graph3D(props: Graph3DProps) {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
-      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow])
+      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
@@ -1230,6 +1261,8 @@ export function Graph3D(props: Graph3DProps) {
     return () => cancelAnimationFrame(raf)
   }
   useEffect(() => follow(calloutEl.current, props.callout), [props.callout])
+  const noteEl = useRef<HTMLDivElement | null>(null)
+  useEffect(() => follow(noteEl.current, props.noteAt ? { kind: 'node', id: props.noteAt } : null, true), [props.noteAt, props.note])
   useEffect(() => follow(popoverEl.current, props.popover, true), [props.popover])
 
   // The book's wires: one curve from the node to each ruled row, redrawn
@@ -1275,38 +1308,59 @@ export function Graph3D(props: Graph3DProps) {
   // a value: asking to fly to the node the camera is already pointed at has to
   // move the camera. Without the nonce the effect would not re-run and a second
   // click on the same search result, or a tour step re-entered, would do nothing.
-  useEffect(() => {
+  // A request that arrives before the nodes have positions, on a deep link
+  // into a beat that flies, is kept and made once the layout has run.
+  const pendingFly = useRef<string | null>(null)
+  /** A fly to a node has the camera; a refit for a resize or a dock change waits until the whole estate is asked for again. */
+  const cameraTaken = useRef(false)
+  const flyNow = (wanted: string): boolean => {
     const g = gRef.current
-    if (!g || !props.flyToId) return
-    const wanted = props.flyToId.split('#')[0]!
+    if (!g) return false
     const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
     // '*' asks for the whole estate: the camera pulls back along its own line
     // of sight until everything fits, slowly, so the picture widens rather
     // than cuts.
-    if (wanted === '*') { fitRef.current?.(reduced ? 0 : 1800); return }
+    // In the story the pull back is slower still: it is a scene change, not
+    // a search result.
+    if (wanted === '*') { cameraTaken.current = false; fitRef.current?.(reduced ? 0 : document.documentElement.dataset.storyDock ? 2600 : 1800); return true }
+    // '!near' asks to come in close on the node: the picture around it is
+    // ghosted, so the frame is the node, its neighbours and the domain
+    // boundary beside it, and the trip takes long enough to be followed.
+    const near = wanted.endsWith('!near')
+    const id = near ? wanted.slice(0, -'!near'.length) : wanted
     const all = g.graphData().nodes as (GNode & Positioned)[]
-    const n = all.find((x) => x.id === wanted)
-    if (!n || n.x === undefined) return
+    const n = all.find((x) => x.id === id)
+    if (!n) return true
+    if (n.x === undefined) return false
     // Stand off by a fraction of the estate's own radius, so the camera frames
     // the node in context instead of ending up inside the graph.
     const extent = Math.max(...all.map((m) => Math.hypot(m.x ?? 0, m.y ?? 0, m.z ?? 0)), 1)
-    const d = Math.max(120, extent * 2.5)
+    const d = Math.max(120, extent * (near ? 1.4 : 2.5))
     const r = Math.hypot(n.x, n.y ?? 0, n.z ?? 0) || 1
     // Under prefers-reduced-motion the camera cuts rather than travels. The
     // tour flies to a node at almost every step, and a viewer who has asked for
     // less motion should still arrive there, just without the trip.
-    const travelMs = reduced ? 0 : 900
+    const travelMs = reduced ? 0 : near ? 2200 : 900
     g.cameraPosition(
       { x: (n.x * (r + d)) / r, y: ((n.y ?? 0) * (r + d)) / r, z: ((n.z ?? 0) * (r + d)) / r },
       { x: n.x, y: n.y ?? 0, z: n.z ?? 0 },
       travelMs,
     )
+    cameraTaken.current = true
+    return true
+  }
+  useEffect(() => {
+    if (!props.flyToId) return
+    const wanted = props.flyToId.split('#')[0]!
+    pendingFly.current = flyNow(wanted) ? null : wanted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.flyToId])
 
   // The inset is set in CSS rather than here, so the tour can pull the canvas
   // clear of its card without this component knowing the tour exists.
   return (
     <div ref={holder} className="graph-holder">
+      <div ref={libEl} className="graph-lib" />
       {props.callout && (
         <div ref={calloutEl} className="canvas-callout" hidden aria-hidden="true">
           <span className="canvas-callout-ring" />
@@ -1330,7 +1384,7 @@ export function Graph3D(props: Graph3DProps) {
           <span>{props.gestureHint}</span>
         </div>
       )}
-      {props.note && <div className="canvas-book canvas-note" aria-hidden="true">{props.note}</div>}
+      {props.note && <div ref={noteEl} className={props.noteAt ? 'canvas-book canvas-note canvas-note-at' : 'canvas-book canvas-note'} aria-hidden="true">{props.note}</div>}
       {props.book && (
         <>
           <svg ref={wiresEl} className="canvas-wires" aria-hidden="true">

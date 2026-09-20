@@ -31,7 +31,10 @@ export function useStory(): StoryState {
 
   useEffect(() => {
     const beat = beatAt(n)
-    if (n === null || !beat) { prev.current = null; return }
+    // Leaving the story puts the tool back in its plain state: every layer
+    // up, nothing ghosted, no beat's control still driving a value. The
+    // screens then show what they always show, in the same colours.
+    if (n === null || !beat) { if (prev.current !== null) useLedger.getState().resetStory(); prev.current = null; return }
     const store = useLedger.getState()
     const entering = prev.current === null
     if (entering) store.resetStory()
@@ -50,13 +53,17 @@ export function useStory(): StoryState {
     setCrossing(true)
     timeline.after(reduced ? 0 : 60, () => setCrossing(false), reduced)
 
+    // The wait is armed once the beat's own work is done, and not before
+    // the settle: a value the beat itself is still moving must not count as
+    // the reader's. The root says when, so a check can act at the right time.
     let unsubscribe: (() => void) | null = null
-    timeline.after((beat.settleMs ?? 0) + SETTLE_GRACE_MS, () => {
+    timeline.whenIdle((beat.settleMs ?? 0) + SETTLE_GRACE_MS, () => {
       if (!beat.waitFor) return
       const at = { ...useLedger.getState() }
       unsubscribe = useLedger.subscribe((now) => { if (beat.waitFor!(now, at)) setDone(true) })
+      document.documentElement.dataset.storyArmed = String(n)
     }, reduced)
-    return () => { timeline.cancel(); unsubscribe?.() }
+    return () => { timeline.cancel(); unsubscribe?.(); delete document.documentElement.dataset.storyArmed }
   }, [n, reduced])
 
   // Arrow keys and Enter walk the story, so the beats without a card, the

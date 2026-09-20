@@ -43,7 +43,7 @@ const VIEWS = [
   { n: 6, t: 'Boundaries', ready: true },
 ]
 
-function useDark(): boolean {
+function useSystemDark(): boolean {
   const [dark, setDark] = useState(() =>
     typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches)
   useEffect(() => {
@@ -74,7 +74,14 @@ export function App() {
   // Canon 9.2.8 default, and the spec's default: equal split.
   const rule = useLedger((s) => s.rule)
   const setRule = useLedger((s) => s.setRule)
-  const dark = useDark()
+  // The theme: the reader's switch on the canvas wins, otherwise the system.
+  // The choice sits on the root as data-theme, which the stylesheet reads,
+  // and is remembered by the store.
+  const theme = useLedger((s) => s.theme)
+  const setTheme = useLedger((s) => s.setTheme)
+  const systemDark = useSystemDark()
+  const dark = theme === 'auto' ? systemDark : theme === 'dark'
+  useLayoutEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light' }, [dark])
   const ix = useMemo(() => buildIndex(estate), [])
   const p = estate.provenance
 
@@ -161,6 +168,16 @@ export function App() {
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
+        {!onLanding && (
+          <button
+            type="button" className="theme-toggle" role="switch" aria-checked={dark}
+            aria-label="Dark mode"
+            onClick={() => setTheme(dark ? 'light' : 'dark')}
+          >
+            <span className="tt-label">{dark ? copy.theme_dark : copy.theme_light}</span>
+            <span className="tt-track" aria-hidden="true"><span className="tt-knob" /></span>
+          </button>
+        )}
         {story.beat && story.n !== null && (
           <>
             {/* The company name: absent on the welcome, centred on the title

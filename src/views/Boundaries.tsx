@@ -18,7 +18,7 @@ import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
 import { SUBDOMAIN_COLOUR } from '../app/graph'
-import { MOVER_ID } from '../story/script'
+import { MOVER_ID, MOVER_TO } from '../story/script'
 import { fill } from '../copy'
 
 export interface BoundariesProps {
@@ -40,6 +40,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
   const [collapsed, setCollapsed] = useState(false)
   const tourStep = useLedger((s) => s.tourStep)
   const sceneFocus = useLedger((s) => s.scene.focus)
+  const flyToId = useLedger((s) => s.flyToId)
   const inStory = tourStep !== null
 
   const estate: Estate = useMemo(() => ({
@@ -118,18 +119,24 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
   }, [storyMove, mover, moverTo])
   const dashed = useMemo(() => storyMove && mover ? new Set([...crossing].filter((k) => k.startsWith(`${mover.id}>`))) : crossing, [storyMove, mover, crossing])
   const subName = (id: string) => base.subdomains.find((s) => s.id === id)?.name ?? id
-  const decision = storyMove && mover && moverTo && moverTo !== mover.subdomain ? (
+  // The note says what has been decided before the line moves, and what
+  // moved after; the arrow fills when the move is made. The ring on the
+  // canvas names the use case the decision is about.
+  const pending = !moverTo || moverTo === mover?.subdomain
+  const to = pending ? MOVER_TO : moverTo!
+  const decision = storyMove && mover ? (
       <div className="decision">
         <div className="decision-head">{copy.decision_head}</div>
         <div className="decision-row">
           <span className="sw" style={{ background: SUBDOMAIN_COLOUR[mover.subdomain] }} />{subName(mover.subdomain)}
-          <span className="decision-arrow" />
-          <span className="sw" style={{ background: SUBDOMAIN_COLOUR[moverTo] }} />{subName(moverTo)}
+          <span className={pending ? 'decision-arrow pending' : 'decision-arrow'} />
+          <span className="sw" style={{ background: SUBDOMAIN_COLOUR[to] }} />{subName(to)}
         </div>
         <div className="decision-uc">{mover.name}</div>
-        <div className="decision-line">{fill(copy.decision_line, { uc: mover.name, from: subName(mover.subdomain), to: subName(moverTo) })}</div>
+        <div className="decision-line">{fill(pending ? copy.decision_pending : copy.decision_line, { uc: mover.name, from: subName(mover.subdomain), to: subName(to) })}</div>
       </div>
     ) : null
+  const callout = storyMove && mover ? { kind: 'node' as const, id: mover.id, text: mover.name } : null
 
   return (
     <>
@@ -151,11 +158,13 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           labelMode="selected"
           selectedId={picked}
           isolatedSubdomain={null}
-          flyToId={null}
+          flyToId={inStory ? flyToId : null}
           dashedLinks={dashed}
           dashedFaint={inStory}
           focus={focus}
+          callout={callout}
           note={decision}
+          noteAt={storyMove && mover ? mover.id : null}
           onSelectNode={(id) => { if (ixAfter.useCaseById.has(id)) { setPicked(id); setCollapsed(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}

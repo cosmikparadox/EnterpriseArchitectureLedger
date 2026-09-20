@@ -423,13 +423,45 @@ export const copy = {
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
     'Same {n_uc} use cases, wired two ways. On the left, one platform does ' +
-    'most of the work. On the right, specialists.',
+    'most of the work. On the right, specialists. Watch the three entries ' +
+    'run on both at once: cost, then risk, then leaving.',
   b_diversify_see:
     'The shared point did not disappear. It moved to the connectors. A bad ' +
     'year for {sub}: GBP {left} on the left, GBP {right} on the right.',
   b_diversify_more:
-    'Both are the joint P99 loss at the dependence currently set. Drag the ' +
-    'divider to give either side more room.',
+    'Neither shape is right, and the ledger does not pick one. Concentration ' +
+    'inside a domain boundary is cheap to reason about: the pool is shared ' +
+    'by one domain, so its rule share does not move when a line moves, and ' +
+    'an outage stays in one domain. A domain standardising on an approved ' +
+    'vendor is that case. Concentration across boundaries is where the rule ' +
+    'share, the blast radius and the exit grow together, because every ' +
+    'domain rides the same node. Spreading it out moves the shared point to ' +
+    'the connectors and multiplies the contracts; it does not remove it. And ' +
+    'at full dependence the two bad years converge, because when platforms ' +
+    'fail together it stops mattering how many there are. What these three ' +
+    'entries do not price, the coordination cost of many vendors and the ' +
+    'latency of a process that crosses them, belongs in the decision record, ' +
+    'not in a figure here.',
+  // The three phases of the comparison, on the card under the control.
+  shapes_cost:
+    'Cost. One pool of GBP {left_pool} on {left_top}, shared by {left_riders} ' +
+    'use cases; on the right the largest pool is GBP {right_pool} on ' +
+    '{right_top}, shared by {right_riders}. Rule share of what riders are ' +
+    'told: {left_c1} percent on the left, {right_c1} on the right.',
+  shapes_risk:
+    'Risk. The busiest node fails on each side. Left: {left_aff} use cases ' +
+    'stop. Right: {right_aff}, because the shared point is a connector now. ' +
+    'A bad year for {sub}: GBP {left} against GBP {right}.',
+  shapes_exit:
+    'Leaving. The largest single exit is GBP {left_exec} of work, off ' +
+    '{left_exit}, on the left; GBP {right_exec} off {right_exit} on the ' +
+    'right, with more contracts behind it.',
+  ctl_shapes_cost: 'Cost',
+  ctl_shapes_risk: 'Risk',
+  ctl_shapes_exit: 'Leaving',
+  shapes_note_cost: 'Pool GBP {pool}, {riders} riders, rule share {c1} percent',
+  shapes_note_risk: '{aff} use cases stop',
+  shapes_note_exit: 'Largest exit: {name}, GBP {exec} of work',
   b_lines_drawn_h: 'Whose lines decided all of it',
   b_lines_drawn:
     'Every figure so far depended on the domain boundaries. The graph was ' +
@@ -453,6 +485,9 @@ export const copy = {
     'Under an equal split, {moved_equal} reported figures moved. A person ' +
     'redrew a line, and the figures that read it followed.',
   decision_head: 'A line redrawn',
+  decision_pending:
+    '{uc} belongs to {from}. The domain architecture function has decided ' +
+    'it belongs to {to}. Watch the line move, and the domain take it in.',
   decision_line:
     'The domain architecture function moved {uc} from {from} to {to}. No ' +
     'system changed and no line on the graph moved. Only the declared ' +
@@ -826,6 +861,8 @@ export const copy = {
   // The pulsing marker on the canvas.
   intro_callout_domain: 'Tap a domain',
   flow_button: 'Value flow',
+  theme_dark: 'Dark',
+  theme_light: 'Light',
   flow_legend_head: 'Where the work\'s value lands',
   flow_warm: 'reaches a customer',
   flow_mid: 'reaches an outside counterparty',

@@ -6,6 +6,7 @@ import { useLedger } from '../app/store'
 import { useMonteCarlo } from '../app/useMonteCarlo'
 import { buildIndex, executionComponent, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
 import { describeEstate } from '../model/describe'
+import { shapeEntry, SHAPES_SEED } from '../model/shapes'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
 import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, TOUR_SUBDOMAIN } from './script'
 
@@ -86,6 +87,14 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     return { equal: count('equal'), current: count(rule) }
   }, [concentrated, ix, moves, rule])
 
+  // The two shapes, both sides, at the dependence under the slider.
+  const ixRight = useMemo(() => buildIndex(bestOfBreed), [bestOfBreed])
+  const shapes = useMemo(() => ({
+    l: shapeEntry(concentrated, ix, rho, SHAPES_SEED.left),
+    r: shapeEntry(bestOfBreed, ixRight, rho, SHAPES_SEED.right),
+  }), [concentrated, ix, bestOfBreed, ixRight, rho])
+  const pct = (x: number) => (x * 100).toFixed(0)
+
   const mover = ix.useCaseById.get(MOVER_ID)
   const est = describeEstate(ix)
   return {
@@ -112,6 +121,13 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `GBP ${gbp(execNow)}` : PLACEHOLDER_NOT_YET,
     left: sub ? gbp(sub.jointP99) : PLACEHOLDER,
     right: subRight ? gbp(subRight.jointP99) : PLACEHOLDER,
+    left_top: shapes.l.topName, right_top: shapes.r.topName,
+    left_pool: gbp(shapes.l.pool), right_pool: gbp(shapes.r.pool),
+    left_riders: shapes.l.riders, right_riders: shapes.r.riders,
+    left_c1: pct(shapes.l.c1), right_c1: pct(shapes.r.c1),
+    left_aff: shapes.l.affected, right_aff: shapes.r.affected,
+    left_exit: shapes.l.exitName, right_exit: shapes.r.exitName,
+    left_exec: gbp(shapes.l.exec), right_exec: gbp(shapes.r.exec),
     mover: mover?.name ?? '',
     mover_from: concentrated.subdomains.find((s) => s.id === mover?.subdomain)?.name ?? '',
     moved_equal: drift.equal.changed,

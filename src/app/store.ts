@@ -108,6 +108,10 @@ export interface LedgerState {
   focus: { kind: 'hull'; id: string } | { kind: 'node'; id: string } | { kind: 'link'; ucId: string; platformId: string } | null
   /** Use cases moved to another domain on the boundaries screen. */
   moves: Record<string, string>
+  /** The two shapes beat: which entry is being compared, cost, risk or leaving. */
+  shapesPhase: 0 | 1 | 2
+  /** Dark or light, chosen by the viewer; 'auto' follows the system. */
+  theme: 'auto' | 'light' | 'dark'
 
   setView: (v: View) => void
   setSelectedId: (id: string | null) => void
@@ -129,7 +133,14 @@ export interface LedgerState {
   nameDomain: (id: string) => void
   setFocus: (f: LedgerState['focus']) => void
   setMoves: (m: Record<string, string>) => void
+  setShapesPhase: (p: 0 | 1 | 2) => void
+  setTheme: (t: 'auto' | 'light' | 'dark') => void
   resetStory: () => void
+}
+
+const THEME_KEY = 'ledger.theme'
+function readTheme(): 'auto' | 'light' | 'dark' {
+  try { const t = localStorage.getItem(THEME_KEY); return t === 'light' || t === 'dark' ? t : 'auto' } catch { return 'auto' }
 }
 
 export const DEFAULT_RHO = 0.5
@@ -151,6 +162,8 @@ export const useLedger = create<LedgerState>((set) => ({
   namedDomains: [],
   focus: null,
   moves: {},
+  shapesPhase: 0,
+  theme: readTheme(),
 
   setView: (view) => set({ view }),
   setSelectedId: (selectedId) => set({ selectedId }),
@@ -172,5 +185,7 @@ export const useLedger = create<LedgerState>((set) => ({
   nameDomain: (id) => set((s) => ({ namedDomains: s.namedDomains.includes(id) ? s.namedDomains : [...s.namedDomains, id] })),
   setFocus: (focus) => set({ focus }),
   setMoves: (moves) => set({ moves }),
-  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null }),
+  setShapesPhase: (shapesPhase) => set({ shapesPhase }),
+  setTheme: (theme) => { try { localStorage.setItem(THEME_KEY, theme) } catch { /* a browser that will not remember it just asks again */ } set({ theme }) },
+  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, flyToId: null }),
 }))

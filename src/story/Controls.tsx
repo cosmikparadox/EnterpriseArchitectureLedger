@@ -29,6 +29,8 @@ export function Controls({ control, estate }: { control: Control; estate: Estate
   const selectedId = useLedger((s) => s.selectedId)
   const moves = useLedger((s) => s.moves)
   const setMoves = useLedger((s) => s.setMoves)
+  const shapesPhase = useLedger((s) => s.shapesPhase)
+  const setShapesPhase = useLedger((s) => s.setShapesPhase)
 
   if (control === 'fanin') return (
     <label className="story-ctl" data-tour="fanin">
@@ -61,6 +63,13 @@ export function Controls({ control, estate }: { control: Control; estate: Estate
         {BASES.map((b) => <option key={b.r} value={b.r}>{b.label}</option>)}
       </select>
     </label>
+  )
+  if (control === 'shapes') return (
+    <div className="story-ctl story-phases" data-tour="shapes" role="tablist">
+      {([copy.ctl_shapes_cost, copy.ctl_shapes_risk, copy.ctl_shapes_exit] as const).map((label, i) => (
+        <button key={label} role="tab" className="ctl" aria-selected={shapesPhase === i} aria-pressed={shapesPhase === i} onClick={() => setShapesPhase(i as 0 | 1 | 2)}>{label}</button>
+      ))}
+    </div>
   )
   if (control === 'move') {
     const uc = estate.use_cases.find((u) => u.id === MOVER_ID)
