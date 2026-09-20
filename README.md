@@ -67,7 +67,7 @@ from the busiest node to its three ruled rows: the entries are read off the
 graph. Part three then builds the ledger on that node, one entry at a time,
 with a reading pinned to the node for the meter and for the pool, and the
 entries accumulate on the card: the meter, the pool, the rule, the crowd, what
-stops, a bad year two ways, how much things fail together, how the footprint
+stops, a bad month two ways, how much things fail together, how the footprint
 grew, what leaving costs, whether spreading it out helps, whose lines decided
 all of it. Between parts the canvas fades to nothing and a title says which
 part is next; the company name sits at the top of the canvas with the part
@@ -91,7 +91,7 @@ pictures. Arrow keys walk the story; a tap anywhere passes a title.
 | 18, 19 | why a ledger, on the whole graph; the book in the corner, wired to the busiest node | Next |
 | 20, 21 | the meter, counting up beside the node; the fixed pool, stamped beside the node | select another platform |
 | 22, 23 | the rule; the crowd changes, one rider arriving at a time, with the fan-in slider on the card | you move the slider |
-| 24 to 26 | fail it, with the button on the card; a bad year two ways; the dependence slider on the card | you fail it; you move the slider |
+| 24 to 26 | fail it, with the button on the card; a bad month two ways; the dependence slider on the card | you fail it; you move the slider |
 | 27, 28 | the months run; the month handle on the card | you move the handle |
 | 29 | two shapes, the three entries running on both halves at once: cost, then risk, then leaving; the three tabs on the card replay any of them | nothing, or a tab |
 | 30 to 32 | the lines people drew; the camera comes in on one use case, the ring names it, the note says what was decided, then the line moves and the domain takes it in; change the basis, on the card | you move it; you change the basis |
@@ -1042,8 +1042,8 @@ with no money on it. The research behind the "before" is in deviation 46.
 
 Part three builds the ledger on the busiest node one entry per beat, and
 each entry is a row on the card that stays: metered, the pool, a rider's
-rule share, a bad year two ways, the dependence range, the execution work of
-leaving, the two estates' bad years, and how many figures moved when a line
+rule share, a bad month two ways, the dependence range, the execution work of
+leaving, the two estates' bad months, and how many figures moved when a line
 did. The boundaries screen's moves now live in the store so the story can
 make one and count what changed, and the story asks for the basis change on
 the card, where changing it visibly moves the count.
@@ -1373,13 +1373,15 @@ it strands. The three run on a timeline on entry and the card's three tabs
 replay any of them; the card's sentence changes with the phase, and every
 figure in it is read from `src/model/shapes.ts`. The longer text under
 More detail carries the position: concentration inside a boundary is
-cheap to reason about and a domain standardising on an approved vendor is
-that case; concentration across boundaries is where the rule share, the
-blast radius and the exit grow together; spreading it out moves the shared
-point to the connectors and multiplies the contracts; at full dependence
-the two bad years converge; and the coordination cost and the latency of a
-process that crosses vendors belong in the decision record, not in a
-figure here.
+cheap to reason about, a case this estate does not contain; concentration
+across boundaries is where the blast radius and the exit grow together;
+spreading it out moves the shared point to the connectors and multiplies
+the contracts; at full dependence the two bad months converge; and the
+coordination cost and the latency of a process that crosses vendors belong
+in the decision record, not in a figure here. (As first written this text
+also said the rule share grows with concentration across boundaries and
+offered a domain standardising on an approved vendor as the inside case;
+the owner's review struck both, see deviation 54 onward.)
 
 **The move, as a sequence.** The boundaries beat now comes in on the use
 case first: the picture ghosts to it, its platforms and the two domains
@@ -1424,6 +1426,189 @@ its own: when nothing is asked of the picture, every node is put back to
 its baseline and any wave timing is cleared, whatever a beat left on it.
 The link colours also follow the theme immediately, which they did not.
 
+### 54. A bad year is a bad month
+
+The copy called the P99 figures "a bad year" and said "a year worse than
+this comes about once in a hundred". One Monte Carlo run is one month: the
+failure threshold is the monthly probability from the annual rate,
+`1 - exp(-LEF / 12)`, a use case's loss is its monthly volume times margin
+times the outage fraction, and `simulate` calls `runOnce` once per run with
+no twelve-month loop. Every P99 is a monthly figure. Every live string that
+said "bad year" now says "bad month", and the P99 is described as a month
+worse than this in about once in a hundred months. The one annual phrase
+that stays is the loss event frequency in the walkthrough, because that
+input really is an annual rate. This document's own "annual loss
+distribution" was corrected as well.
+
+### 55. Why the two risk figures differ was stated backwards
+
+The copy said that adding the per-use-case figures "counts the same outage
+once per use case" and "overstates". Nothing in the model is counted twice.
+Each use case has its own loss, and the joint figure is the within-run sum
+of those same losses. The two differ because each use case has its worst
+month in a different month, and adding the worst months assumes they all
+land at once. Canon 9.3.8 calls the sum the exact comonotonic answer, a
+reference point rather than an overstatement, and canon 9.8.3 result two
+says the two are equal only when every loss moves in lockstep. So the more
+things fail together, the smaller the gap, which is the opposite of what
+the copy said. The explanation is replaced on the card, in the risk view's
+note, in both glossary tips, in the summary and in the screen's purpose
+line. The copy no longer says which figure is larger; the two numbers on
+screen show that. Measured for Claims at the tool's own run count and seed,
+with the gap as defined above:
+
+| rho | sum of P99s | joint P99 | gap |
+|---|---|---|---|
+| 0.0 | 272,713 | 192,151 | 41.9% |
+| 0.5 | 259,625 | 203,758 | 27.4% |
+| 1.0 | 201,443 | 185,887 | 8.4% |
+
+### 56. The dependence slider was mislabelled
+
+The story labelled the slider's ends "never together" and "always
+together", called it "how often the platforms fail on the same day", and
+said that at the left end a failure reaches only the use cases on the
+failed node. The explorer's own tip says, correctly, that under the t
+copula the extremes still move together at zero correlation. Rho is a
+strength of link, not a frequency, and zero does not mean failures avoid
+each other. The control now reads "How strongly platform failures are
+linked", with ends "not correlated" and "fail together", and the beat's
+longer text says what the parameter is and what the left end means.
+
+### 57. The closing card had lost its content
+
+The live closing beat said only that the three entries are kept apart and
+that every deviation is in the README, which a viewer of the hosted site
+cannot open. The blocks that belonged there existed only in the retired
+tour's copy. The card now carries four blocks above its two buttons: what
+this is; what it does not do, ending with the owner's caveat, "It prices
+the choices a commitment removes. It does not yet price the ones a
+commitment creates. That work is parked on an open problem."; read the
+argument, with the DOI line always shown and the Medium line rendered only
+once its address is real; and how it was built. Acceptance N2 finds the
+caveat on screen character for character.
+
+### 58. Part two claimed too much about how decisions are made today
+
+Part two said, as flat fact, that decisions are made on a colour, that the
+cost of leaving is written down nowhere, and that nobody has put money onto
+the graph. Tools exist that meter cloud cost per unit of work, methods
+exist that price risk in money, and canon 9.3.9 records money-denominated
+loss on a mined graph as prior work. The true claim is about common
+practice. Every absolute is softened to "often" or "rarely", and one
+sentence now admits that the tools and methods exist and are rarely joined
+to each other or to a use case. No product and no method is named. The
+document drawing's own line, "written nowhere", is about one document and
+stays.
+
+### 59. "Nothing new is collected" was false
+
+The beat that fills the book said the three entries are read off the
+picture and nothing new is collected. Later beats say otherwise, correctly:
+the fixed pool comes from finance, the dependence is a declared input, the
+exit work is an engineering estimate (canon 9.5.2), and loss sizes are
+inputs. Canon 9.1.2 calls the practice a hybrid, a mined graph carrying
+declared parts. The beat now says the graph supplies the start of all three
+entries and the rest is declared or estimated, each entry saying which. The
+same beat called the book a balance sheet. A balance sheet totals; this
+ledger refuses to. The phrase is gone.
+
+### 60. The boundary beats contradicted themselves
+
+"Every figure so far depended on the domain boundaries" is the opposite of
+canon 9.2.8 for cost: under either permitted rule, redrawing boundaries
+leaves every per-use-case cost figure unchanged. What depends on the
+boundary is any figure reported per domain, because the boundary decides
+who is in the domain. The move beat then reported that zero figures moved
+under an equal split and said the figures had followed the line. The
+lesson is that under a permitted rule nothing moves, and that is the point.
+The beats now say so, the decision note says no cost figure reads the
+line under a permitted rule, and the basis beat names the two permitted
+rules. Canon 9.1.2's condition, that the lines must already exist and
+belong to someone other than whoever is measuring, is now stated. The
+clause that drawing boundaries well is a large part of what enterprise
+architecture is for was an unsupported assertion and is cut.
+
+### 61. Operations tools discover the systems, not the picture
+
+The beat said operations tools discover the picture from part one every
+day. They discover which systems call which. They do not discover use cases
+or domains; people declare them (canon 9.1.2). The beat now says the system
+half of the picture is what is discovered, and the next line says the use
+cases and the domains are declared.
+
+### 62. Smaller corrections from the same audit
+
+The label "C1" named a reading principle in the canon, not this measure.
+The glossary label and the two literals in the fixed pool view now read
+"Share set by rule"; those two literals were the only ones outside the copy
+deck and now read from it. The execution component is described once per
+surface as an engineering estimate, not a measurement. The value flow
+beat's closing clause about what a finance reader wants was an unsupported
+assertion and is cut. Bare citations of "9.2.8" and "9.3.8" now read "the
+Ledger paper, 9.2.8" and "the Ledger paper, 9.3.8". Of five uses of the
+word "honest", one stays, in the dependence beat's reading of the range.
+One "not X, not Y, not Z" triple lost an item. "It did not leave" was cut
+from the two shapes summary because the sentence before it says so. Every
+on-screen sentence is now under twenty words, which meant splitting
+eighteen sentences outside the audited strings at their punctuation.
+
+### 63. Two exemptions
+
+Two strings are exempt from the checks above and the acceptance N1 records
+them by name. The title sentence, "An interactive model of one invented
+insurer, built to show what architecture decisions cost when you price
+them in money instead of colours", is the owner's, reproduced unchanged by
+instruction, and is over twenty words. The refusal note on the two shapes
+screen says that adding option components across commitments "overstates"
+the joint position; canon 9.8.3 result three supports that word for option
+components, and it is not the retired claim about the P99 sum.
+
+### 64. Dead copy removed
+
+The retired intro block, the retired tour's chapters seven to fifteen and
+their spotlight labels, the front page strings and the unused ratification
+line, ninety-three keys, were referenced nowhere outside the copy deck,
+including by any template string. They are deleted, after the closing
+card's text was salvaged from them. The DOI, the Medium address and its
+placeholder host are kept because the closing card reads them.
+
+### 65. Linked failures mean fewer bad months here, not worse ones
+
+A limit of the synthetic model, found by the owner and confirmed from the
+code. A use case is interrupted if any of its platforms fails and the edge
+propagates, and its loss is its volume times margin times one outage draw,
+with no term for how many of its platforms failed. So as rho rises and
+platform failures cluster into the same months, a use case with several
+platforms is interrupted in fewer months at the same cost each. Measured
+by the owner at 200,000 runs on seed 7 for Claims in the concentrated
+estate:
+
+| rho | mean monthly loss | P99 | months with any loss |
+|---|---|---|---|
+| 0.0 | 10,362 | 201,996 | 13.7% |
+| 0.5 | 8,597 | 203,194 | 9.2% |
+| 1.0 | 4,681 | 175,104 | 3.2% |
+
+A real estate may differ, because joint failures can lengthen recovery.
+The dependence beat's longer text now says so. The model, the data, the
+run count and the seed are unchanged.
+
+## Open items, no action
+
+- Displayed P99 figures vary by up to 13 percent across seeds at 10,000
+  runs (Claims joint P99 at rho 0 ran from 191,894 to 217,002 over five
+  seeds) but are printed to the pound. Display decision pending.
+- The closing card scrolls at 900px of viewport height, so the caveat is
+  below the fold until the reader scrolls. Owner's UX decision.
+- The sentence "Nothing is invented about a vendor" in deviation 49 depends
+  on the open decision about replacing the real product names in the
+  concentrated estate, as the second estate already does. Not edited.
+- Whether to add the cost of the next use case (canon 9.4) as a beat;
+  whether `{cust_share}` stays in the value flow beat, given it adds unlike
+  units of work; and whether figures should be shown as ranges rather than
+  points. Owner decisions pending.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -1448,7 +1633,9 @@ Nothing in the canon licenses any particular size of gap. The replacement is:
 (c) at rho = 1.0 the gap is within 2 percent of zero
 ```
 
-Observed, at 100,000 runs on seed 424242:
+Observed, at 100,000 runs on seed 424242. The gap, here and everywhere a
+percentage is shown or logged, is the tool's own definition: the sum of the
+per-use-case P99s minus the joint P99, divided by the joint P99.
 
 | subdomain | rho 0.00 | rho 0.25 | rho 0.50 | rho 0.75 | rho 1.00 |
 |---|---|---|---|---|---|
@@ -1554,6 +1741,9 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
 | T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/17. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
+| N1 | the copy deck: no dashes, no sentence over twenty words, no retired phrase | PASS | Every string in `src/copy.ts` scanned; two named exemptions, deviation 63. |
+| N2 | the closing card carries the caveat, the DOI, and no placeholder link | PASS | The caveat on screen character for character; the DOI line shown; the Medium line not rendered while the address is the placeholder; blocks in order. |
+| N3 | the literal C1 appears nowhere on screen | PASS | Ten routes read, including the pool view with its annotation open. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
@@ -1713,7 +1903,7 @@ rule something to be prohibited about.
 Canon 9.8.4 lists what remains usable once the total is refused: ranking within
 one axis, pairwise comparison within one axis, and per-axis aggregation by a
 named method. This tool does the first two and refuses the rest. There is no
-exchange rate between a monthly cost, an annual loss distribution and a
+exchange rate between a monthly cost, a monthly loss distribution and a
 horizon-dependent option value, and none is constructed here.
 
 For sources, see the Ledger paper.

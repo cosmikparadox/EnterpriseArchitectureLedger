@@ -5,6 +5,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { createServer as createHttp } from 'node:http'
 import { createServer } from 'vite'
 import { launch } from './browser.ts'
+import * as copyModule from '../src/copy.ts'
 
 const rows: { n: string; verdict: 'PASS' | 'FAIL' | 'NOT RUN'; detail: string }[] = []
 const add = (n: string, verdict: 'PASS' | 'FAIL' | 'NOT RUN', detail: string) => rows.push({ n, verdict, detail })
@@ -246,7 +247,7 @@ const BEAT_HEADING: Record<number, string> = {
   1: 'The Architecture Ledger', 3: 'Domains', 4: 'Use cases', 5: 'Platforms', 6: 'Lines', 7: 'Connectors', 8: 'What flows through it', 9: 'The busiest node',
   12: 'Where the architecture lives', 13: 'What decisions are made on', 14: 'Three questions, three places', 15: 'The graph already exists',
   18: 'Why a ledger', 19: 'The blueprint fills the book', 20: 'Entry one: cost. The meter', 21: 'The fixed pool', 22: 'The rule', 23: 'The crowd changes',
-  24: 'Entry two: risk. When it stops', 25: 'A bad year, two ways', 26: 'How much they fail together',
+  24: 'Entry two: risk. When it stops', 25: 'A bad month, two ways', 26: 'How much they fail together',
   27: 'Entry three: leaving. How the footprint grew', 28: 'What leaving would cost', 29: 'Does spreading it out help?',
   30: 'Whose lines decided all of it', 31: 'Move one use case', 32: 'Change the rule', 33: 'The ledger, closed',
 }
@@ -591,6 +592,90 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
     offsiteLinks.length === 0
       ? `0 offsite links across 8 routes. Bundle mentions ${bundleHosts.length} host(s), none rendered: ${bundleHosts.join(', ')}. All are vendored library internals except example.invalid, which is the unset Medium placeholder and is why the Medium line is not drawn.`
       : offsiteLinks.join(' | '))
+  await ctx.close()
+}
+
+// ---- N1. The copy deck itself ---------------------------------------------
+//
+// Every on-screen string lives in src/copy.ts. No dash of either kind, no
+// sentence over twenty words, and none of the phrases the narrative
+// correction retired. Two exemptions, both recorded in the README: the
+// title sentence is the owner's, reproduced unchanged; and "overstates" in
+// option_upper_bound is canon 9.8.3 result three on option components.
+{
+  const EXEMPT_LENGTH = new Set(['copy.b_title'])
+  const EXEMPT_PHRASE = new Set(['copy.option_upper_bound'])
+  const FORBIDDEN = ['bad year', 'a year worse', 'overstates', 'counts the same', 'never together', 'always together', 'balance sheet', 'nothing new is collected', 'written down nowhere']
+  const faults: string[] = []
+  let strings = 0
+  const walk = (prefix: string, v: unknown) => {
+    if (typeof v === 'string') {
+      strings++
+      if (/[\u2013\u2014]/.test(v)) faults.push(`dash in ${prefix}`)
+      if (!EXEMPT_PHRASE.has(prefix)) for (const f of FORBIDDEN) if (v.toLowerCase().includes(f)) faults.push(`"${f}" in ${prefix}`)
+      if (EXEMPT_LENGTH.has(prefix)) return
+      const text = v.replace(/(\d)\.(\d)/g, '$1<dot>$2')
+      for (const sentence of text.split(/(?<=[.?!])\s+/)) {
+        const n = sentence.trim().split(/\s+/).filter(Boolean).length
+        if (n > 20) faults.push(`${n} words in ${prefix}: "${sentence.trim().replace(/<dot>/g, '.').slice(0, 60)}"`)
+      }
+    } else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v as Record<string, unknown>)) walk(`${prefix}.${k}`, x)
+  }
+  for (const [name, v] of Object.entries(copyModule)) if (typeof v !== 'function') walk(name, v)
+  add('N1 the copy deck: no dashes, no sentence over twenty words, no retired phrase', faults.length === 0 ? 'PASS' : 'FAIL',
+    faults.length === 0 ? `${strings} strings scanned; exempt: b_title (owner's sentence), option_upper_bound (canon 9.8.3 result three)` : faults.slice(0, 8).join(' | '))
+}
+
+// ---- N2. The closing card ---------------------------------------------------
+//
+// The caveat is the owner's sentence and must be on screen character for
+// character. The DOI line always shows. The Medium line shows only once its
+// address is real, so with the placeholder it must not be rendered.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/tour/33', { waitUntil: 'load' })
+  await page.waitForSelector('.story-close')
+  await page.waitForTimeout(1500)
+  const text = await page.locator('.story').innerText()
+  const caveat = 'It prices the choices a commitment removes. It does not yet price the ones a commitment creates. That work is parked on an open problem.'
+  const hasCaveat = text.includes(caveat) && copyModule.copy.close_caveat === caveat
+  const doiLine = `Archived at DOI ${copyModule.copy.tour_doi}.`
+  const hasDoi = text.includes(doiLine)
+  const mediumReal = !copyModule.copy.tour_medium_url.includes(copyModule.copy.tour_medium_placeholder_host)
+  const mediumLinks = await page.locator('.story-close a').count()
+  const mediumOk = mediumReal ? mediumLinks === 1 : mediumLinks === 0
+  const order = ['What this is', 'What it does not do', caveat, 'Read the argument', copyModule.copy.close_built].map((m) => text.toLowerCase().indexOf(m.toLowerCase()))
+  const ordered = order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1]!))
+  const ok = hasCaveat && hasDoi && mediumOk && ordered && errors.length === 0
+  add('N2 the closing card carries the caveat, the DOI, and no placeholder link', ok ? 'PASS' : 'FAIL',
+    ok ? `caveat on screen character for character; "${doiLine}" shown; Medium ${mediumReal ? 'link shown' : 'line not rendered while the address is the placeholder'}; blocks in order what, not, caveat, read, built`
+       : `caveat ${hasCaveat}, doi ${hasDoi}, medium links ${mediumLinks} (real ${mediumReal}), ordered ${ordered}, errors ${errors.length}`)
+  await ctx.close()
+}
+
+// ---- N3. The literal "C1" appears nowhere on screen ------------------------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const hits: string[] = []
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/20', '#/tour/22', '#/tour/29', '#/tour/33']
+  for (const r of routes) {
+    await page.goto(`http://localhost:5190/${r}`, { waitUntil: 'load' })
+    await page.waitForTimeout(r.startsWith('#/tour') ? 2500 : 1500)
+    const text = await page.evaluate(() => document.body.innerText)
+    if (/\bC1\b/.test(text)) hits.push(r)
+    // Pool view: open the annotation section by selecting the busiest node.
+    if (r === '#/pool') {
+      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('okta'))
+      await page.waitForTimeout(800)
+      if (/\bC1\b/.test(await page.evaluate(() => document.body.innerText))) hits.push(`${r} with a node selected`)
+    }
+  }
+  add('N3 the literal C1 appears nowhere on screen', hits.length === 0 ? 'PASS' : 'FAIL',
+    hits.length === 0 ? `${routes.length} routes read, including the pool view with its annotation open` : hits.join(', '))
   await ctx.close()
 }
 
