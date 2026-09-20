@@ -235,6 +235,33 @@ export function executionComponent(p: Platform, nRiders: number, monthsSinceAdop
 }
 
 /**
+ * The work of leaving as the tool shows it. Canon 9.5.7: the split of K into
+ * an execution part and the value of the choices given up rests on an
+ * evidenced counterfactual. Where the counterfactual is not evidenced, the
+ * tool declines to split and shows the committed work whole; where it is,
+ * the execution component. Nothing here alters either figure.
+ */
+export function workOfLeaving(p: Platform, nRiders: number, monthsSinceAdopted: number): number {
+  const evidenced: boolean = p.counterfactual_evidenced
+  return evidenced ? executionComponent(p, nRiders, monthsSinceAdopted) : kCommitted(p, nRiders, monthsSinceAdopted)
+}
+
+/**
+ * A simulated or estimated GBP figure, rounded to two significant figures.
+ * A P99 from 10,000 runs moves by more than its last four digits between
+ * seeds, and an exit estimate is an estimate; printing either to the pound
+ * claims a precision the figure does not have. Metered spend, pools and
+ * rule shares are exact arithmetic and are not rounded.
+ */
+export function sig2(n: number): number {
+  if (!Number.isFinite(n) || n === 0) return 0
+  const unit = 10 ** (Math.floor(Math.log10(Math.abs(n))) - 1)
+  return Math.round(n / unit) * unit
+}
+/** sig2, formatted for a sentence. */
+export const gbpAbout = (n: number): string => sig2(n).toLocaleString('en-GB')
+
+/**
  * W(K), the switching-option value. Canon 9.5.5, the published Datar-Mathews
  * method with TWO rates applied to the two legs BEFORE the max is taken:
  *

@@ -415,13 +415,13 @@ function main(): void {
  * logging anything, so views 3 and 5 would wait forever. These frames let the
  * dependence slider still move offline, snapping to the nearest stored rho.
  *
- * Seeds match the two live call sites (view 3 and the left panel of view 5 use
- * SEED; the right panel of view 5 uses SEED + 1) so the offline numbers are the
- * same numbers the worker would have produced, not a different draw.
+ * Both estates run on the one seed the live call sites use, so the offline
+ * numbers are the same numbers the worker would have produced, not a
+ * different draw, and the two shapes are compared on a common draw.
  */
 function writePrecomputed(concentrated: Estate, bestOfBreed: Estate): void {
   const index: PrecomputedIndex = {}
-  for (const [estate, seed] of [[concentrated, SEED], [bestOfBreed, SEED + 1]] as const) {
+  for (const [estate, seed] of [[concentrated, SEED], [bestOfBreed, SEED]] as const) {
     const frames = PRECOMPUTED_RHOS.map((rho) => {
       const r = simulate({ estate, rho, nu: 4, runs: PRECOMPUTED_RUNS, seed })
       process.stdout.write(`  precomputed ${estate.provenance.graph_version} rho ${rho} in ${r.elapsedMs} ms\n`)

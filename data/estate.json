@@ -67,7 +67,7 @@
   "platforms": [
     {
       "id": "salesforce",
-      "name": "Salesforce",
+      "name": "CRM",
       "category": "CRM",
       "type": "platform",
       "fixed_pool_gbp_month": 41000,
@@ -89,7 +89,7 @@
     },
     {
       "id": "servicenow",
-      "name": "ServiceNow",
+      "name": "Service management",
       "category": "ITSM",
       "type": "platform",
       "fixed_pool_gbp_month": 22000,
@@ -111,7 +111,7 @@
     },
     {
       "id": "sap_s4",
-      "name": "SAP S/4HANA",
+      "name": "ERP and ledger",
       "category": "ERP and general ledger",
       "type": "platform",
       "fixed_pool_gbp_month": 58000,
@@ -133,7 +133,7 @@
     },
     {
       "id": "workday",
-      "name": "Workday",
+      "name": "HR core",
       "category": "HCM",
       "type": "platform",
       "fixed_pool_gbp_month": 19000,
@@ -155,7 +155,7 @@
     },
     {
       "id": "policycenter",
-      "name": "Guidewire PolicyCenter",
+      "name": "Policy administration",
       "category": "Policy administration",
       "type": "platform",
       "fixed_pool_gbp_month": 96000,
@@ -177,7 +177,7 @@
     },
     {
       "id": "claimcenter",
-      "name": "Guidewire ClaimCenter",
+      "name": "Claims administration",
       "category": "Claims",
       "type": "platform",
       "fixed_pool_gbp_month": 74000,
@@ -199,7 +199,7 @@
     },
     {
       "id": "billingcenter",
-      "name": "Guidewire BillingCenter",
+      "name": "Billing",
       "category": "Billing",
       "type": "platform",
       "fixed_pool_gbp_month": 47000,
@@ -221,7 +221,7 @@
     },
     {
       "id": "meridian",
-      "name": "Meridian Data Cloud",
+      "name": "Data cloud",
       "category": "Cloud data platform",
       "type": "platform",
       "fixed_pool_gbp_month": 63000,
@@ -243,7 +243,7 @@
     },
     {
       "id": "powerbi",
-      "name": "Power BI",
+      "name": "Business intelligence",
       "category": "Business intelligence",
       "type": "platform",
       "fixed_pool_gbp_month": 11000,
@@ -265,7 +265,7 @@
     },
     {
       "id": "marketingcloud",
-      "name": "Salesforce Marketing Cloud",
+      "name": "Marketing automation",
       "category": "Marketing automation",
       "type": "platform",
       "fixed_pool_gbp_month": 14000,
@@ -287,7 +287,7 @@
     },
     {
       "id": "opentext",
-      "name": "OpenText",
+      "name": "Document management",
       "category": "Document management",
       "type": "platform",
       "fixed_pool_gbp_month": 26000,
@@ -309,7 +309,7 @@
     },
     {
       "id": "adyen",
-      "name": "Adyen",
+      "name": "Payments",
       "category": "Payments",
       "type": "platform",
       "fixed_pool_gbp_month": 9000,
@@ -331,7 +331,7 @@
     },
     {
       "id": "conduit",
-      "name": "Conduit iPaaS",
+      "name": "Integration hub",
       "category": "Integration platform",
       "type": "integration",
       "fixed_pool_gbp_month": 31000,
@@ -353,7 +353,7 @@
     },
     {
       "id": "apigee",
-      "name": "Apigee",
+      "name": "API gateway",
       "category": "API gateway",
       "type": "integration",
       "fixed_pool_gbp_month": 18000,
@@ -375,7 +375,7 @@
     },
     {
       "id": "okta",
-      "name": "Okta",
+      "name": "Identity service",
       "category": "Identity",
       "type": "integration",
       "fixed_pool_gbp_month": 24000,
@@ -397,7 +397,7 @@
     },
     {
       "id": "kafka",
-      "name": "Confluent Kafka",
+      "name": "Event bus",
       "category": "Event bus",
       "type": "integration",
       "fixed_pool_gbp_month": 21000,

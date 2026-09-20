@@ -12,7 +12,7 @@ import { copy, fill } from '../copy'
 import { describePlatform, describeUseCase } from '../model/describe'
 import { platformView, useCaseView } from '../app/graph'
 import { useLedger } from '../app/store'
-import type { Index } from '../model/ledger'
+import { gbpAbout, type Index } from '../model/ledger'
 import type { AllocationRule } from '../model/types'
 
 type CopyMap = Record<string, string>
@@ -55,7 +55,7 @@ export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: Wa
         ...d,
         lef: v.lef.toFixed(1),
         loss: Math.round(v.lossMedian).toLocaleString('en-GB'),
-        exec: Math.round(v.executionComponent).toLocaleString('en-GB'),
+        exec: gbpAbout(v.workOfLeaving),
         adopted: v.adoptedMonth,
         ratified,
       }

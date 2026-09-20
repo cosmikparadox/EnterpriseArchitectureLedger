@@ -8,11 +8,10 @@ import { Hint, Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
 import { ExceedanceCurve } from '../components/ExceedanceCurve'
-import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
 import { useMonteCarlo } from '../app/useMonteCarlo'
 import { reachAt, sampleFailure, type Failure } from '../model/reach'
-import type { Index } from '../model/ledger'
+import { gbpAbout, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy, fill, summary } from '../copy'
 import { Summary } from '../components/Summary'
@@ -177,8 +176,8 @@ export function Risk({ estate, ix, dark }: RiskProps) {
                 affected: failure?.affected.size ?? 0,
                 volume: Math.round(failure?.volume ?? 0).toLocaleString('en-GB'),
                 sub: subName,
-                sum: sub ? Math.round(sub.sumOfP99s).toLocaleString('en-GB') : '...',
-                joint: sub ? Math.round(sub.jointP99).toLocaleString('en-GB') : '...',
+                sum: sub ? gbpAbout(sub.sumOfP99s) : '...',
+                joint: sub ? gbpAbout(sub.jointP99) : '...',
               }}
             />
           )}
@@ -233,11 +232,11 @@ export function Risk({ estate, ix, dark }: RiskProps) {
               <>
                 <div className="row">
                   <span className="l"><Term k="sum_of_p99">Sum of per-use-case P99 losses</Term></span>
-                  <span className="v">{gbp(sub.sumOfP99s)}</span>
+                  <span className="v">about GBP {gbpAbout(sub.sumOfP99s)}</span>
                 </div>
                 <div className="row">
                   <span className="l"><Term k="joint_p99">P99 of the subdomain&apos;s joint loss</Term></span>
-                  <span className="v">{gbp(sub.jointP99)}</span>
+                  <span className="v">about GBP {gbpAbout(sub.jointP99)}</span>
                 </div>
                 <div className="callout">{copy.view3_nonadd}</div>
                 <div className="row" data-tour="gap">
@@ -247,7 +246,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
                 {band && band.hi > band.lo && (
                   <div className="row">
                     <span className="l">Band spanned by the slider</span>
-                    <span className="v">{gbp(band.hi - band.lo)}</span>
+                    <span className="v">about GBP {gbpAbout(band.hi - band.lo)}</span>
                   </div>
                 )}
                 <div className="note">{copy.no_total}</div>

@@ -17,7 +17,7 @@ import { FootprintChart, type Series } from '../components/FootprintChart'
 import { WKCurve } from '../components/WKCurve'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
-import { executionComponent, kCommitted, optionComponent, optionEngineFor, wCurve, type Index } from '../model/ledger'
+import { gbpAbout, kCommitted, optionComponent, optionEngineFor, wCurve, workOfLeaving, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy, summary } from '../copy'
 import { Summary } from '../components/Summary'
@@ -67,7 +67,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
       // Mean per-rider rule share. Exact under equal split, and the mean under
       // any basis, because canon 9.2.8 requires the shares to sum to the pool.
       perRider: n === 0 ? 0 : platform.fixed_pool_gbp_month / n,
-      execution: executionComponent(platform, n, months),
+      execution: workOfLeaving(platform, n, months),
       option: engine ? optionComponent(engine, platform, n, months) : 0,
       k: kCommitted(platform, n, months),
       months,
@@ -97,7 +97,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
     if (!platform) return []
     const rows = MONTHS.map(at)
     return [
-      { label: 'what it committed you to, execution component', values: rows.map((r) => r?.execution ?? null), dashed: true },
+      { label: 'what it committed you to, the work of leaving', values: rows.map((r) => r?.execution ?? null), dashed: true },
     ]
   }, [platform, at])
 
@@ -184,7 +184,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 ratified,
                 adopted: platform.adopted_month,
                 n: atRatified.n,
-                exec: Math.round(atRatified.execution).toLocaleString('en-GB'),
+                exec: gbpAbout(atRatified.execution),
               }}
             />
           )}
@@ -213,7 +213,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 <div className="row"><span className="l">Subdomains</span><span className="v">{now.subdomains}</span></div>
                 <div className="row"><span className="l">Metered spend</span><span className="v">{gbp(now.metered)} /month</span></div>
                 <div className="row"><span className="l">Rule share per rider</span><span className="v">{gbp(now.perRider)} /month</span></div>
-                <div className="row"><span className="l">Execution component of leaving</span><span className="v">{gbp(now.execution)}</span></div>
+                <div className="row"><span className="l">Work of leaving</span><span className="v">about GBP {gbpAbout(now.execution)}</span></div>
                 <div className="note">
                   {now.adopted ? copy.footprint_bill_visible : copy.footprint_not_yet}
                 </div>
@@ -224,8 +224,8 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                   <h3>Ratified as strategic</h3>
                   <div className="callout">
                     By the time this platform reached the board, {atRatified.n} use cases in{' '}
-                    {atRatified.subdomains} subdomains already depended on it and the execution
-                    component of leaving had reached roughly {gbp(atRatified.execution)}. The
+                    {atRatified.subdomains} subdomains already depended on it and the work
+                    of leaving had reached about GBP {gbpAbout(atRatified.execution)}. The
                     board ratified a footprint.
                   </div>
                   <div className="note">
@@ -243,7 +243,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                     inside the same element as the refusal, so a screenshot
                     cannot separate the figure from the refusal. */}
                 <div className="refusal">
-                  <span className="fig">Option component at month {cursor}: {gbp(now.option)}</span>
+                  <span className="fig">Option component at month {cursor}: about GBP {gbpAbout(now.option)}</span>
                   {copy.option_refusal}
                   <div className="note" style={{ marginTop: 6 }}>{copy.option_tip}</div>
                   {engine && (

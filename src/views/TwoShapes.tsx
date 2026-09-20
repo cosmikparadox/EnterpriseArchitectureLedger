@@ -15,7 +15,7 @@ import { gbp } from '../components/DetailPanel'
 import { buildGraph, type GNode } from '../app/graph'
 import { useMonteCarlo } from '../app/useMonteCarlo'
 import {
-  buildIndex, c1, edgeSpend, executionComponent, kCommitted, meteredSpend, reportedCost, ruleShare,
+  buildIndex, c1, edgeSpend, gbpAbout, kCommitted, meteredSpend, reportedCost, ruleShare, workOfLeaving,
 } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
 import { copy, fill, summary } from '../copy'
@@ -72,7 +72,7 @@ function shapeStats(shape: Shape, rule: AllocationRule) {
 
   const exits = estate.platforms.map((p) => {
     const n = ix.ridersOf.get(p.id)!.length
-    return { p, exec: executionComponent(p, n, AS_AT - p.adopted_month), k: kCommitted(p, n, AS_AT - p.adopted_month) }
+    return { p, exec: workOfLeaving(p, n, AS_AT - p.adopted_month), k: kCommitted(p, n, AS_AT - p.adopted_month) }
   }).sort((a, b) => b.exec - a.exec)
 
   const integrationExecSum = exits
@@ -123,7 +123,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   }
 
   const mcLeft = useMonteCarlo(concentrated, rho, 10_000)
-  const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000, 4, 20260906)
+  const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000)
 
   const sl = useMemo(() => shapeStats(left, rule), [left, rule])
   const sr = useMemo(() => shapeStats(right, rule), [right, rule])
@@ -195,7 +195,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
     return {
       selectedId: e.exitId,
       focus: { nodes: new Set([e.exitId, ...e.exitRiders]) },
-      note: <div className="shape-note">{fill(copy.shapes_note_exit, { name: e.exitName, exec: gbpPlain(e.exec) })}</div>,
+      note: <div className="shape-note">{fill(copy.shapes_note_exit, { name: e.exitName, exec: gbpAbout(e.exec) })}</div>,
     }
   }
   // Each entry into the risk phase replays the wave from the source; a
@@ -303,8 +303,8 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
               left_top: hl.left.topRiders,
               right_top: hl.right.topRiders,
               sub: subName,
-              left: p99(mcLeft, subId) === null ? '...' : Math.round(p99(mcLeft, subId)!).toLocaleString('en-GB'),
-              right: p99(mcRight, subId) === null ? '...' : Math.round(p99(mcRight, subId)!).toLocaleString('en-GB'),
+              left: p99(mcLeft, subId) === null ? '...' : gbpAbout(p99(mcLeft, subId)!),
+              right: p99(mcRight, subId) === null ? '...' : gbpAbout(p99(mcRight, subId)!),
             }}
           />
 
@@ -339,7 +339,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             <Row l="" a="concentrated" b="best of breed" />
             {concentrated.subdomains.map((s) => {
               const a = p99(mcLeft, s.id), b = p99(mcRight, s.id)
-              return <Row key={s.id} l={s.name} a={a === null ? '...' : gbp(a)} b={b === null ? '...' : gbp(b)} />
+              return <Row key={s.id} l={s.name} a={a === null ? '...' : `GBP ${gbpAbout(a)}`} b={b === null ? '...' : `GBP ${gbpAbout(b)}`} />
             })}
             <div className="note">{copy.no_total}</div>
             {mcLeft.offline && mcLeft.snappedRho !== null && (
@@ -366,13 +366,13 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           </section>
 
           <section>
-            <h3>Execution component of leaving, largest single</h3>
+            <h3>Work of leaving, largest single</h3>
             <Row l="node" a={sl.exits[0]!.p.name} b={sr.exits[0]!.p.name} />
-            <Row l="execution" a={gbp(sl.exits[0]!.exec)} b={gbp(sr.exits[0]!.exec)} />
+            <Row l="work of leaving" a={`about GBP ${gbpAbout(sl.exits[0]!.exec)}`} b={`about GBP ${gbpAbout(sr.exits[0]!.exec)}`} />
             <div className="refusal">
               <span className="fig">
-                Sum across integration commitments: {gbp(sl.integrationExecSum)} left,{' '}
-                {gbp(sr.integrationExecSum)} right
+                Sum across integration commitments: about GBP {gbpAbout(sl.integrationExecSum)} left,{' '}
+                about GBP {gbpAbout(sr.integrationExecSum)} right
               </span>
               {copy.option_upper_bound}
             </div>

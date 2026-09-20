@@ -10,7 +10,7 @@ import { makeRng } from '../model/rng'
 import type { AllocationRule, Estate } from '../model/types'
 import {
   buildIndex, edgeSpend, meteredSpend, ruleShare, c1, reportedCost,
-  kCommitted, executionComponent, type Index,
+  kCommitted, executionComponent, workOfLeaving, type Index,
 } from '../model/ledger'
 
 export type NodeKind = 'platform' | 'integration' | 'use_case'
@@ -247,6 +247,8 @@ export interface PlatformView {
   adoptedMonth: number
   kCommitted: number
   executionComponent: number
+  /** What the tool shows as the work of leaving: unsplit where the counterfactual is not evidenced. */
+  workOfLeaving: number
   counterfactualEvidenced: boolean
   counterfactualNote: string
 }
@@ -282,6 +284,7 @@ export function platformView(ix: Index, id: string, rule: AllocationRule, months
     adoptedMonth: p.adopted_month,
     kCommitted: kCommitted(p, riders.length, monthsSinceAdopted),
     executionComponent: executionComponent(p, riders.length, monthsSinceAdopted),
+    workOfLeaving: workOfLeaving(p, riders.length, monthsSinceAdopted),
     counterfactualEvidenced: p.counterfactual_evidenced,
     counterfactualNote: p.counterfactual_note,
   }

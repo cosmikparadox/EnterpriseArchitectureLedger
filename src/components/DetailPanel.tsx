@@ -6,7 +6,7 @@ import { copy, summary, type GlossaryKey } from '../copy'
 import { Summary } from './Summary'
 import { Term } from './Hint'
 import type { AllocationRule, Estate } from '../model/types'
-import { c1, edgeSpend, optionComponent, optionEngineFor, reportedCost, wCurve, type Index } from '../model/ledger'
+import { c1, edgeSpend, gbpAbout, optionComponent, optionEngineFor, reportedCost, wCurve, type Index } from '../model/ledger'
 import { platformView, useCaseView, type GLink } from '../app/graph'
 import { WKCurve } from './WKCurve'
 import { PanelShell } from './PanelShell'
@@ -173,7 +173,7 @@ export function DetailPanel(props: DetailPanelProps) {
         <section className={sec('switching')}>
           <h3>{copy.panel_section_switching}</h3>
           <div className="note">{copy.switching_split}</div>
-          <Row k="execution_component" l="Execution component" v={gbp(v.executionComponent)} />
+          <Row k="execution_component" l="Work of leaving" v={gbpAbout(v.workOfLeaving)} />
           <div className="note">{copy.panel_exec_note}</div>
           {option && (
             // Canon 9.5.7 and 9.9. The option component NEVER renders outside

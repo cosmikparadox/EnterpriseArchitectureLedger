@@ -7,7 +7,7 @@ import { Legend } from '../components/Legend'
 import { DetailPanel } from '../components/DetailPanel'
 import { buildGraph, CONNECTOR, SUBDOMAIN_COLOUR, type GLink } from '../app/graph'
 import type { AllocationRule, Estate } from '../model/types'
-import type { Index } from '../model/ledger'
+import { gbpAbout, type Index } from '../model/ledger'
 import { useLedger } from '../app/store'
 import { usePrefersReducedMotion } from '../app/useNarrow'
 import { describeSubdomain } from '../model/describe'
@@ -102,12 +102,6 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     }
     return { warmth, share }
   }, [inStory, scene.flow, flowOn, estate])
-  const flowByDomain = useMemo(() => estate.subdomains.map((sd) => {
-    const ucs = estate.use_cases.filter((u) => u.subdomain === sd.id)
-    const all = ucs.reduce((a, u) => a + u.volume_per_month, 0)
-    const cust = ucs.filter((u) => u.value_flow === 'customer').reduce((a, u) => a + u.volume_per_month, 0)
-    return { id: sd.id, name: sd.name, share: all === 0 ? 0 : cust / all }
-  }), [estate])
   const [walk, setWalk] = useState<string | null>(null)
   const [walkStep, setWalkStep] = useState(0)
   const [walkFocus, setWalkFocus] = useState<Focus | null>(null)
@@ -129,7 +123,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
       values = [
         fill(copy.book_v_cost_p, { metered: gbpN(v.meteredSpend), pool: gbpN(v.fixedPool) }),
         fill(copy.book_v_risk_p, { riders: v.riders }),
-        fill(copy.book_v_exit_p, { exec: gbpN(v.executionComponent) }),
+        fill(copy.book_v_exit_p, { exec: gbpAbout(v.workOfLeaving) }),
       ]
     } else if (ix.useCaseById.has(selectedId)) {
       const d = describeUseCase(ix, selectedId, rule)
@@ -273,10 +267,6 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
               <div className="flow-bar" />
               <div className="flow-ends"><span>{copy.flow_cool}</span><span>{copy.flow_mid}</span><span>{copy.flow_warm}</span></div>
               <div className="flow-note">{copy.flow_width}</div>
-              <div className="flow-head">{copy.flow_domain_head}</div>
-              {flowByDomain.map((d) => (
-                <div key={d.id} className="flow-row"><span className="intro-swatch" style={{ background: SUBDOMAIN_COLOUR[d.id] }} /><span className="flow-name">{d.name}</span><span className="flow-track"><span className="flow-fill" style={{ width: `${Math.round(d.share * 100)}%` }} /></span><span className="flow-pct">{Math.round(d.share * 100)}%</span></div>
-              ))}
               <div className="flow-note">{fill(copy.flow_declared, { owner: estate.provenance.value_flags_owner, date: estate.provenance.value_flags_declared })}</div>
             </div>
           )}

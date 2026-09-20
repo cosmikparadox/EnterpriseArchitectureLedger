@@ -331,7 +331,7 @@
     },
     {
       "id": "conduit",
-      "name": "Conduit iPaaS",
+      "name": "Integration hub",
       "category": "Integration platform",
       "type": "integration",
       "fixed_pool_gbp_month": 31000,
@@ -353,7 +353,7 @@
     },
     {
       "id": "apigee",
-      "name": "Apigee",
+      "name": "API gateway",
       "category": "API gateway",
       "type": "integration",
       "fixed_pool_gbp_month": 18000,
@@ -375,7 +375,7 @@
     },
     {
       "id": "okta",
-      "name": "Okta",
+      "name": "Identity service",
       "category": "Identity",
       "type": "integration",
       "fixed_pool_gbp_month": 24000,
@@ -397,7 +397,7 @@
     },
     {
       "id": "kafka",
-      "name": "Confluent Kafka",
+      "name": "Event bus",
       "category": "Event bus",
       "type": "integration",
       "fixed_pool_gbp_month": 21000,

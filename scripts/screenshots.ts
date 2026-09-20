@@ -17,7 +17,7 @@ const SHOTS: Shot[] = [
   {
     name: '01-explore-node', view: 1,
     act: async (p) => {
-      await p.getByLabel('Search nodes by name').fill('Okta')
+      await p.getByLabel('Search nodes by name').fill('Identity service')
       await p.getByRole('option').first().click()
       await p.waitForTimeout(1400)
     },

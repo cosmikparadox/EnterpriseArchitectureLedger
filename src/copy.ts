@@ -222,8 +222,7 @@ export const copy = {
     'keeps the company running. The width is how much.',
   b_flow_see:
     'Not a figure. Where each use case\'s value lands was declared by the ' +
-    'finance function. {cust_share} percent of the work reaches a customer, ' +
-    'and {top_flow} carries the most of it.',
+    'finance function.',
   b_flow_more:
     'The flag on each use case is a declared fact about the business. It is ' +
     'recorded with an owner and a date, like the domain boundaries. The tool ' +
@@ -352,8 +351,8 @@ export const copy = {
   b_fail_see: 'How far that reaches is the blast radius.',
   b_together_h: 'A bad month, two ways',
   b_together:
-    'Price a bad month for {sub} one use case at a time and add them up: GBP ' +
-    '{sum}. Price the domain together: GBP {joint}.',
+    'Price a bad month for {sub} one use case at a time and add them up: ' +
+    'about GBP {sum}. Price the domain together: about GBP {joint}.',
   b_together_see:
     'Adding assumes every use case has its worst month in the same month. ' +
     'They rarely do. Together is the figure to read.',
@@ -366,7 +365,7 @@ export const copy = {
     'Those figures depend on one input this tool does not measure: how ' +
     'strongly platform failures are linked. Move the slider from one end to ' +
     'the other.',
-  b_rho_see: 'Across the range the {sub} figure ran from GBP {lo} to GBP {hi}. The honest reading is the range.',
+  b_rho_see: 'Across the range the {sub} figure ran from about GBP {lo} to about GBP {hi}. The honest reading is the range.',
   b_rho_more:
     'The slider is a dependence parameter, rho, from 0 to 1. It runs under a ' +
     'Student t copula with four degrees of freedom. It is a declared input, ' +
@@ -384,17 +383,19 @@ export const copy = {
   b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
   b_exit_h: 'What leaving would cost',
   b_exit:
-    'At that month the work of leaving had already reached about GBP {exec}. ' +
-    'Migration, rewiring, running two systems for a while.',
+    'At that month the work of leaving had already reached about GBP {exec}, ' +
+    'unsplit. Migration, rewiring, running two systems for a while.',
   b_exit_see:
     'Month {cursor}: {attached_now} use cases attached, and the work of ' +
     'leaving stands at {exit_now}. Drag the handle either way. No single ' +
     'decision created it.',
   b_exit_more:
-    'That figure is the execution component, an engineering estimate rather ' +
-    'than a measurement. There is a second part, the value of the choices ' +
-    'given up. The ledger declines to state it without evidence of what the ' +
-    'alternative was. See the Ledger paper, 9.5.',
+    'That figure is the full work of leaving, an engineering estimate rather ' +
+    'than a measurement. The ledger would split it into execution work and ' +
+    'the value of the choices given up. It declines to split it without ' +
+    'evidence of what the alternative was. See the Ledger paper, 9.5. This ' +
+    'model also hardens the figure by a made-up rate each month. After the ' +
+    'last use case attaches, only that grows it.',
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
     'Same {n_uc} use cases, wired two ways. On the left, one platform does ' +
@@ -403,8 +404,8 @@ export const copy = {
   b_diversify_see:
     'The shared point did not disappear. On the left one connector carries ' +
     '{left_riders} use cases. On the right {n_int} connectors each carry ' +
-    'every use case. A bad month for {sub}: GBP {left} on the left, GBP ' +
-    '{right} on the right.',
+    'every use case. A bad month for {sub}: about GBP {left} on the left, ' +
+    'about GBP {right} on the right.',
   b_diversify_more:
     'Neither shape is right, and the ledger does not pick one. Concentration ' +
     'inside a domain boundary is cheap to reason about. One domain shares ' +
@@ -427,17 +428,17 @@ export const copy = {
   shapes_risk:
     'Risk. The busiest node fails on each side. Left: {left_aff} use cases ' +
     'stop. Right: {right_aff}, because every use case crosses that connector. ' +
-    'A bad month for {sub}: GBP {left} against GBP {right}.',
+    'A bad month for {sub}: about GBP {left} against about GBP {right}.',
   shapes_exit:
-    'Leaving. The largest single exit is GBP {left_exec} of work, off ' +
-    '{left_exit}, on the left. On the right, GBP {right_exec} off ' +
+    'Leaving. The largest single exit is about GBP {left_exec} of work, off ' +
+    '{left_exit}, on the left. On the right, about GBP {right_exec} off ' +
     '{right_exit}, with more contracts behind it.',
   ctl_shapes_cost: 'Cost',
   ctl_shapes_risk: 'Risk',
   ctl_shapes_exit: 'Leaving',
   shapes_note_cost: 'Pool GBP {pool}, {riders} riders, rule share {c1} percent',
   shapes_note_risk: '{aff} use cases stop',
-  shapes_note_exit: 'Largest exit: {name}, GBP {exec} of work',
+  shapes_note_exit: 'Largest exit: {name}, about GBP {exec} of work',
   b_lines_drawn_h: 'Whose lines decided all of it',
   b_lines_drawn:
     'The domain figures so far, such as a bad month for {sub}, depend on ' +
@@ -492,7 +493,9 @@ export const copy = {
   close_h_not: 'What it does not do',
   close_not:
     'It will not add the estate up to one number. It cannot say where a ' +
-    'boundary belongs, or what leaving would really cost.',
+    'boundary belongs, or what leaving would really cost. It does not show ' +
+    'the cost of adding the next use case. The paper treats that as the ' +
+    'primary flexibility measure.',
   close_caveat:
     'It prices the choices a commitment removes. It does not yet price the ' +
     'ones a commitment creates. That work is parked on an open problem.',
@@ -510,7 +513,7 @@ export const copy = {
   row_sum: 'Bad month, {sub}, one at a time',
   row_joint: 'Bad month, {sub}, together',
   row_range: 'Dependence range',
-  row_exec: 'Leaving, execution work at month {ratified}',
+  row_exec: 'Leaving, work of leaving at month {ratified}',
   row_left: 'Bad month, {sub}, concentrated',
   row_right: 'Bad month, {sub}, best of breed',
   row_moved: 'Figures moved under {basis}',
@@ -638,7 +641,6 @@ export const copy = {
   flow_cool: 'stays inside the company',
   flow_width: 'width is work a month, not money',
   flow_declared: 'Declared by {owner}, {date}. Not a value figure.',
-  flow_domain_head: 'Share of each domain\'s work that reaches a customer',
   canvas_gesture: 'Drag to look around. Scroll or pinch to zoom.',
   book_title: 'The ledger, {name}',
   book_row_1: 'Entry one: what it costs',
@@ -648,7 +650,7 @@ export const copy = {
   // The book's rows, filled for whatever node is tapped.
   book_v_cost_p: 'GBP {metered} metered, GBP {pool} by rule',
   book_v_risk_p: '{riders} use cases can stop with it',
-  book_v_exit_p: 'GBP {exec} of work to leave',
+  book_v_exit_p: 'about GBP {exec} of work to leave',
   book_v_cost_u: 'GBP {reported} a month, all platforms',
   book_v_risk_u: 'can stop if {worst} does',
   book_v_exit_u: 'stranded by {stranded}',
@@ -692,10 +694,10 @@ export const copy = {
     '{loss}. The wireframe nodes are the ones an outage reached.',
   walk_p_leaving_h: 'What leaving would cost',
   walk_p_leaving:
-    'The work of moving off it today is about GBP {exec}: migration, ' +
-    'rewiring, running two systems for a while. There is a second part, the ' +
-    'value of the choices given up. The ledger declines to price it without ' +
-    'a dated decision record, and this estate has none.',
+    'The work of leaving today is about GBP {exec}: migration, rewiring, ' +
+    'running two systems for a while. The ledger would split that into ' +
+    'execution work and the value of the choices given up. It declines to ' +
+    'split it without a dated decision record, and this estate has none.',
   walk_p_when_h: 'When it arrived',
   walk_p_when:
     'Adopted at month {adopted}, ratified as strategic at month {ratified}. ' +
@@ -770,7 +772,7 @@ export const copy = {
   drawing_tap: 'Tap to see what the colours hide',
 
   // Panel notes that used to be typed into the component.
-  panel_exec_note: 'An engineering estimate of what it costs to move: migration effort, dual running, retraining.',
+  panel_exec_note: 'An engineering estimate of the work of leaving, unsplit: migration effort, dual running, retraining.',
   // View 2's annotation, named for what it is rather than by a label the
   // canon uses for a reading principle.
   c1_annotation: 'Share set by rule',
@@ -858,8 +860,8 @@ export const glossary = {
     tip: 'Each use case\u2019s bad month added up. It assumes every worst month lands at once, which is the extreme case.',
   },
   execution_component: {
-    label: 'Execution component',
-    tip: 'The part of leaving you can price: migration, rewiring, running both for a while. An engineering estimate, not a measurement.',
+    label: 'Work of leaving',
+    tip: 'What leaving would take: migration, rewiring, running both for a while. An engineering estimate, not a measurement, shown unsplit.',
   },
   integration_node: {
     label: 'Integration node',
@@ -964,8 +966,8 @@ export const summary = {
     'Fail {name} and {affected} use cases stop, stalling {volume} units of ' +
     'monthly work.',
   s3_number:
-    'A bad month for {sub} looks like GBP {sum} priced one use case at a time. ' +
-    'Taken together it is GBP {joint}.',
+    'A bad month for {sub} looks like about GBP {sum} priced one use case at ' +
+    'a time. Taken together it is about GBP {joint}.',
   s3_mechanism:
     'The first figure assumes every use case has its worst month at once. ' +
     'Priced together, the worst months do not all coincide.',
@@ -975,8 +977,8 @@ export const summary = {
     'By month {ratified}, when {name} was ratified, {n} use cases already ' +
     'depended on it.',
   s4_number:
-    'Leaving would already have taken about GBP {exec} of execution work. ' +
-    'There is also an option component, which the ledger declines to state ' +
+    'Leaving would already have taken about GBP {exec} of work. The ledger ' +
+    'declines to split that into execution work and an option component ' +
     'without an evidenced counterfactual.',
   s4_head_before:
     'At month {ratified} {name} had not arrived yet. It was adopted in month ' +
@@ -992,8 +994,8 @@ export const summary = {
     'Same {n_uc} use cases, wired two ways. The busiest node carries ' +
     '{left_top} on one side and {right_top} on the other.',
   s5_number:
-    'A bad month for {sub} runs GBP {left} on one side and GBP {right} on the ' +
-    'other. Both are at the dependence currently set.',
+    'A bad month for {sub} runs about GBP {left} on one side and about GBP ' +
+    '{right} on the other. Both are at the dependence currently set.',
   s5_mechanism:
     'Splitting the estate did not remove the shared point. It multiplied it ' +
     'across the connectors.',

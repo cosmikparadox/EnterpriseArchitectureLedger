@@ -6,7 +6,7 @@
 // on both halves at once and the card quotes them, so they are computed
 // here, once, and read by both.
 
-import { c1, executionComponent, meteredSpend, type Index } from './ledger'
+import { c1, meteredSpend, workOfLeaving, type Index } from './ledger'
 import { reachAt, sampleFailure, type Failure, type Reach } from './reach'
 import type { Estate } from '../model/types'
 
@@ -39,7 +39,7 @@ export function shapeEntry(estate: Estate, ix: Index, rho: number, seed: number)
   const failure = sampleFailure(ix, top.id, seed)
   const reach = failure ? reachAt(ix, failure, rho, seed ^ 0xc0de) : null
   const exits = estate.platforms
-    .map((p) => { const n = ix.ridersOf.get(p.id)?.length ?? 0; return { p, exec: executionComponent(p, n, SHAPES_AS_AT - p.adopted_month) } })
+    .map((p) => { const n = ix.ridersOf.get(p.id)?.length ?? 0; return { p, exec: workOfLeaving(p, n, SHAPES_AS_AT - p.adopted_month) } })
     .sort((a, b) => b.exec - a.exec || a.p.id.localeCompare(b.p.id))
   const exit = exits[0]!
   return {

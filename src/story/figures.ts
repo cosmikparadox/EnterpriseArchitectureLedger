@@ -4,7 +4,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLedger } from '../app/store'
 import { useMonteCarlo } from '../app/useMonteCarlo'
-import { buildIndex, executionComponent, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
+import { buildIndex, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
+import { gbpAbout, workOfLeaving } from '../model/ledger'
 import { describeEstate } from '../model/describe'
 import { shapeEntry, SHAPES_SEED } from '../model/shapes'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
@@ -26,7 +27,7 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const moves = useLedger((s) => s.moves)
   const ix = useMemo(() => buildIndex(concentrated), [concentrated])
   const mcLeft = useMonteCarlo(concentrated, rho, 10_000)
-  const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000, 4, 20260906)
+  const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000)
   const subName = concentrated.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
   const sub = mcLeft.result?.subdomains.find((s) => s.id === subdomain) ?? null
   const subRight = mcRight.result?.subdomains.find((s) => s.id === subdomain) ?? null
@@ -51,25 +52,10 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const dataPlatform = ix.platformById.get(DATA_PLATFORM_ID) ?? null
   const attached = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= ratified).length : 0
   const months = dataPlatform ? Math.max(0, ratified - dataPlatform.adopted_month) : 0
-  const exec = dataPlatform ? executionComponent(dataPlatform, attached, months) : 0
+  const exec = dataPlatform ? workOfLeaving(dataPlatform, attached, months) : 0
   // The same, at the month under the handle, so the card answers the handle.
   const attachedNow = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= cursor).length : 0
-  const execNow = dataPlatform && cursor >= dataPlatform.adopted_month ? executionComponent(dataPlatform, attachedNow, Math.max(0, cursor - dataPlatform.adopted_month)) : 0
-
-  // The value flow: which platform carries the most customer-facing work,
-  // and what share of all the work reaches a customer. Work, not money.
-  const flowFigures = useMemo(() => {
-    const byPlatform = new Map<string, number>()
-    let customer = 0, all = 0
-    for (const u of concentrated.use_cases) {
-      all += u.volume_per_month
-      if (u.value_flow !== 'customer') continue
-      customer += u.volume_per_month
-      for (const e of u.edges) byPlatform.set(e.platform_id, (byPlatform.get(e.platform_id) ?? 0) + u.volume_per_month)
-    }
-    const top = [...byPlatform.entries()].sort((a, b) => b[1] - a[1])[0]
-    return { top_flow: top ? (ix.platformById.get(top[0])?.name ?? top[0]) : '', cust_share: all === 0 ? 0 : Math.round((customer / all) * 100) }
-  }, [concentrated, ix])
+  const execNow = dataPlatform && cursor >= dataPlatform.adopted_month ? workOfLeaving(dataPlatform, attachedNow, Math.max(0, cursor - dataPlatform.adopted_month)) : 0
 
   // Boundaries: how many reported figures move under each basis once the
   // moves in the store are applied.
@@ -108,26 +94,25 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     after: gbp(after),
     rule_first: gbp(ruleFirst),
     sub: subName,
-    sum: sub ? gbp(sub.sumOfP99s) : PLACEHOLDER,
-    joint: sub ? gbp(sub.jointP99) : PLACEHOLDER,
-    lo: band ? gbp(band.lo) : PLACEHOLDER,
-    hi: band ? gbp(band.hi) : PLACEHOLDER,
+    sum: sub ? gbpAbout(sub.sumOfP99s) : PLACEHOLDER,
+    joint: sub ? gbpAbout(sub.jointP99) : PLACEHOLDER,
+    lo: band ? gbpAbout(band.lo) : PLACEHOLDER,
+    hi: band ? gbpAbout(band.hi) : PLACEHOLDER,
     ratified,
     attached,
-    exec: gbp(exec),
+    exec: gbpAbout(exec),
     cursor,
-    ...flowFigures,
     attached_now: attachedNow,
-    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `GBP ${gbp(execNow)}` : PLACEHOLDER_NOT_YET,
-    left: sub ? gbp(sub.jointP99) : PLACEHOLDER,
-    right: subRight ? gbp(subRight.jointP99) : PLACEHOLDER,
+    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `about GBP ${gbpAbout(execNow)}` : PLACEHOLDER_NOT_YET,
+    left: sub ? gbpAbout(sub.jointP99) : PLACEHOLDER,
+    right: subRight ? gbpAbout(subRight.jointP99) : PLACEHOLDER,
     left_top: shapes.l.topName, right_top: shapes.r.topName,
     left_pool: gbp(shapes.l.pool), right_pool: gbp(shapes.r.pool),
     left_riders: shapes.l.riders, right_riders: shapes.r.riders,
     left_c1: pct(shapes.l.c1), right_c1: pct(shapes.r.c1),
     left_aff: shapes.l.affected, right_aff: shapes.r.affected,
     left_exit: shapes.l.exitName, right_exit: shapes.r.exitName,
-    left_exec: gbp(shapes.l.exec), right_exec: gbp(shapes.r.exec),
+    left_exec: gbpAbout(shapes.l.exec), right_exec: gbpAbout(shapes.r.exec),
     mover: mover?.name ?? '',
     mover_from: concentrated.subdomains.find((s) => s.id === mover?.subdomain)?.name ?? '',
     moved_equal: drift.equal.changed,

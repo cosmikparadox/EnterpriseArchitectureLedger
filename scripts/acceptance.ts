@@ -647,11 +647,12 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const mediumReal = !copyModule.copy.tour_medium_url.includes(copyModule.copy.tour_medium_placeholder_host)
   const mediumLinks = await page.locator('.story-close a').count()
   const mediumOk = mediumReal ? mediumLinks === 1 : mediumLinks === 0
-  const order = ['What this is', 'What it does not do', caveat, 'Read the argument', copyModule.copy.close_built].map((m) => text.toLowerCase().indexOf(m.toLowerCase()))
+  const flex = 'It does not show the cost of adding the next use case. The paper treats that as the primary flexibility measure.'
+  const order = ['What this is', 'What it does not do', flex, caveat, 'Read the argument', copyModule.copy.close_built].map((m) => text.toLowerCase().indexOf(m.toLowerCase()))
   const ordered = order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1]!))
   const ok = hasCaveat && hasDoi && mediumOk && ordered && errors.length === 0
   add('N2 the closing card carries the caveat, the DOI, and no placeholder link', ok ? 'PASS' : 'FAIL',
-    ok ? `caveat on screen character for character; "${doiLine}" shown; Medium ${mediumReal ? 'link shown' : 'line not rendered while the address is the placeholder'}; blocks in order what, not, caveat, read, built`
+    ok ? `caveat on screen character for character; "${doiLine}" shown; Medium ${mediumReal ? 'link shown' : 'line not rendered while the address is the placeholder'}; blocks in order what, not, flexibility line, caveat, read, built`
        : `caveat ${hasCaveat}, doi ${hasDoi}, medium links ${mediumLinks} (real ${mediumReal}), ordered ${ordered}, errors ${errors.length}`)
   await ctx.close()
 }
@@ -677,6 +678,75 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   add('N3 the literal C1 appears nowhere on screen', hits.length === 0 ? 'PASS' : 'FAIL',
     hits.length === 0 ? `${routes.length} routes read, including the pool view with its annotation open` : hits.join(', '))
   await ctx.close()
+}
+
+// ---- N4. No real product or company name reaches a viewer ------------------
+//
+// Every platform carries a generic name from its category. The built file is
+// searched for each retired name as written, and the rendered text of every
+// route for the vendor words regardless of case. Internal ids (okta, sap_s4)
+// stay in the data because nothing renders them; the rendered-text check is
+// what proves that.
+{
+  const OLD_NAMES = ['Salesforce', 'ServiceNow', 'SAP S/4HANA', 'Workday', 'Guidewire', 'PolicyCenter', 'ClaimCenter', 'BillingCenter', 'Meridian Data Cloud', 'Power BI', 'OpenText', 'Adyen', 'Conduit iPaaS', 'Apigee', 'Okta', 'Confluent', 'Kafka']
+  const inBundle = OLD_NAMES.filter((n) => dist.includes(n))
+  const VENDOR_WORDS = /\b(salesforce|servicenow|s\/4hana|workday|guidewire|policycenter|claimcenter|billingcenter|meridian|power bi|opentext|adyen|conduit|apigee|okta|confluent|kafka)\b/i
+  const onScreen: string[] = []
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  for (const r of ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/9', '#/tour/19', '#/tour/29', '#/tour/33']) {
+    await page.goto(`http://localhost:5190/${r}`, { waitUntil: 'load' })
+    await page.waitForTimeout(r.startsWith('#/tour') ? 2500 : 1500)
+    const text = await page.evaluate(() => document.body.innerText)
+    const m = VENDOR_WORDS.exec(text)
+    if (m) onScreen.push(`${r}: "${m[0]}"`)
+  }
+  await ctx.close()
+  const ok = inBundle.length === 0 && onScreen.length === 0
+  add('N4 no real product or company name in the bundle or on screen', ok ? 'PASS' : 'FAIL',
+    ok ? `${OLD_NAMES.length} retired names absent from dist; 10 routes rendered with no vendor word` : `bundle: ${inBundle.join(', ') || 'none'}; on screen: ${onScreen.join(' | ') || 'none'}`)
+}
+
+// ---- N5. Simulated and estimated figures carry two significant figures -----
+//
+// The story's ledger rows for the bad month, the dependence range and the
+// work of leaving, the risk view's two P99 figures, the two shapes P99
+// table and its largest exits, and the footprint's work of leaving.
+{
+  const sig = (v: string) => { const digits = v.replace(/[^0-9]/g, '').replace(/^0+/, '').replace(/0+$/, ''); return digits.length }
+  const bad: string[] = []
+  let counted = 0
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const check = (where: string, label: string, value: string) => { for (const m of value.match(/\d[\d,]*/g) ?? []) { counted++; if (sig(m) > 2) bad.push(`${where} ${label}: ${m}`) } }
+  await page.goto('http://localhost:5190/#/tour/33', { waitUntil: 'load' })
+  await page.waitForSelector('.ledger-row'); await page.waitForTimeout(2500)
+  for (const row of await page.locator('.ledger-row').all()) {
+    const l = (await row.locator('.l').innerText()).trim(); const v = (await row.locator('.v').innerText()).trim()
+    if (/^Bad month|^Dependence range|^Leaving/.test(l)) check('story ledger', l, v)
+  }
+  await page.goto('http://localhost:5190/#/risk', { waitUntil: 'load' }); await page.waitForTimeout(2500)
+  for (const row of await page.locator('.panel .row').all()) {
+    const l = (await row.locator('.l').innerText().catch(() => '')).trim(); const v = (await row.locator('.v').innerText().catch(() => '')).trim()
+    if (/P99/.test(l)) check('risk view', l, v)
+  }
+  await page.goto('http://localhost:5190/#/shapes', { waitUntil: 'load' }); await page.waitForTimeout(3500)
+  for (const row of await page.locator('[data-tour="p99"] .cmp').all()) {
+    const l = (await row.locator('.cl').innerText()).trim(); const a = (await row.locator('.ca').innerText()).trim(); const b = (await row.locator('.cb').innerText()).trim()
+    if (l && !/concentrated/.test(a)) { check('two shapes P99', l + ' left', a); check('two shapes P99', l + ' right', b) }
+  }
+  for (const row of await page.locator('.cmp').all()) {
+    const l = (await row.locator('.cl').innerText()).trim()
+    if (l === 'work of leaving') { check('two shapes exit', 'left', (await row.locator('.ca').innerText()).trim()); check('two shapes exit', 'right', (await row.locator('.cb').innerText()).trim()) }
+  }
+  await page.goto('http://localhost:5190/#/footprint', { waitUntil: 'load' }); await page.waitForTimeout(2500)
+  for (const row of await page.locator('.panel .row').all()) {
+    const l = (await row.locator('.l').innerText().catch(() => '')).trim(); const v = (await row.locator('.v').innerText().catch(() => '')).trim()
+    if (/Work of leaving/.test(l)) check('footprint', l, v)
+  }
+  await ctx.close()
+  add('N5 simulated and estimated figures show two significant figures', bad.length === 0 && counted > 0 ? 'PASS' : 'FAIL',
+    bad.length === 0 ? `${counted} figures read across the story ledger, the risk view, the two shapes and the footprint, none with more than two` : bad.slice(0, 8).join(' | '))
 }
 
 await browser.close()

@@ -33,7 +33,7 @@ export interface PlatformSpec {
 }
 
 export const PLATFORMS: PlatformSpec[] = [
-  { id: 'salesforce', name: 'Salesforce', category: 'CRM', type: 'platform',
+  { id: 'salesforce', name: 'CRM', category: 'CRM', type: 'platform',
     fixed_pool_gbp_month: 41000, driver_name: 'API calls', driver_unit_cost_gbp: 0.02,
     capacity_note: 'Licensed seats plus metered platform calls.',
     failure_lef: 0.42, loss_median_gbp: 180000, loss_log_sd: 1.10, adopted_month: 4,
@@ -41,7 +41,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A standard-interface CRM layer costed at adoption.',
     delta_v_median_gbp: 900000, delta_v_log_sd: 0.55, units_band: [4, 9] },
 
-  { id: 'servicenow', name: 'ServiceNow', category: 'ITSM', type: 'platform',
+  { id: 'servicenow', name: 'Service management', category: 'ITSM', type: 'platform',
     fixed_pool_gbp_month: 22000, driver_name: 'tickets', driver_unit_cost_gbp: 1.10,
     capacity_note: 'Subscription floor plus per-ticket processing.',
     failure_lef: 0.30, loss_median_gbp: 74000, loss_log_sd: 0.95, adopted_month: 9,
@@ -49,7 +49,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A workflow engine behind a service abstraction.',
     delta_v_median_gbp: 380000, delta_v_log_sd: 0.50, units_band: [0.15, 0.5] },
 
-  { id: 'sap_s4', name: 'SAP S/4HANA', category: 'ERP and general ledger', type: 'platform',
+  { id: 'sap_s4', name: 'ERP and ledger', category: 'ERP and general ledger', type: 'platform',
     fixed_pool_gbp_month: 58000, driver_name: 'postings', driver_unit_cost_gbp: 0.35,
     capacity_note: 'Reserved capacity sized to period close.',
     failure_lef: 0.18, loss_median_gbp: 410000, loss_log_sd: 1.25, adopted_month: 0,
@@ -57,7 +57,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A ledger kept behind a posting interface.',
     delta_v_median_gbp: 1600000, delta_v_log_sd: 0.62, units_band: [2, 7] },
 
-  { id: 'workday', name: 'Workday', category: 'HCM', type: 'platform',
+  { id: 'workday', name: 'HR core', category: 'HCM', type: 'platform',
     fixed_pool_gbp_month: 19000, driver_name: 'seats', driver_unit_cost_gbp: 6.5,
     capacity_note: 'Per-seat subscription, weak coupling to volume.',
     failure_lef: 0.22, loss_median_gbp: 52000, loss_log_sd: 0.85, adopted_month: 13,
@@ -65,7 +65,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A payroll and records split evaluated at selection.',
     delta_v_median_gbp: 300000, delta_v_log_sd: 0.48, units_band: [0.02, 0.12] },
 
-  { id: 'policycenter', name: 'Guidewire PolicyCenter', category: 'Policy administration', type: 'platform',
+  { id: 'policycenter', name: 'Policy administration', category: 'Policy administration', type: 'platform',
     fixed_pool_gbp_month: 96000, driver_name: 'policy transactions', driver_unit_cost_gbp: 0.55,
     capacity_note: 'Sized to peak renewal cycle, not to average load.',
     failure_lef: 0.26, loss_median_gbp: 620000, loss_log_sd: 1.30, adopted_month: 2,
@@ -73,7 +73,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A rating engine kept separable from policy records.',
     delta_v_median_gbp: 2100000, delta_v_log_sd: 0.66, units_band: [0.8, 1.4] },
 
-  { id: 'claimcenter', name: 'Guidewire ClaimCenter', category: 'Claims', type: 'platform',
+  { id: 'claimcenter', name: 'Claims administration', category: 'Claims', type: 'platform',
     fixed_pool_gbp_month: 74000, driver_name: 'claim transactions', driver_unit_cost_gbp: 0.9,
     capacity_note: 'Sized to surge events rather than steady state.',
     failure_lef: 0.28, loss_median_gbp: 480000, loss_log_sd: 1.20, adopted_month: 6,
@@ -81,7 +81,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A claims core with the document path kept external.',
     delta_v_median_gbp: 1500000, delta_v_log_sd: 0.60, units_band: [0.9, 1.6] },
 
-  { id: 'billingcenter', name: 'Guidewire BillingCenter', category: 'Billing', type: 'platform',
+  { id: 'billingcenter', name: 'Billing', category: 'Billing', type: 'platform',
     fixed_pool_gbp_month: 47000, driver_name: 'billing transactions', driver_unit_cost_gbp: 0.28,
     capacity_note: 'Baseline capacity held for monthly collection runs.',
     failure_lef: 0.24, loss_median_gbp: 260000, loss_log_sd: 1.05, adopted_month: 6,
@@ -89,7 +89,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A collections service behind a payments abstraction.',
     delta_v_median_gbp: 820000, delta_v_log_sd: 0.54, units_band: [0.6, 1.5] },
 
-  { id: 'meridian', name: 'Meridian Data Cloud', category: 'Cloud data platform', type: 'platform',
+  { id: 'meridian', name: 'Data cloud', category: 'Cloud data platform', type: 'platform',
     fixed_pool_gbp_month: 63000, driver_name: 'credits', driver_unit_cost_gbp: 0.85,
     capacity_note: 'Committed spend tier plus metered compute credits.',
     failure_lef: 0.34, loss_median_gbp: 210000, loss_log_sd: 1.15, adopted_month: 17,
@@ -97,7 +97,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'An open table format on object storage, evaluated at selection.',
     delta_v_median_gbp: 1250000, delta_v_log_sd: 0.70, units_band: [0.2, 0.9] },
 
-  { id: 'powerbi', name: 'Power BI', category: 'Business intelligence', type: 'platform',
+  { id: 'powerbi', name: 'Business intelligence', category: 'Business intelligence', type: 'platform',
     fixed_pool_gbp_month: 11000, driver_name: 'report renders', driver_unit_cost_gbp: 0.05,
     capacity_note: 'Capacity reservation plus per-render cost.',
     failure_lef: 0.20, loss_median_gbp: 38000, loss_log_sd: 0.80, adopted_month: 19,
@@ -105,7 +105,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A semantic layer kept independent of the reporting tool.',
     delta_v_median_gbp: 190000, delta_v_log_sd: 0.45, units_band: [40, 260] },
 
-  { id: 'marketingcloud', name: 'Salesforce Marketing Cloud', category: 'Marketing automation', type: 'platform',
+  { id: 'marketingcloud', name: 'Marketing automation', category: 'Marketing automation', type: 'platform',
     fixed_pool_gbp_month: 14000, driver_name: 'messages', driver_unit_cost_gbp: 0.006,
     capacity_note: 'Contracted send volume with overage pricing.',
     failure_lef: 0.26, loss_median_gbp: 44000, loss_log_sd: 0.90, adopted_month: 22,
@@ -113,7 +113,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A campaign service fed from the data platform.',
     delta_v_median_gbp: 230000, delta_v_log_sd: 0.52, units_band: [1.5, 5] },
 
-  { id: 'opentext', name: 'OpenText', category: 'Document management', type: 'platform',
+  { id: 'opentext', name: 'Document management', category: 'Document management', type: 'platform',
     fixed_pool_gbp_month: 26000, driver_name: 'documents', driver_unit_cost_gbp: 0.04,
     capacity_note: 'Retention storage floor plus per-document handling.',
     failure_lef: 0.19, loss_median_gbp: 96000, loss_log_sd: 1.00, adopted_month: 3,
@@ -121,7 +121,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A content store addressed through a document interface.',
     delta_v_median_gbp: 470000, delta_v_log_sd: 0.50, units_band: [0.8, 2.5] },
 
-  { id: 'adyen', name: 'Adyen', category: 'Payments', type: 'platform',
+  { id: 'adyen', name: 'Payments', category: 'Payments', type: 'platform',
     fixed_pool_gbp_month: 9000, driver_name: 'payment transactions', driver_unit_cost_gbp: 0.14,
     capacity_note: 'Scheme access fees plus per-transaction pricing.',
     failure_lef: 0.16, loss_median_gbp: 145000, loss_log_sd: 1.05, adopted_month: 11,
@@ -129,7 +129,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'A payment orchestration layer over two acquirers.',
     delta_v_median_gbp: 340000, delta_v_log_sd: 0.58, units_band: [0.5, 1.2] },
 
-  { id: 'conduit', name: 'Conduit iPaaS', category: 'Integration platform', type: 'integration',
+  { id: 'conduit', name: 'Integration hub', category: 'Integration platform', type: 'integration',
     fixed_pool_gbp_month: 31000, driver_name: 'integration messages', driver_unit_cost_gbp: 0.004,
     capacity_note: 'Runtime tier plus metered message throughput.',
     failure_lef: 0.38, loss_median_gbp: 165000, loss_log_sd: 1.10, adopted_month: 8,
@@ -137,7 +137,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'Point-to-point contracts kept in the owning services.',
     delta_v_median_gbp: 700000, delta_v_log_sd: 0.64, units_band: [6, 20] },
 
-  { id: 'apigee', name: 'Apigee', category: 'API gateway', type: 'integration',
+  { id: 'apigee', name: 'API gateway', category: 'API gateway', type: 'integration',
     fixed_pool_gbp_month: 18000, driver_name: 'API calls', driver_unit_cost_gbp: 0.0022,
     capacity_note: 'Environment floor plus metered call volume.',
     failure_lef: 0.32, loss_median_gbp: 190000, loss_log_sd: 1.15, adopted_month: 7,
@@ -145,7 +145,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'Gateway policy expressed in a portable configuration.',
     delta_v_median_gbp: 480000, delta_v_log_sd: 0.60, units_band: [9, 18] },
 
-  { id: 'okta', name: 'Okta', category: 'Identity', type: 'integration',
+  { id: 'okta', name: 'Identity service', category: 'Identity', type: 'integration',
     fixed_pool_gbp_month: 24000, driver_name: 'authentications', driver_unit_cost_gbp: 0.009,
     capacity_note: 'Per-identity subscription with metered authentication.',
     failure_lef: 0.29, loss_median_gbp: 320000, loss_log_sd: 1.35, adopted_month: 5,
@@ -153,7 +153,7 @@ export const PLATFORMS: PlatformSpec[] = [
     counterfactual_note: 'Standards-based federation with no proprietary claims.',
     delta_v_median_gbp: 780000, delta_v_log_sd: 0.68, units_band: [1.5, 3.2] },
 
-  { id: 'kafka', name: 'Confluent Kafka', category: 'Event bus', type: 'integration',
+  { id: 'kafka', name: 'Event bus', category: 'Event bus', type: 'integration',
     fixed_pool_gbp_month: 21000, driver_name: 'events', driver_unit_cost_gbp: 0.0016,
     capacity_note: 'Cluster floor plus metered throughput and retention.',
     failure_lef: 0.27, loss_median_gbp: 130000, loss_log_sd: 1.05, adopted_month: 14,
