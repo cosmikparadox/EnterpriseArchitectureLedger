@@ -1,6 +1,6 @@
 // View 1, Explore. Spec section 4.1.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
@@ -9,8 +9,6 @@ import { buildGraph, CONNECTOR, SUBDOMAIN_COLOUR, type GLink } from '../app/grap
 import type { AllocationRule, Estate } from '../model/types'
 import type { Index } from '../model/ledger'
 import { useLedger } from '../app/store'
-import { IntroCard, useIntro } from '../tour/Intro'
-import { Drawing } from '../tour/Drawing'
 import { usePrefersReducedMotion } from '../app/useNarrow'
 import { describeSubdomain } from '../model/describe'
 import { copy, fill } from '../copy'
@@ -38,25 +36,44 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [selectedLink, setSelectedLink] = useState<GLink | null>(null)
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState(false)
-  // The panel is always present now, opening on the estate summary when
-  // nothing is picked, so the canvas yields to it whenever it is not collapsed.
-  const panelOpen = !collapsed
   const onSettle = useLayoutReport()
   const reduced = usePrefersReducedMotion()
-  const intro = useIntro(estate, ix)
-  // Outside the intro a tapped domain explains itself in a pop-up on the
-  // canvas, with the same lines the intro's legend gave it.
-  const [hullPop, setHullPop] = useState<string | null>(null)
-  // Chapter 7 puts the drawing over the graph; a tap or Next takes it away.
+  // During the story the canvas is driven by the scene in the store: which
+  // layers are up, whether anything is arriving one by one, where the marker
+  // is. Outside it, everything is up and the scene is ignored.
   const tourStep = useLedger((s) => s.tourStep)
-  const [drawingAway, setDrawingAway] = useState(false)
-  useEffect(() => { setDrawingAway(false) }, [tourStep])
-  // Chapter 7 is the drawing, so the panel stays closed; chapter 8 opens it
-  // on the busiest node's first entry.
-  useEffect(() => {
-    if (tourStep === 7) setCollapsed(true)
-    if (tourStep === 8) setCollapsed(false)
-  }, [tourStep])
+  const scene = useLedger((s) => s.scene)
+  const named = useLedger((s) => s.namedDomains)
+  const setFocus = useLedger((s) => s.setFocus)
+  const nameDomain = useLedger((s) => s.nameDomain)
+  const inStory = tourStep !== null
+  const storySets = useMemo(() => {
+    const dim = new Set<string>(); const hide = new Set<string>(); const hulls = new Set<string>()
+    if (!inStory) return { dim, hide, hulls }
+    for (const p of estate.platforms) {
+      const isConn = p.type === 'integration'
+      if (isConn ? !scene.connectors : !scene.platforms) dim.add(p.id)
+      if (isConn ? !scene.connectors : !scene.links) hide.add(p.id)
+    }
+    for (const u of estate.use_cases) { if (!scene.useCases) dim.add(u.id); if (!scene.links) hide.add(u.id) }
+    if (!scene.hulls) for (const sd of estate.subdomains) hulls.add(sd.id)
+    return { dim, hide, hulls }
+  }, [inStory, scene, estate])
+  const callout = useMemo(() => {
+    if (!inStory || !scene.callout) return null
+    if (scene.callout.kind === 'hull' && scene.callout.id === '') {
+      const next = estate.subdomains.find((sd) => !named.includes(sd.id))
+      return next ? { kind: 'hull' as const, id: next.id, text: copy.intro_callout_domain } : null
+    }
+    return scene.callout
+  }, [inStory, scene.callout, estate, named])
+  // Outside the story a tapped domain explains itself in a pop-up on the
+  // canvas, with the same lines the story gave it.
+  const [hullPop, setHullPop] = useState<string | null>(null)
+  // The panel is always present outside the story, opening on the estate
+  // summary when nothing is picked, so the canvas yields to it whenever it
+  // is not collapsed. The story never shows it.
+  const panelOpen = !collapsed && !inStory
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -114,7 +131,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
         </select>
       </div>
 
-      <div className={`graphwrap${panelOpen ? ' panel-open' : ''}`}>
+      <div className={`graphwrap${panelOpen ? ' panel-open' : ''}${inStory && scene.blank ? ' canvas-hidden' : ''}`}>
         <Graph3D
           data={data}
           dark={dark}
@@ -124,24 +141,25 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           isolatedSubdomain={isolated}
           flyToId={flyTo}
           onSettle={onSettle}
-          dimNodes={intro.active ? intro.dimNodes : undefined}
-          hideLinksOf={intro.active ? intro.hideLinksOf : undefined}
-          dimHulls={intro.active ? intro.dimHulls : undefined}
-          callout={intro.active ? intro.callout : null}
+          dimNodes={inStory ? storySets.dim : undefined}
+          hideLinksOf={inStory ? storySets.hide : undefined}
+          dimHulls={inStory ? storySets.hulls : undefined}
+          callout={callout}
           reducedMotion={reduced}
+          stagger={inStory && scene.stagger}
           onSelectNode={(id) => {
-            if (intro.active) { intro.tapNode(id); return }
+            if (inStory) { setFocus({ kind: 'node', id }); setSelectedId(id); return }
             setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false)
           }}
-          onSelectLink={(l) => { if (intro.active) { intro.tapLink(l); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
-          onBackground={() => { if (intro.active) { intro.clearFocus(); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
-          // A coloured shape is a domain. In the intro it names itself on the
+          onSelectLink={(l) => { if (inStory) { setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
+          onBackground={() => { if (inStory) { setFocus(null); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
+          // A coloured shape is a domain. In the story it names itself on the
           // card; afterwards it explains itself in a pop-up where it was tapped.
           onSelectHull={(sub) => {
-            if (intro.active) { intro.tapSub(sub); return }
+            if (inStory) { nameDomain(sub); setFocus({ kind: 'hull', id: sub }); setSelectedId(null); return }
             setHullPop((cur) => (cur === sub ? null : sub))
           }}
-          popover={!intro.active && hullPop ? {
+          popover={!inStory && hullPop ? {
             kind: 'hull',
             id: hullPop,
             content: (() => {
@@ -180,8 +198,6 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           </div>
         </Legend>
 
-        {tourStep === 7 && <Drawing estate={estate} ix={ix} away={drawingAway} onTap={() => setDrawingAway(true)} />}
-        {intro.active && <IntroCard intro={intro} estate={estate} ix={ix} />}
 
         <DetailPanel
           estate={estate}

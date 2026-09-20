@@ -141,6 +141,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           isolatedSubdomain={null}
           flyToId={null}
           dimNodes={dimNodes}
+          hideLinksOf={dimNodes}
           onSelectNode={(id) => { if (ix.platformById.has(id)) { setSelected(id); setCollapsed(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}

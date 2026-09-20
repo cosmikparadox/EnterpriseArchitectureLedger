@@ -769,3 +769,90 @@ button, input, select { font: inherit; color: inherit; }
 .graphwrap.split.stacked .split-divider { display: none; }
 .half-title { font-size: clamp(12px, 0.5vw + 8px, 15px); padding: 5px 10px; }
 .half-title .half-note { font-size: 0.8em; }
+
+/* ---- the story ----
+   One floating card, draggable by its header and resizable by its corner.
+   Header and footer stay put; only the body scrolls. */
+.app.story-open .rail, .app.story-open .topbar, .app.story-open .panel, .app.story-open .panel-tab { display: none; }
+.app.story-open .graphwrap, .app.story-open .graphwrap.panel-open, .app.story-open .graphwrap.split { --chrome-right: 0px; --chrome-bottom: 0px; padding-right: 0; }
+.app.story-open .main { grid-column: 1 / -1; }
+.app.story-open { grid-template-columns: 1fr; }
+.app.story-open .footer { grid-column: 1; }
+.app.story-open { --wm-right: 0px; --wm-bottom: 0px; }
+.graphwrap .graph-holder { transition: opacity 700ms ease; }
+.graphwrap.canvas-hidden .graph-holder { opacity: 0; pointer-events: none; }
+.graphwrap.canvas-hidden .legend { opacity: 0; pointer-events: none; }
+.app.story-open .legend { transition: opacity 500ms; }
+
+.story {
+  position: absolute; z-index: 40; top: var(--tour-gap); right: var(--tour-gap);
+  width: min(360px, calc(100vw - 2 * var(--tour-gap))); max-height: calc(100% - 2 * var(--tour-gap));
+  min-width: 260px; min-height: 180px;
+  display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.16);
+  resize: both; overflow: hidden;
+  animation: intro-in 600ms ease;
+  --fs: clamp(12.5px, 0.55vw + 8px, 15px);
+}
+.story-head { padding: 12px 14px 6px; cursor: grab; user-select: none; touch-action: none; }
+.story-head:active { cursor: grabbing; }
+.story-head h1 { font-size: calc(var(--fs) * 1.4); font-weight: 600; letter-spacing: -0.01em; margin: 0; animation: intro-in 400ms ease; }
+.story-body { padding: 2px 14px 8px; overflow: auto; overscroll-behavior: contain; flex: 1 1 auto; min-height: 0; }
+.story-body .intro-line { font-size: var(--fs); }
+.story-body .intro-see, .story-body .tour-more-body, .story-body .intro-entry-body p, .story-body .intro-focus p { font-size: calc(var(--fs) * 0.92); }
+.story-foot { padding: 6px 14px 10px; border-top: 1px solid var(--line); background: var(--panel); }
+.story-foot .intro-actions { margin-top: 2px; }
+.story-foot .intro-beats { margin-top: 8px; gap: 8px; }
+.story-foot .beat-group { display: flex; flex: 1 1 0; gap: 3px; }
+.story-foot .beat-group span { flex: 1 1 0; height: 3px; border-radius: 2px; background: var(--line); transition: background 300ms; }
+.story-foot .beat-group span.on { background: var(--accent); }
+.story-foot .intro-beats span:nth-child(7) { margin-left: 0; }
+.story-ctl { display: block; margin: 8px 0 4px; font-size: calc(var(--fs) * 0.92); }
+.story-ctl > span { display: block; margin-bottom: 4px; color: var(--ink-2); }
+.story-ctl input[type="range"] { width: 100%; }
+.story-ctl select { width: 100%; }
+.ledger { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.ledger-head { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+.ledger-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: calc(var(--fs) * 0.9); border-bottom: 1px dashed var(--line); animation: intro-in 400ms ease; }
+.ledger-row .l { color: var(--ink-2); }
+.ledger-row .v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+@media (max-width: 720px) {
+  .story { top: auto; right: 0; left: 0; bottom: 0; width: 100%; max-height: 52vh; border-radius: 12px 12px 0 0; resize: none; }
+  /* On a phone the card is a sheet along the bottom, and the canvas ends
+     where the sheet begins, so the node a beat is about is never under it. */
+  .app.story-open .graphwrap, .app.story-open .graphwrap.panel-open, .app.story-open .graphwrap.split { --chrome-bottom: var(--tour-card-actual-h, 52vh); }
+  .app.story-open .legend { bottom: calc(var(--tour-card-actual-h, 52vh) + 8px); }
+}
+
+/* ---- overlays: what the canvas shows between and around the pictures ---- */
+.overlay {
+  position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center;
+  padding: 24px; pointer-events: none;
+}
+.overlay-tap { pointer-events: auto; cursor: pointer; }
+.ov-centre { text-align: center; max-width: min(760px, 100%); }
+.ov-big { font-size: clamp(28px, 3.2vw, 52px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.ov-sub { font-size: clamp(14px, 1.1vw, 20px); color: var(--ink-2); margin-top: 10px; }
+.ov-eyebrow { font-size: clamp(12px, 0.9vw, 15px); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.ov-hint { font-size: 12px; color: var(--ink-3); margin-top: 34px; animation: ov-pulse 2.4s ease-in-out infinite; }
+.ov-note { font-size: 11.5px; color: var(--ink-3); margin-top: 14px; grid-column: 1 / -1; }
+.ov-in { opacity: 0; animation: ov-in 900ms cubic-bezier(.2,.7,.2,1) forwards; }
+.ov-in.d1 { animation-delay: 350ms; } .ov-in.d2 { animation-delay: 700ms; } .ov-in.d3 { animation-delay: 1050ms; }
+.ov-in.d4 { animation-delay: 1400ms; } .ov-in.d5 { animation-delay: 1750ms; } .ov-in.d6 { animation-delay: 2100ms; }
+@keyframes ov-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ov-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+.ov-docs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; }
+.ov-doc, .ov-silo {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 14px 12px;
+  text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.ov-doc strong, .ov-silo strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.ov-doc span, .ov-silo span { font-size: 11.5px; color: var(--ink-3); }
+.ov-silos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; width: 100%; }
+.ov-silo { text-align: center; padding: 22px 14px; }
+.ov-silo.ov-missing { border-style: dashed; background: transparent; box-shadow: none; }
+.ov-silo.ov-missing strong { color: var(--ink-3); }
+.overlay-matrix .drawing-sheet { animation: ov-in 900ms cubic-bezier(.2,.7,.2,1) forwards; }
+@media (max-width: 720px) { .ov-docs, .ov-silos { grid-template-columns: 1fr 1fr; gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { .ov-in { animation: none; opacity: 1; } .ov-hint { animation: none; } .graphwrap .graph-holder { transition: none; } }

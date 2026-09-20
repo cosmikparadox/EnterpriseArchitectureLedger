@@ -11,7 +11,7 @@ import bestOfBreedJson from '../../data/estate_bestofbreed.json'
 import type { AllocationRule, Estate } from '../model/types'
 import { buildIndex } from '../model/ledger'
 import { copy } from '../copy'
-import { useLedger, FIRST_LEDGER_CHAPTER, type View } from './store'
+import { useLedger, type View } from './store'
 import { useHashRoute } from './route'
 import { Explore } from '../views/Explore'
 import { FixedPool } from '../views/FixedPool'
@@ -19,8 +19,9 @@ import { Risk } from '../views/Risk'
 import { Footprint } from '../views/Footprint'
 import { TwoShapes } from '../views/TwoShapes'
 import { Boundaries } from '../views/Boundaries'
-import { Landing } from '../views/Landing'
-import { TourCard } from '../tour/TourCard'
+import { StoryCard } from '../story/StoryCard'
+import { Overlay } from '../story/Overlay'
+import { useStory } from '../story/useStory'
 
 const estate = estateJson as unknown as Estate
 const bestOfBreed = bestOfBreedJson as unknown as Estate
@@ -81,20 +82,20 @@ export function App() {
   const onLanding = view === 'landing'
   const tourStep = useLedger((s) => s.tourStep)
   const setTourStep = useLedger((s) => s.setTourStep)
-  // Steps 1 to 7 each pick their view in enter(). Step 0 has no enter(); it
-  // runs inside view 1, so it has to be put there, and a deep link to #/tour/0
-  // arrives with the view still on the front page.
+  const story = useStory()
+  // A deep link into the story arrives with the view still on the front
+  // page; the beat's own view is set by the engine, but until it has, view 1
+  // is the canvas everything is drawn on.
   useEffect(() => {
-    if (tourStep !== null && tourStep < FIRST_LEDGER_CHAPTER && view !== 1) setView(1)
+    if (tourStep !== null && view === 'landing') setView(1)
+    if (tourStep === null && view === 'landing') setView(1)
   }, [tourStep, view, setView])
   const classes = ['app']
   if (onLanding) classes.push('landing-mode')
-  // One tour, one card, one place. Chapters 0 to 6 hide every control: the
-  // picture is being built and there is nothing to press. Chapters 7 to 15
-  // bring the screen's own controls back, because each asks for one of them,
-  // and keep the rail hidden, because the chapters choose the screen.
-  if (tourStep !== null) classes.push('intro-open')
-  if (tourStep !== null && tourStep >= FIRST_LEDGER_CHAPTER) classes.push('tour-open')
+  // During the story every control the screens own is hidden: the rail, the
+  // top bars, the panels. The one card carries the story and, when a beat
+  // asks for it, the one control.
+  if (tourStep !== null) classes.push('intro-open', 'story-open')
 
   return (
     <div className={classes.join(' ')}>
@@ -132,20 +133,27 @@ export function App() {
       )}
 
       <main className="main">
-        {view === 'landing' && <Landing />}
         {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
-        {tourStep !== null && (
-          <div className={`wordmark${tourStep > 0 ? ' wordmark-top' : ''}`} aria-hidden="true">
-            <div className="wordmark-name">{copy.wordmark_name}</div>
-            <div className="wordmark-tag">{tourStep === 0 ? copy.wordmark_tag : tourStep < FIRST_LEDGER_CHAPTER ? copy.wordmark_tag_one : copy.wordmark_tag_two}</div>
-          </div>
+        {story.beat && story.n !== null && (
+          <>
+            {/* The company name: absent on the welcome, centred on the title
+                beat, then small at the top with the part beneath it. Hidden
+                while a part title or an end line has the canvas. */}
+            {story.n > 0 && (
+              <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
+                <div className="wordmark-name">{copy.wordmark_name}</div>
+                <div className="wordmark-tag">{story.n === 1 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
+              </div>
+            )}
+            <Overlay beat={story.beat} n={story.n} estate={estate} ix={ix} onTap={() => setTourStep(Math.min(31, (story.n ?? 0) + 1))} />
+            {story.beat.card && <StoryCard beat={story.beat} n={story.n} done={story.done} estate={estate} bestOfBreed={bestOfBreed} ix={ix} />}
+          </>
         )}
-        {tourStep !== null && tourStep >= FIRST_LEDGER_CHAPTER && <TourCard concentrated={estate} bestOfBreed={bestOfBreed} />}
       </main>
 
       <footer className="footer">

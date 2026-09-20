@@ -172,6 +172,294 @@ export const copy = {
   tour_more: 'More detail',
   tour_did_it: 'You did that.',
 
+  // ---- The story. One beat per Next. ----
+  //
+  // Written to be read aloud, one idea at a time. A beat has a line and, where
+  // it helps, a second sentence. Anything longer goes under More detail. Every
+  // figure is live through fill().
+  story_welcome: 'Welcome.',
+  story_welcome_sub: 'A short walk through one company\'s architecture, and what it costs.',
+  story_welcome_tap: 'Tap anywhere to begin',
+  story_welcome_skip: 'Skip to the tool',
+  story_continue: 'Tap anywhere, or press the right arrow, to continue',
+  story_part1_title: 'Part one',
+  story_part1_sub: 'The architecture',
+  story_part2_title: 'Part two',
+  story_part2_sub: 'How it is decided today',
+  story_part3_title: 'Part three',
+  story_part3_sub: 'The ledger',
+  story_end1: 'That is the architecture.',
+  story_end1_sub: 'Now, how decisions about it get made.',
+  story_end2: 'That is how it is decided today.',
+  story_end2_sub: 'Now, the ledger.',
+  part_label_1: 'Part one: the architecture',
+  part_label_2: 'Part two: how it is decided today',
+  part_label_3: 'Part three: the ledger',
+
+  // 1. The title beat, after the welcome.
+  b_title_h: 'The Architecture Ledger',
+  b_title:
+    'An interactive model of one invented insurer, built to show what ' +
+    'architecture decisions cost when you price them in money instead of ' +
+    'colours.',
+  b_title_see: 'Everything here is synthetic and says so. Next takes you through it.',
+
+  // Part one.
+  b_domains_h: 'Domains',
+  b_domains:
+    '{org} has {n_sub} parts to its business. Each coloured shape is one of ' +
+    'them, a domain.',
+  b_domains_see: 'Tap a domain to name it. Each one you name joins the list below.',
+  b_domains_more:
+    'A domain is a part of the business and the work it owns: {sub_list}. ' +
+    'The shapes are drawn around that work; nothing else is inside them yet.',
+  b_usecases_h: 'Use cases',
+  b_usecases:
+    'Between them the domains do {n_uc} things every month, from selling a ' +
+    'policy to paying a claim. Each dot is one of those things, a use case.',
+  b_usecases_see: 'Tap a dot to see what it does and what it depends on.',
+  b_usecases_more:
+    'A use case is one thing the business does, such as paying a claim. A ' +
+    'unit of work is one instance of it, one claim paid. The dots take the ' +
+    'colour of the domain that owns them.',
+  b_platforms_h: 'Platforms',
+  b_platforms:
+    'None of that work happens by hand. It runs on {n_platforms} systems ' +
+    'the company bought or built. Each grey circle is one: a platform.',
+  b_platforms_see:
+    'The bigger the circle, the more use cases depend on it. Notice that no ' +
+    'platform sits inside one domain.',
+  b_platforms_more:
+    'The platforms are shared. That is the first thing this whole story turns ' +
+    'on, and the picture says it before any number does. Tap a circle to see ' +
+    'what rides on it.',
+  b_lines_h: 'Lines',
+  b_lines:
+    'Each line joins a use case to a platform it cannot run without. ' +
+    '{example_uc} alone needs {example_n}.',
+  b_lines_see:
+    'A line is a dependency, and a dependency is also a bill: work flows ' +
+    'along it every month and money flows back.',
+  b_lines_more:
+    'The thicker the line, the more money moves along it. Tap a line to see ' +
+    'what it carries and what goes down with it.',
+  b_connectors_h: 'Connectors',
+  b_connectors:
+    'The platforms do not reach each other on their own. {n_int} more nodes ' +
+    'exist only to carry logins, calls and messages between them.',
+  b_connectors_see:
+    'The teal diamonds are those connectors: {int_list}. Nearly every use ' +
+    'case passes through them.',
+  b_busiest_h: 'The busiest node',
+  b_busiest:
+    'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
+    'use cases. If it stops, most of the business stops with it.',
+  b_busiest_see: 'That is the lit node. Remember it; part three is about it.',
+
+  // Part two: how it is decided today.
+  b_docs_h: 'Where the architecture lives',
+  b_docs:
+    'Today the architecture lives in documents. Each is written by someone, ' +
+    'dated, and ageing from the day it is saved.',
+  b_docs_see: 'Six kinds, kept in six places, none the same age.',
+  b_docs_more:
+    'The method calls the whole collection an architecture repository, and ' +
+    'it is only as current as its most recent edit. The picture you just ' +
+    'built is not in it; it would have to be drawn.',
+  b_matrix_h: 'What decisions are made on',
+  b_matrix:
+    'When a decision is needed, all of that is boiled down to one drawing: a ' +
+    'matrix, one colour per judgment.',
+  b_matrix_see:
+    'Someone scores each system for fit and value, and the cell takes the ' +
+    'colour. Nothing on it is a price.',
+  b_matrix_more:
+    'This is the common practice: capability heat maps, and the two-by-two ' +
+    'of business value against technical fit, each scored one to five by a ' +
+    'person. The colours here are derived from this estate\'s data so the ' +
+    'drawing is of Harbourline, but it is judgment by construction, and it ' +
+    'is labelled illustrative.',
+  b_silos_h: 'Three questions, three places',
+  b_silos:
+    'What it costs is in a finance spreadsheet, by cost centre. What it risks ' +
+    'is in a register, high, medium or low. What leaving would cost is ' +
+    'written down nowhere.',
+  b_silos_see: 'None of the three mentions a use case, and none can see the other two.',
+  b_graph_today_h: 'The graph already exists',
+  b_graph_today:
+    'The picture from part one is not imaginary. Operations tools discover it ' +
+    'every day, to find outages.',
+  b_graph_today_see:
+    'It carries no money. Nobody has put the finance spreadsheet, the risk ' +
+    'register and the missing exit figure onto it, one use case at a time.',
+  b_graph_today_more:
+    'That is the gap the Ledger paper names: the graph is mined, the numbers ' +
+    'are elsewhere, and the decisions are made on a colour. See the Ledger ' +
+    'paper.',
+
+  // Part three: the ledger, on the busiest node.
+  b_why_h: 'Why a ledger',
+  b_why:
+    'A ledger is a book where every entry carries a number, a date and the ' +
+    'name of whoever wrote it. This one keeps three entries per use case.',
+  b_why_see:
+    'What it costs. What it risks. What leaving would cost. Kept apart, ' +
+    'because they do not add. We will build all three on {top}.',
+  b_meter_h: 'Entry one: cost. The meter',
+  b_meter:
+    'Start with what can be measured. {top} has a meter that ticks with use: ' +
+    'every login is counted and billed.',
+  b_meter_see: 'The meter is the only part of the bill anyone actually measures.',
+  b_meter_more:
+    'The meter\'s unit is called the driver, the thing that gets counted: ' +
+    'logins for an identity platform, policy transactions for a policy ' +
+    'engine. Tap another grey circle to see its meter.',
+  b_pool_h: 'The fixed pool',
+  b_pool:
+    'The rest of the bill is a fixed pool: licences and the team who run it, ' +
+    'paid whether anyone logs in or not.',
+  b_pool_see: 'Nobody meters a pool. It has to be shared out.',
+  b_rule_h: 'The rule',
+  b_rule:
+    'The pool is shared among the {riders} use cases riding the platform by ' +
+    'a rule somebody chose. The rings show it: solid is metered, hatched is ' +
+    'rule.',
+  b_rule_see: '{first} is told GBP {before} a month. Part of that is the rule.',
+  b_rule_more:
+    'The rule is an equal split, or a split in proportion to use. The riders ' +
+    'are the use cases riding the platform; their share of the pool is their ' +
+    'rule share.',
+  b_crowd_h: 'The crowd changes',
+  b_crowd:
+    'Watch three more use cases arrive on this node, then add or remove ' +
+    'some yourself.',
+  b_crowd_see:
+    '{first} did nothing different, and its number moved from GBP {before} ' +
+    'to GBP {after}.',
+  b_crowd_more:
+    'A rule share changes only when the rule or the crowd changes. Leaving ' +
+    'does not release it: the pool stays and is shared among fewer riders. ' +
+    'See the Ledger paper, 9.2.6.',
+  b_fail_h: 'Entry two: risk. When it stops',
+  b_fail:
+    'When a shared platform stops, everything riding it stops, across teams ' +
+    'that never speak. Fail it and watch which use cases go dark.',
+  b_fail_see: 'How far that reaches is the blast radius.',
+  b_together_h: 'A bad year, two ways',
+  b_together:
+    'Price a bad year for {sub} one use case at a time and add them up: GBP ' +
+    '{sum}. Price the domain together: GBP {joint}.',
+  b_together_see: 'Adding counts the same outage once per use case. Together is the honest one.',
+  b_together_more:
+    'Both are a P99: a year worse than this comes about once in a hundred. ' +
+    'See the Ledger paper, 9.8.3.',
+  b_rho_h: 'How much they fail together',
+  b_rho:
+    'Those figures depend on one thing nobody measures: whether platforms ' +
+    'fail on the same day. Move the slider from one end to the other.',
+  b_rho_see: 'Across the range the {sub} figure ran from GBP {lo} to GBP {hi}. The honest reading is the range.',
+  b_rho_more:
+    'The slider is rho under a Student t copula with four degrees of freedom. ' +
+    'A declared input, not a measurement, and the tool says so.',
+  b_grow_h: 'Entry three: leaving. How the footprint grew',
+  b_grow:
+    'Now the cloud data platform. Watch the months run: use cases attach to ' +
+    'it one at a time, each for a good reason.',
+  b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
+  b_exit_h: 'What leaving would cost',
+  b_exit:
+    'At that month the work of leaving had already reached about GBP {exec}: ' +
+    'migration, rewiring, running two systems for a while.',
+  b_exit_see: 'Drag the month handle and watch it grow. No single decision created it.',
+  b_exit_more:
+    'That figure is the execution component. There is a second part, the ' +
+    'value of the choices given up, which the ledger declines to state ' +
+    'without evidence of what the alternative was. See the Ledger paper, 9.5.',
+  b_diversify_h: 'Does spreading it out help?',
+  b_diversify:
+    'Same {n_uc} use cases, wired two ways. On the left, one platform does ' +
+    'most of the work. On the right, specialists.',
+  b_diversify_see:
+    'The shared point did not disappear. It moved to the connectors. A bad ' +
+    'year for {sub}: GBP {left} on the left, GBP {right} on the right.',
+  b_diversify_more:
+    'Both are the joint P99 loss at the dependence currently set. Drag the ' +
+    'divider to give either side more room.',
+  b_lines_drawn_h: 'Whose lines decided all of it',
+  b_lines_drawn:
+    'Every figure so far depended on the domain boundaries. The graph was ' +
+    'mined from the systems. The boundaries were drawn by people.',
+  b_lines_drawn_see: 'The dashed lines cross a boundary. Those are the ones a redraw would touch.',
+  b_move_h: 'Move one use case',
+  b_move:
+    'Move {mover} out of {mover_from} into another domain. Nothing in the ' +
+    'estate changes; only the line moved.',
+  b_move_see: 'Under an equal split, {moved_equal} reported figures moved.',
+  b_basis_h: 'Change the rule',
+  b_basis:
+    'Now change the allocation basis to by headcount, which reads the ' +
+    'boundary.',
+  b_basis_see: 'Under {basis}, {moved_basis} figures moved, by up to GBP {moved_max} a month, with no change in usage.',
+  b_basis_more:
+    'The figures that move when a line moves are the ones to trust least. ' +
+    'The ledger permits only bases that ignore the boundary; the headcount ' +
+    'basis is shown as the counter-example. See the Ledger paper, 9.2.8.',
+  b_close_h: 'The ledger, closed',
+  b_close:
+    'Three entries on one node, kept apart. No total, because they do not ' +
+    'add. Every deviation from the source is in the README.',
+  b_close_see: 'Explore on your own from here. The rail on the left has the six screens.',
+
+  story_ledger_head: 'The ledger so far',
+  row_metered: 'Metered, a month',
+  row_pool: 'Fixed pool, a month',
+  row_rule_first: 'Rule share, {first}',
+  row_sum: 'Bad year, {sub}, one at a time',
+  row_joint: 'Bad year, {sub}, together',
+  row_range: 'Dependence range',
+  row_exec: 'Leaving, execution work at month {ratified}',
+  row_left: 'Bad year, {sub}, concentrated',
+  row_right: 'Bad year, {sub}, best of breed',
+  row_moved: 'Figures moved under {basis}',
+
+  ctl_fanin: 'Add use cases riding this node',
+  ctl_fail: 'Fail it',
+  ctl_rho_lo: 'independent',
+  ctl_rho_hi: 'together',
+  ctl_month: 'Month',
+  ctl_basis: 'Allocation basis',
+  ctl_move_to: 'Move it to',
+  ctl_did: 'You did that.',
+  story_back: 'Back',
+  story_next: 'Next',
+  story_skip: 'Skip the story',
+  story_explore: 'Explore on your own',
+  story_restart: 'Start again',
+  story_more: 'More detail',
+  story_drag: 'Drag to move',
+
+  // Part two's documents. Illustrative, and labelled so on screen.
+  doc_1: 'Capability map',
+  doc_1_age: 'last edited 14 months ago',
+  doc_2: 'Application inventory',
+  doc_2_age: 'a spreadsheet, 412 rows',
+  doc_3: 'Integration diagrams',
+  doc_3_age: '22 of them, three authors',
+  doc_4: 'Risk register',
+  doc_4_age: 'high, medium, low',
+  doc_5: 'Vendor contracts',
+  doc_5_age: 'renewals in four currencies',
+  doc_6: 'Budget lines',
+  doc_6_age: 'by cost centre, not by use case',
+  docs_note: 'Illustrative. Every estate has its own set.',
+  silo_cost: 'What it costs',
+  silo_cost_sub: 'finance spreadsheet, by cost centre',
+  silo_risk: 'What it risks',
+  silo_risk_sub: 'risk register, high / medium / low',
+  silo_exit: 'What leaving would cost',
+  silo_exit_sub: 'not recorded anywhere',
+  silo_note: 'No line joins them. None names a use case.',
+
   // ---- Part two, the ledger. Chapters 7 to 15. ----
   //
   // Written to be read aloud by a person. Each chapter asks for one thing,

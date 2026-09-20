@@ -10,8 +10,6 @@ import { c1, edgeSpend, optionComponent, optionEngineFor, reportedCost, wCurve, 
 import { platformView, useCaseView, type GLink } from '../app/graph'
 import { WKCurve } from './WKCurve'
 import { PanelShell } from './PanelShell'
-import { useLedger } from '../app/store'
-import { panelSectionsAt } from '../tour/steps'
 
 /** The estate is observed at month 60, the end of the view 4 window. */
 export const AS_AT_MONTH = 60
@@ -45,10 +43,10 @@ export interface DetailPanelProps {
 
 export function DetailPanel(props: DetailPanelProps) {
   const { ix, rule, selectedNodeId, selectedLink } = props
-  // During the tour the panel earns its sections one chapter at a time.
-  const tourStep = useLedger((s) => s.tourStep)
-  const revealed = panelSectionsAt(tourStep)
-  const show = (k: 'metered' | 'riders' | 'failure' | 'switching') => revealed === 'all' || revealed.includes(k)
+  // Outside the story the panel shows everything; the story never shows it.
+  const tourStep: number | null = null
+  const revealed = 'all' as const
+  const show = (_k: 'metered' | 'riders' | 'failure' | 'switching') => true
   const isPlatform = selectedNodeId !== null && ix.platformById.has(selectedNodeId)
   const isUseCase = selectedNodeId !== null && ix.useCaseById.has(selectedNodeId)
 

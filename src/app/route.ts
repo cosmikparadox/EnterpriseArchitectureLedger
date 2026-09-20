@@ -37,7 +37,8 @@ export interface Route { view: View; tourStep: number | null }
 /** Parse a hash. Anything unrecognised lands on the front page. */
 export function parseHash(hash: string): Route {
   const path = hash.replace(/^#\/?/, '').replace(/\/$/, '')
-  if (path === '') return { view: 'landing', tourStep: null }
+  // Launching the app is the welcome: beat 0 of the story.
+  if (path === '') return { view: 'landing', tourStep: 0 }
   const tour = /^tour\/(\d+)$/.exec(path)
   if (tour) {
     const n = Number(tour[1])
@@ -52,7 +53,7 @@ export function parseHash(hash: string): Route {
 
 /** The hash a state should be at. The tour wins, because it owns the view. */
 export function hashFor(view: View, tourStep: number | null): string {
-  if (tourStep !== null) return `#/tour/${tourStep}`
+  if (tourStep !== null) return tourStep === 0 ? '#/' : `#/tour/${tourStep}`
   if (view === 'landing') return '#/'
   return `#/${VIEW_SLUGS[view]}`
 }

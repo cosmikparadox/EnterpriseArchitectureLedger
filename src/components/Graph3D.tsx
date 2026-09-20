@@ -77,6 +77,8 @@ export interface Graph3DProps {
   dimHulls?: Set<string>
   /** Set when the viewer asked for less motion: opacity changes land at once. */
   reducedMotion?: boolean
+  /** Reveal newly shown nodes and links one after another rather than together. */
+  stagger?: boolean
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -468,6 +470,8 @@ export function Graph3D(props: Graph3DProps) {
   // collections, which is what read as choppy. Selection in view 1 did the
   // same on every click.
   const objs = useRef(new Map<string, NodeObjs>())
+  const linkShown = useRef(new Set<string>())
+  const linkReveal = useRef(0)
   useEffect(() => () => { if (fadeRaf.current) cancelAnimationFrame(fadeRaf.current) }, [])
 
   useEffect(() => {
@@ -589,7 +593,7 @@ export function Graph3D(props: Graph3DProps) {
   // a layer of the intro fading in costs a few multiplications a frame.
   const FADE_MS = 720
   /** Hulls are large and few; a slower arrival reads as a fade rather than a blink. */
-  const HULL_FADE_MS = 1400
+  const HULL_FADE_MS = 2200
   const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
   const fadeRaf = useRef(0)
   const hullAlpha = useRef(new Map<string, { cur: number; from: number; to: number; t0: number }>())
@@ -602,7 +606,7 @@ export function Graph3D(props: Graph3DProps) {
       let moving = false
       for (const o of objs.current.values()) {
         if (o.solid.opacity === o.fadeTo) continue
-        const t = Math.min(1, (now - o.fadeT0) / FADE_MS)
+        const t = Math.min(1, Math.max(0, (now - o.fadeT0) / FADE_MS))
         o.solid.opacity = t >= 1 ? o.fadeTo : o.fadeFrom + (o.fadeTo - o.fadeFrom) * easeOut(t)
         o.mesh.visible = o.solid.opacity > 0
         if (t < 1) moving = true
@@ -619,16 +623,18 @@ export function Graph3D(props: Graph3DProps) {
     fadeRaf.current = requestAnimationFrame(step)
   }
 
-  /** Aim a node's opacity, at once or over the fade. */
-  const fadeTo = (o: NodeObjs, target: number, instant: boolean) => {
+  /** Aim a node's opacity, at once or over the fade, optionally after a delay. */
+  const fadeTo = (o: NodeObjs, target: number, instant: boolean, delayMs = 0) => {
     if (o.fadeTo === target && (instant || o.solid.opacity === target)) return
     o.fadeTo = target
     if (instant || propsRef.current.reducedMotion) { o.solid.opacity = target; o.fadeFrom = target; o.mesh.visible = target > 0; return }
     o.mesh.visible = true
     o.fadeFrom = o.solid.opacity
-    o.fadeT0 = performance.now()
+    o.fadeT0 = performance.now() + delayMs
     runFades()
   }
+  /** Nodes arriving in this pass, so a layer can come in one by one. */
+  const arriving = useRef(0)
 
   /** What the current props say about one node. Recomputed by applyState. */
   const stateCtx = useRef<{
@@ -646,9 +652,14 @@ export function Graph3D(props: Graph3DProps) {
     const failed = propsRef.current.failedNodeId === n.id
 
     o.mesh.material = affected ? o.wire : o.solid
-    // A node the intro has not revealed is not there at all; a node Isolate
+    // A node the story has not revealed is not there at all; a node Isolate
     // has dimmed is still there, faintly, because the sharing is the lesson.
-    fadeTo(o, propsRef.current.dimNodes?.has(n.id) ? 0 : dim ? 0.12 : 1, instant)
+    // A layer arriving comes in one node at a time when the scene asks for
+    // it: each node in the same pass starts a little after the last.
+    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : dim ? 0.12 : 1
+    const wasHidden = o.fadeTo === 0
+    const delay = !instant && wasHidden && target > 0 && propsRef.current.stagger ? Math.min(1400, arriving.current++ * 45) : 0
+    fadeTo(o, target, instant, delay)
     o.solid.emissive.set(failed ? '#d05a6a' : isSel ? o.colour : '#000000')
     o.solid.emissiveIntensity = failed ? 0.9 : isSel ? 0.55 : 0
     o.halo.visible = isSel && !dim
@@ -688,6 +699,7 @@ export function Graph3D(props: Graph3DProps) {
       return n.subdomain !== isolatedSubdomain
     }
     stateCtx.current = { neighbours, dimmed }
+    arriving.current = 0
 
     for (const n of data.nodes) {
       const o = objs.current.get(n.id)
@@ -714,12 +726,29 @@ export function Graph3D(props: Graph3DProps) {
 
     // Links. The library updates colour and visibility on the existing
     // objects; only a width change rebuilds their geometry, and width only
-    // moves when a failure lights a link.
-    g.linkVisibility((raw: object) => {
-      const l = raw as GLink
-      const h = props.hideLinksOf
-      return !(h && (h.has(l.ucId) || h.has(l.platformId)))
-    })
+    // moves when a failure lights a link. When the scene asks, links newly
+    // shown arrive one after another over about a second: each gets a time
+    // to appear, and the accessor is re-set every frame until the last has.
+    const h = props.hideLinksOf
+    const hidden = (l: GLink) => !!(h && (h.has(l.ucId) || h.has(l.platformId)))
+    const now = performance.now()
+    let order = 0
+    for (const raw of g.graphData().links as object[]) {
+      const l = raw as GLink & { __showAt?: number }
+      const key = `${l.ucId}>${l.platformId}`
+      if (hidden(l)) { linkShown.current.delete(key); l.__showAt = Infinity; continue }
+      if (linkShown.current.has(key)) { l.__showAt = 0; continue }
+      linkShown.current.add(key)
+      l.__showAt = props.stagger && !propsRef.current.reducedMotion ? now + Math.min(1600, order++ * 14) : 0
+    }
+    const applyLinkVisibility = () => g.linkVisibility((raw: object) => ((raw as GLink & { __showAt?: number }).__showAt ?? 0) <= performance.now())
+    applyLinkVisibility()
+    if (linkReveal.current) cancelAnimationFrame(linkReveal.current)
+    const lastAt = Math.max(0, ...(g.graphData().links as (GLink & { __showAt?: number })[]).map((l) => (l.__showAt === Infinity ? 0 : l.__showAt ?? 0)))
+    if (lastAt > now) {
+      const tick = () => { applyLinkVisibility(); if (performance.now() < lastAt + 40) linkReveal.current = requestAnimationFrame(tick); else linkReveal.current = 0 }
+      linkReveal.current = requestAnimationFrame(tick)
+    }
     g.linkColor((raw: object) => {
       const l = raw as GLink
       if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'

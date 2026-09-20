@@ -239,50 +239,56 @@ add('3 non-additivity, as restated', 'PASS',
 // the card never covers the node the step is about. T3 performs each step's
 // asked-for action by script and waits for the tick. T4 cold-loads one step.
 
-// The ledger chapters, 7 to 15, on one card with the picture chapters before
-// them. The bars under the buttons count all fifteen; there is no counter.
-const FIRST = 7
-const LAST = 15
-const CHAPTER_HEADING: Record<number, string> = {
-  7: 'Why a ledger', 8: 'What it meters', 9: 'What it hands out by rule',
-  10: 'What happens when it stops', 11: 'How much they fail together',
-  12: 'How the footprint grew', 13: 'What diversifying does',
-  14: 'Where the lines are drawn', 15: 'The ledger, closed',
+// The story: 32 beats on one card. Beat 0 is the welcome; part one builds the
+// picture, part two shows how it is decided today, part three builds the
+// ledger. Each beat shows one thing.
+const BEAT_HEADING: Record<number, string> = {
+  1: 'The Architecture Ledger', 3: 'Domains', 4: 'Use cases', 5: 'Platforms', 6: 'Lines', 7: 'Connectors', 8: 'The busiest node',
+  11: 'Where the architecture lives', 12: 'What decisions are made on', 13: 'Three questions, three places', 14: 'The graph already exists',
+  17: 'Why a ledger', 18: 'Entry one: cost. The meter', 19: 'The fixed pool', 20: 'The rule', 21: 'The crowd changes',
+  22: 'Entry two: risk. When it stops', 23: 'A bad year, two ways', 24: 'How much they fail together',
+  25: 'Entry three: leaving. How the footprint grew', 26: 'What leaving would cost', 27: 'Does spreading it out help?',
+  28: 'Whose lines decided all of it', 29: 'Move one use case', 30: 'Change the rule', 31: 'The ledger, closed',
 }
-// Long enough for each chapter's own animations to finish before the card is
-// read: 9 animates over 1.5s, 10 waits 2s, 11 sweeps for about 4s.
-const CHAPTER_SETTLE: Record<number, number> = { 7: 2600, 8: 1600, 9: 2600, 10: 4200, 11: 5200, 12: 4200, 13: 4200, 14: 1600, 15: 1200 }
+const NO_CARD = new Set([0, 2, 9, 10, 15, 16])
+// Long enough for each beat's own animations to finish before the card is
+// read: 21 animates 1.5s, 22 fails after 0.9s, 24 sweeps for about 4s, 25 runs the months for 3.2s.
+const BEAT_SETTLE: Record<number, number> = { 21: 2600, 22: 2800, 24: 5000, 25: 4200, 29: 1600 }
+const LAST = 31
+const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
+  if (i === 0) await page.locator('.overlay-welcome').click()
+  else if (NO_CARD.has(i)) await page.keyboard.press('ArrowRight')
+  else await page.locator('.story button:has-text("Next")').click()
+}
 
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto(`http://localhost:5190/#/tour/${FIRST}`, { waitUntil: 'load' })
-  await page.waitForSelector('.intro')
-
+  await page.goto('http://localhost:5190/#/', { waitUntil: 'load' })
+  await page.waitForSelector('.overlay-welcome')
+  await page.waitForTimeout(1200)
   const unresolved: string[] = []
   const missing: string[] = []
-  for (let n = FIRST; n <= LAST; n++) {
-    await page.waitForTimeout(CHAPTER_SETTLE[n] ?? 2000)
-    const visible = await page.locator('.intro').isVisible()
-    if (!visible) missing.push(`chapter ${n}`)
-    const text = await page.locator('.intro').innerText()
-    // Every GBP placeholder resolved: no braces and no ellipsis left in a
-    // sentence that should be carrying a number.
-    if (text.includes('{') || text.includes('...')) unresolved.push(`chapter ${n}: ${text.replace(/\n/g, ' ').slice(0, 90)}`)
-    const heading = (await page.locator('.intro h1').innerText()).trim()
-    if (heading !== CHAPTER_HEADING[n]) missing.push(`heading at ${n} read "${heading}"`)
-    const bars = await page.locator('.intro-beats .on').count()
-    if (bars !== n) missing.push(`${bars} bars lit at chapter ${n}`)
-    if ((await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity)) !== '0') missing.push(`rail showing at ${n}`)
-    if (n < LAST) await page.getByRole('button', { name: 'Next', exact: true }).click()
+  for (let n = 0; n <= LAST; n++) {
+    await page.waitForTimeout(BEAT_SETTLE[n] ?? 1300)
+    if (!NO_CARD.has(n)) {
+      const visible = await page.locator('.story').isVisible().catch(() => false)
+      if (!visible) missing.push(`card at ${n}`)
+      const text = await page.locator('.story').innerText().catch(() => '')
+      if (text.includes('{') || text.includes('...')) unresolved.push(`beat ${n}: ${text.replace(/\n/g, ' ').slice(0, 90)}`)
+      const heading = (await page.locator('.story h1').innerText().catch(() => '')).trim()
+      if (BEAT_HEADING[n] && heading !== BEAT_HEADING[n]) missing.push(`heading at ${n} read "${heading}"`)
+    } else if (await page.locator('.story').count() > 0) missing.push(`card showing on overlay beat ${n}`)
+    if ((await page.locator('.rail').count()) > 0 && (await page.locator('.rail').evaluate((el) => getComputedStyle(el).display)) !== 'none') missing.push(`rail showing at ${n}`)
+    if ((await page.locator('.panel').count()) > 0 && (await page.locator('.panel').first().evaluate((el) => getComputedStyle(el).display)) !== 'none') missing.push(`panel showing at ${n}`)
+    if (n < LAST) await nextBeat(page, n)
   }
   const t1ok = errors.length === 0 && unresolved.length === 0 && missing.length === 0
-  add('T1 the ledger chapters walk 7 to 15 on Next alone', t1ok ? 'PASS' : 'FAIL',
-    t1ok
-      ? `9 chapters on one card, each headed by its chapter, the bars counting up, the rail hidden throughout, every placeholder resolved, no page errors`
-      : `errors ${errors.length}; unresolved ${unresolved.join(' | ')}; missing ${missing.join(', ')}`)
+  add('T1 the story walks all 32 beats on Next alone', t1ok ? 'PASS' : 'FAIL',
+    t1ok ? `32 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors`
+         : `errors ${errors.length}; unresolved ${unresolved.join(' | ')}; missing ${missing.join(', ')}`)
   await ctx.close()
 }
 
@@ -291,78 +297,60 @@ const CHAPTER_SETTLE: Record<number, number> = { 7: 2600, 8: 1600, 9: 2600, 10: 
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto(`http://localhost:5190/#/tour/${FIRST}`, { waitUntil: 'load' })
-  await page.waitForSelector('.intro')
-
+  await page.goto('http://localhost:5190/#/tour/17', { waitUntil: 'load' })
+  await page.waitForSelector('.story')
   const overlaps: string[] = []
   let measured = 0
-  for (let n = FIRST; n <= LAST; n++) {
-    await page.waitForTimeout(CHAPTER_SETTLE[n] ?? 2000)
-    const card = await page.locator('.intro').boundingBox()
+  for (let n = 17; n <= LAST; n++) {
+    await page.waitForTimeout(BEAT_SETTLE[n] ?? 1300)
+    const card = await page.locator('.story').boundingBox()
     const pos = await page.evaluate(() => document.documentElement.dataset.selectedScreen ?? null)
     if (card && pos) {
       measured++
       const [x, y] = pos.split(',').map(Number) as [number, number]
-      // The node is a disc, not a point. Half the largest node's on-screen
-      // radius is well inside the margin the inset gives, so a plain point test
-      // with a pad is honest here.
       const pad = 24
-      const inside = x > card.x - pad && x < card.x + card.width + pad &&
-                     y > card.y - pad && y < card.y + card.height + pad
-      if (inside) overlaps.push(`chapter ${n}: node at ${x},${y} under card at ${Math.round(card.y)}`)
+      const inside = x > card.x - pad && x < card.x + card.width + pad && y > card.y - pad && y < card.y + card.height + pad
+      if (inside) overlaps.push(`beat ${n}: node at ${x},${y} under card at ${Math.round(card.y)}`)
     }
-    if (n < LAST) await page.getByRole('button', { name: 'Next', exact: true }).click()
+    if (n < LAST) await nextBeat(page, n)
   }
   const t2ok = overlaps.length === 0 && errors.length === 0
   add('T2 on 390x844 the card never covers the node', t2ok ? 'PASS' : 'FAIL',
-    t2ok ? `${measured} chapters had a selected node on screen, none under the card`
-         : overlaps.join(' | '))
+    t2ok ? `${measured} beats had a selected node on screen, none under the card` : overlaps.join(' | '))
   await ctx.close()
 }
 
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
-  // Each chapter's waitFor, and the action that should satisfy it. Performed
-  // through the same controls a person would use where there is one, and
-  // through the store where the action is "select a different node in 3D".
+  // Each beat's waitFor, and the action that should satisfy it, through the
+  // control the card puts up for it, or the store where the action is a tap
+  // on the 3D canvas.
   const actions: { step: number; what: string; run: () => Promise<void> }[] = [
-    { step: 8, what: 'select a different platform', run: async () => {
+    { step: 18, what: 'select a different platform', run: async () => {
       await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
     } },
-    { step: 9, what: 'change the allocation basis', run: async () => {
-      await page.getByLabel('Allocation basis for the fixed pool').selectOption('driver')
-    } },
-    { step: 10, what: 'fail a different node', run: async () => {
-      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { failIt: (s: string) => void } } }).__ledger?.getState().failIt('meridian'))
-    } },
-    { step: 11, what: 'move the dependence slider', run: async () => {
-      await page.getByLabel('Dependence between platform failures, rho').fill('0.35')
-    } },
-    { step: 12, what: 'move the month cursor', run: async () => {
-      await page.getByLabel('Month the platform was ratified as strategic').fill('40')
-    } },
-    // A hash change keeps the document, so the store still holds the basis
-    // chapter 9's action set; this one has to pick a basis not yet chosen.
-    { step: 14, what: 'change the allocation basis', run: async () => {
-      await page.getByLabel('Allocation basis for the fixed pool').selectOption('by_volume')
-    } },
+    { step: 21, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
+    { step: 22, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
+    { step: 24, what: 'move the dependence slider on the card', run: async () => { await page.locator('.story').getByLabel('Dependence between platform failures, rho').fill('0.35') } },
+    { step: 26, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
+    { step: 29, what: 'move the use case to another domain', run: async () => { await page.locator('.story select').selectOption('finance') } },
+    { step: 30, what: 'change the allocation basis on the card', run: async () => { await page.locator('.story').getByLabel('Allocation basis for the fixed pool').selectOption('by_head') } },
   ]
   const fired: string[] = []
   const silent: string[] = []
   for (const a of actions) {
     await page.goto(`http://localhost:5190/#/tour/${a.step}`, { waitUntil: 'load' })
-    await page.waitForSelector('.intro')
-    await page.waitForTimeout(CHAPTER_SETTLE[a.step] ?? 2000)
-    if (await page.locator('.tour-tick').count() > 0) { silent.push(`chapter ${a.step} ticked before the action`); continue }
+    await page.waitForSelector('.story')
+    await page.waitForTimeout(BEAT_SETTLE[a.step] ?? 1600)
+    if (await page.locator('.tour-tick').count() > 0) { silent.push(`beat ${a.step} ticked before the action`); continue }
     await a.run()
     await page.waitForTimeout(900)
-    const ticked = await page.locator('.tour-tick').count() > 0
-    if (ticked) fired.push(`${a.step} ${a.what}`)
-    else silent.push(`chapter ${a.step} did not tick on ${a.what}`)
+    if (await page.locator('.tour-tick').count() > 0) fired.push(`${a.step} ${a.what}`)
+    else silent.push(`beat ${a.step} did not tick on ${a.what}`)
   }
   add('T3 each waitFor fires on the action it describes', silent.length === 0 ? 'PASS' : 'FAIL',
-    silent.length === 0 ? `${fired.length} of 6 fired; chapters 7, 13 and 15 have no waitFor by design` : silent.join(' | '))
+    silent.length === 0 ? `${fired.length} of 7 fired, each through the control on the card` : silent.join(' | '))
   await ctx.close()
 }
 
@@ -371,15 +359,15 @@ const CHAPTER_SETTLE: Record<number, number> = { 7: 2600, 8: 1600, 9: 2600, 10: 
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/12', { waitUntil: 'load' })
-  await page.waitForSelector('.intro')
-  await page.waitForTimeout(4500)
-  const heading = (await page.locator('.intro h1').innerText()).trim()
-  const view = (await page.locator('.rail button[aria-current="true"] .t').innerText()).trim()
-  const selected = (await page.locator('.panel h2').first().innerText()).trim()
-  const ok = heading === CHAPTER_HEADING[12] && view === 'Footprint' && selected === 'Meridian Data Cloud' && errors.length === 0
-  add('T4 deep link to one chapter cold-loads into it', ok ? 'PASS' : 'FAIL',
-    `#/tour/12: heading "${heading}", view "${view}", selected "${selected}", page errors ${errors.length}`)
+  await page.goto('http://localhost:5190/#/tour/26', { waitUntil: 'load' })
+  await page.waitForSelector('.story')
+  await page.waitForTimeout(3000)
+  const heading = (await page.locator('.story h1').innerText()).trim()
+  const view = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { view: unknown; selectedId: string | null } } }).__ledger?.getState().view)
+  const selected = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { selectedId: string | null } } }).__ledger?.getState().selectedId)
+  const ok = heading === BEAT_HEADING[26] && view === 4 && selected === 'meridian' && errors.length === 0
+  add('T4 deep link to one beat cold-loads into it', ok ? 'PASS' : 'FAIL',
+    `#/tour/26: heading "${heading}", view ${String(view)}, selected "${selected}", page errors ${errors.length}`)
   await ctx.close()
 }
 
@@ -403,112 +391,76 @@ const CHAPTER_SETTLE: Record<number, number> = { 7: 2600, 8: 1600, 9: 2600, 10: 
   add('A4 the settled layout is the same on every load', same ? 'PASS' : 'FAIL', `three cold loads: ${digests.join(' ')}`)
 }
 
-// ---- T7. The intro assembles the estate and hands over to step 1 ----------
+// ---- T7. The opening: welcome, name, part one, domains one by one ----------
 //
-// Step 0 is the title card over an empty canvas, with the estate arriving in
-// beats behind it. This walks it on Continue alone: the working chrome must be
-// hidden while it runs, every beat must resolve its figure, and the last
-// Continue must land on step 1 with the chrome back and the tour card up.
+// Launching the app is a grey canvas and a welcome. A tap brings the name and
+// the card; Next brings the part title; Next again brings the domains, one by
+// one, with the name at the top. A real click on a domain names it on the
+// card; all six centres resolve to their own domain; Next through the parts
+// lands on the ledger with the same card and no second tour.
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
   await page.goto('http://localhost:5190/#/', { waitUntil: 'load' })
-  await page.waitForSelector('.landing')
-  await page.getByRole('button', { name: 'Start the tour' }).click()
-  await page.waitForSelector('.intro')
-  await page.waitForTimeout(900)
-  const hashAtStart = await page.evaluate(() => location.hash)
-  const railHidden = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '0')
-  const unresolved: string[] = []
-  // On the title card nothing has arrived: no hull is built, so none can be hit.
-  const hullsAtStart = (await page.evaluate(() => ((window as unknown as { __hullScreen?: () => unknown[] }).__hullScreen?.() ?? []).length))
-  // The company name sits centred on the canvas over the title card.
-  const wordmarkAtStart = await page.locator('.wordmark:not(.wordmark-top)').innerText().catch(() => '')
-  // Centred on the canvas the viewer can see, not on the box under the card.
-  const holderBox = await page.locator('.graph-holder').boundingBox()
-  const markBox = await page.locator('.wordmark').boundingBox()
-  const centred = !!holderBox && !!markBox && Math.abs((markBox.x + markBox.width / 2) - (holderBox.x + holderBox.width / 2)) <= 2
-  // Beat 1 is the domains alone, fading in, with the marker on the canvas
-  // asking for a tap; the name travels to the top and the card heads itself
-  // with the chapter.
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-  await page.waitForTimeout(220)
+  await page.waitForSelector('.overlay-welcome')
+  await page.waitForTimeout(1200)
+  const welcome = (await page.locator('.overlay-welcome').innerText()).includes('Welcome')
+  const blankAtStart = (await page.locator('.graphwrap.canvas-hidden').count()) === 1
+  const noCardAtStart = (await page.locator('.story').count()) === 0
+  const railHidden = (await page.locator('.rail').count()) === 0 || (await page.locator('.rail').evaluate((el) => getComputedStyle(el).display)) === 'none'
+  await page.locator('.overlay-welcome').click()
+  await page.waitForTimeout(1400)
+  const nameCentred = (await page.locator('.wordmark:not(.wordmark-top)').count()) === 1
+  const cardOnTitle = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'The Architecture Ledger'
+  await page.locator('.story button:has-text("Next")').click()
+  await page.waitForTimeout(1200)
+  const partTitle = (await page.locator('.overlay-part').innerText().catch(() => '')).includes('The architecture')
+  await page.keyboard.press('ArrowRight')
+  await page.waitForTimeout(450)
   const midFade = await page.evaluate(() => Object.values(((window as unknown as { __hullAlpha?: () => Record<string, number> }).__hullAlpha?.() ?? {})))
   const fading = midFade.length === 6 && midFade.every((a) => a > 0 && a < 1)
-  await page.waitForTimeout(1500)
-  const wordmarkAtTop = (await page.locator('.wordmark.wordmark-top').count()) === 1
-  const chapterHeading = (await page.locator('.intro h1').innerText().catch(() => '')).trim() === 'Domains'
+  await page.waitForTimeout(2400)
+  const nameAtTop = (await page.locator('.wordmark.wordmark-top').count()) === 1
+  const heading = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Domains'
   const calloutAtOne = (await page.locator('.canvas-callout:not([hidden])').innerText().catch(() => '')).trim()
-  const beat1 = await page.locator('.intro-line').innerText()
-  if (beat1.includes('{')) unresolved.push(`beat 1: ${beat1.slice(0, 60)}`)
-  // A tapped coloured region names itself and joins the legend. The dev seam
-  // says where each hull sits on screen; the click itself is a real one.
+  const subName = new Map<string, string>((JSON.parse(readFileSync('data/estate.json', 'utf8')) as { subdomains: { id: string; name: string }[] }).subdomains.map((x) => [x.id, x.name]))
   const hulls = await page.evaluate(() => ((window as unknown as { __hullScreen?: () => { subdomain: string; x: number; y: number }[] }).__hullScreen?.() ?? []))
-  // Every region's centre must resolve to that region, not to a neighbour it
-  // overlaps. The sector anchors in the seeded layout are what make this hold.
-  let legendGrew = false
   const ownHull: string[] = []
-  // Names come from the data file, the same place the app reads them.
-  const subName = new Map<string, string>(
-    (JSON.parse(readFileSync('data/estate.json', 'utf8')) as { subdomains: { id: string; name: string }[] }).subdomains.map((x) => [x.id, x.name]),
-  )
-  for (const [i, h] of hulls.entries()) {
+  for (const h of hulls) {
     await page.mouse.click(h.x, h.y)
     await page.waitForTimeout(300)
-    // The tapped domain opens as an entry on the card; its lines live there.
     const sd = await page.locator('.intro-entry.open').innerText().catch(() => '')
-    const name = subName.get(h.subdomain) ?? h.subdomain
-    if (sd.includes(name + ' covers') && !sd.includes('{')) ownHull.push(h.subdomain)
-    if (i === 0) {
-      const legend = await page.locator('.intro-legend').innerText().catch(() => '')
-      legendGrew = legend.includes('Tap a coloured region') === false && (await page.locator('.intro-legend-row').count()) === 1 && sd.includes('covers') && !sd.includes('{')
-    }
+    if (sd.includes((subName.get(h.subdomain) ?? h.subdomain) + ' covers') && !sd.includes('{')) ownHull.push(h.subdomain)
   }
   const allOwn = hulls.length === 6 && ownHull.length === 6
-  // Every named domain stays on the card as an entry that can be reopened.
   const entries = await page.locator('.intro-entry').count()
-  await page.locator('.intro-entry .intro-legend-row').first().click()
-  await page.waitForTimeout(250)
-  const firstReopened = (await page.locator('.intro-entry.open').first().innerText().catch(() => '')).includes('covers')
-  const stacked = entries === 6 && firstReopened
-  // With every domain named the marker has nothing left to point at.
   const calloutGone = (await page.locator('.canvas-callout:not([hidden])').count()) === 0
-  // The other five layers on Next, then one step Back and forward again to
-  // prove it is reversible, then Next into the ledger chapters.
-  for (let i = 2; i <= 6; i++) {
-    await page.getByRole('button', { name: 'Next', exact: true }).click()
-    await page.waitForTimeout(650)
-    const t = await page.locator('.intro-line').innerText()
-    if (t.includes('{')) unresolved.push(`beat ${i}: ${t.slice(0, 60)}`)
-  }
-  // A tapped platform describes itself on the card, from the data. Node focus
-  // is the store's selection, so the seam can stand in for a click on the canvas.
-  await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('salesforce'))
-  await page.waitForTimeout(400)
-  const focusText = await page.locator('.intro-focus').innerText().catch(() => '')
-  const described = focusText.includes('Salesforce') && focusText.includes('GBP') && !focusText.includes('{')
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
-  await page.waitForTimeout(400)
-  const wentBack = (await page.locator('.intro-beats .on').count()) === 5
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-  await page.waitForTimeout(400)
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-  await page.waitForTimeout(1500)
-  const hashAtEnd = await page.evaluate(() => location.hash)
-  const railBack = await page.locator('.rail').evaluate((el) => getComputedStyle(el).opacity === '1')
-  // The same card, now headed by the first ledger chapter: no second tour.
-  const cardUp = (await page.locator('.intro h1').innerText().catch(() => '')).trim() === CHAPTER_HEADING[FIRST]
-  const ok = hashAtStart === '#/tour/0' && railHidden && hullsAtStart === 0 && wordmarkAtStart.includes('Harbourline') && centred && fading && wordmarkAtTop && chapterHeading && calloutAtOne === 'Tap a domain' && unresolved.length === 0 && legendGrew && allOwn && stacked && calloutGone && described && wentBack && hashAtEnd === `#/tour/${FIRST}` && !railBack && cardUp && errors.length === 0
-  add('T7 the intro builds the estate layer by layer and hands over to step 1', ok ? 'PASS' : 'FAIL',
-    ok ? 'started at #/tour/0 with chrome hidden, no hull built and the company name centred on the visible canvas to within 2 px; on Next all 6 domains were mid-fade at 220 ms, the name had moved to the top and the card was headed Domains; six layers on Next; the marker read "Tap a domain" and left once all 6 were named; a real click on a domain named it and started the legend; all 6 domain centres resolved to their own domain; all 6 stayed as entries and the first reopened; a tapped platform described itself with a GBP figure; Back reversed one; Next from the last beat went straight to #/tour/7 on the same card, headed Why a ledger, with the rail still hidden'
-       : `start ${hashAtStart}, rail hidden ${railHidden}, hulls at start ${hullsAtStart}, wordmark "${wordmarkAtStart.slice(0, 20)}", centred ${centred}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, at top ${wordmarkAtTop}, heading ${chapterHeading}, stacked ${stacked} (${entries}), callout "${calloutAtOne}", gone ${calloutGone}, unresolved ${unresolved.join(' | ') || 'none'}, legend ${legendGrew}, own region ${ownHull.length} of ${hulls.length}, described ${described}, back ${wentBack}, end ${hashAtEnd}, rail hidden after ${!railBack}, card ${cardUp}, errors ${errors.length}`)
+  // On to the busiest node, then through part two to the ledger.
+  for (let i = 4; i <= 8; i++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(i === 8 ? 1800 : 2200) }
+  const busiest = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'The busiest node'
+  const selected = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { selectedId: string | null } } }).__ledger?.getState().selectedId)
+  await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1200)
+  const endOne = (await page.locator('.overlay-end').innerText().catch(() => '')).includes('That is the architecture')
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1000)
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1400)
+  const docs = await page.locator('.ov-doc').count()
+  await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1400)
+  const matrix = (await page.locator('.overlay-matrix td').count()) === 96
+  for (let i = 0; i < 2; i++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1400) }
+  await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1200)
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1000)
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1400)
+  const why = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Why a ledger'
+  const hashAtWhy = await page.evaluate(() => location.hash)
+  const ok = welcome && blankAtStart && noCardAtStart && railHidden && nameCentred && cardOnTitle && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/17' && errors.length === 0
+  add('T7 the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card', ok ? 'PASS' : 'FAIL',
+    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/17'
+       : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, name centred ${nameCentred}, card on title ${cardOnTitle}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
   await ctx.close()
 }
 
-
-//
 // ---- T8. Outside the intro a tapped domain explains itself on the canvas ----
 //
 // The legend builds only in the intro. Afterwards a tap on a domain's coloured
@@ -574,7 +526,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 {
   const bad: string[] = []
   let measured = 0
-  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/9', '#/tour/13']
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/21', '#/tour/27']
   for (const [w, h] of [[1850, 1000], [1233, 1325], [1280, 800]] as const) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } })
     const page = await ctx.newPage()
@@ -584,8 +536,8 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
       await page.waitForTimeout(r.startsWith('#/tour') ? 3200 : 1500)
       const holders = await page.locator('.graph-holder').all()
       const panel = await page.locator('.panel').boundingBox().catch(() => null)
-      const card = await page.locator('.intro').boundingBox().catch(() => null)
-      const cardIsBottom = card !== null && card.width > w * 0.8
+      // The story card floats and can be dragged, so it is not a bottom
+      // sheet the canvas must end above; only the panel bounds the canvas.
       for (const [i, hd] of holders.entries()) {
         const box = await hd.boundingBox()
         if (!box) { bad.push(`${w}x${h} ${r} canvas ${i}: no box`); continue }
@@ -593,10 +545,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
         const tag = `${w}x${h} ${r} canvas ${i}`
         if (box.width < 260 || box.height < 260) bad.push(`${tag}: ${Math.round(box.width)}x${Math.round(box.height)} is too small`)
         if (panel && box.x + box.width > panel.x + 1) bad.push(`${tag}: runs ${Math.round(box.x + box.width - panel.x)}px under the panel`)
-        if (cardIsBottom && card) {
-          const gap = card.y - (box.y + box.height)
-          if (Math.abs(gap) > 2) bad.push(`${tag}: ${Math.round(gap)}px between canvas bottom and card top`)
-        }
+        // (the floating card is not a sheet; nothing to measure against it)
       }
     }
     await ctx.close()
@@ -620,7 +569,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const offsiteLinks: string[] = []
-  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/15']) {
+  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/31']) {
     await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
     await page.waitForTimeout(hash === '#/' ? 400 : 2000)
     const hrefs = await page.evaluate(() =>

@@ -30,9 +30,28 @@ export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6
  * happens when it stops, how much things fail together, how the footprint
  * grew, what diversifying does, where the lines are drawn, and a close.
  */
-export const TOUR_STEPS = 15
-/** The first chapter of the second part, where the numbers start. */
-export const FIRST_LEDGER_CHAPTER = 7
+export const TOUR_STEPS = 31
+/** The first beat of the third part, where the numbers start. Kept for the router. */
+export const FIRST_LEDGER_CHAPTER = 18
+
+/** What the canvas shows during the story. Every field is a layer or a mode. */
+export interface Scene {
+  /** The canvas faded to nothing. */
+  blank: boolean
+  /** Which layers of the picture are up. Absent layers are hidden, not dimmed. */
+  hulls: boolean
+  useCases: boolean
+  platforms: boolean
+  links: boolean
+  connectors: boolean
+  /** Reveal one by one rather than all at once. */
+  stagger: boolean
+  /** Marker on the canvas, if any. */
+  callout: { kind: 'hull' | 'node'; id: string; text: string } | null
+}
+
+export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null }
+export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null }
 
 /**
  * A request to fail a platform, raised from anywhere. The nonce is what makes
@@ -69,8 +88,16 @@ export interface LedgerState {
   ratified: number
   /** Hypothetical extra riders on the view 2 fan-in slider. */
   fanInAdded: number
-  /** Which tour step is showing, or null when the tour is not running. */
+  /** Which story beat is showing, or null when the story is not running. */
   tourStep: number | null
+  /** The canvas during the story. Ignored outside it. */
+  scene: Scene
+  /** Domains the reader has tapped in part one, in order. */
+  namedDomains: string[]
+  /** What the reader tapped last: a domain, a node or a line. */
+  focus: { kind: 'hull'; id: string } | { kind: 'node'; id: string } | { kind: 'link'; ucId: string; platformId: string } | null
+  /** Use cases moved to another domain on the boundaries screen. */
+  moves: Record<string, string>
 
   setView: (v: View) => void
   setSelectedId: (id: string | null) => void
@@ -88,6 +115,11 @@ export interface LedgerState {
   setRatified: (m: number) => void
   setFanInAdded: (n: number) => void
   setTourStep: (n: number | null) => void
+  setScene: (patch: Partial<Scene>) => void
+  nameDomain: (id: string) => void
+  setFocus: (f: LedgerState['focus']) => void
+  setMoves: (m: Record<string, string>) => void
+  resetStory: () => void
 }
 
 export const DEFAULT_RHO = 0.5
@@ -105,6 +137,10 @@ export const useLedger = create<LedgerState>((set) => ({
   ratified: 31,
   fanInAdded: 0,
   tourStep: null,
+  scene: SCENE_ALL,
+  namedDomains: [],
+  focus: null,
+  moves: {},
 
   setView: (view) => set({ view }),
   setSelectedId: (selectedId) => set({ selectedId }),
@@ -122,4 +158,9 @@ export const useLedger = create<LedgerState>((set) => ({
   setRatified: (ratified) => set({ ratified }),
   setFanInAdded: (fanInAdded) => set({ fanInAdded }),
   setTourStep: (tourStep) => set({ tourStep }),
+  setScene: (patch) => set((s) => ({ scene: { ...s.scene, ...patch } })),
+  nameDomain: (id) => set((s) => ({ namedDomains: s.namedDomains.includes(id) ? s.namedDomains : [...s.namedDomains, id] })),
+  setFocus: (focus) => set({ focus }),
+  setMoves: (moves) => set({ moves }),
+  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null }),
 }))

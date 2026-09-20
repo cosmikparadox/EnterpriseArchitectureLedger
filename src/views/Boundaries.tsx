@@ -27,7 +27,11 @@ export interface BoundariesProps {
 
 export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProps) {
   // The redrawn decomposition. The GRAPH is untouched by any of this.
-  const [moved, setMoved] = useState<Record<string, string>>({})
+  // The moves live in the store, so the story can make one and read what changed.
+  const moved = useLedger((s) => s.moves)
+  const setMovesStore = useLedger((s) => s.setMoves)
+  const setMoved = (f: Record<string, string> | ((m: Record<string, string>) => Record<string, string>)) =>
+    setMovesStore(typeof f === 'function' ? f(useLedger.getState().moves) : f)
   const picked = useLedger((s) => s.selectedId)
   const setPicked = useLedger((s) => s.setSelectedId)
   const [collapsed, setCollapsed] = useState(false)
