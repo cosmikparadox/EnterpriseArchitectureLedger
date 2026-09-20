@@ -39,6 +39,8 @@ export interface DetailPanelProps {
   onToggleCollapsed: () => void
   onClose: () => void
   onSelectNode: (id: string) => void
+  /** Start the walkthrough of the selected node, when there is one. */
+  onPlay?: () => void
 }
 
 export function DetailPanel(props: DetailPanelProps) {
@@ -100,6 +102,7 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.category}, {v.kind === 'integration' ? 'integration node' : 'platform'}</div>
+        {props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>}
         {/* Chapter 7 shows the name alone; chapter 8 adds the headline once
             "meters" has been taught; the two readings follow the chapters
             that teach their words. */}
@@ -137,7 +140,7 @@ export function DetailPanel(props: DetailPanelProps) {
           <h3>{copy.panel_section_riders}</h3>
           <Row k="fan_in" l="Use cases riding" v={String(v.riders)} />
           <Row k="subdomain" l="Subdomains" v={String(v.subdomains)} />
-          <Row k="rule_share" l="Allocated by rule" v={gbp(v.ruleShareTotal) + ' /month'} />
+          <Row k="rule_share" l={copy.panel_allocated_label} v={gbp(v.ruleShareTotal) + ' /month'} />
           <Row k="c1" l="Rule share of reported cost" v={pct(v.c1, 1)} />
           <div className="callout">{copy.fixed_share_warning}</div>
         </section>
@@ -185,6 +188,7 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.subdomainName}, use case</div>
+        {props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>}
         <Summary
           head={summary.s1u_head} number={summary.s1u_number} mechanism={summary.s1u_mechanism}
           values={{

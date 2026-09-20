@@ -108,6 +108,9 @@ export function App() {
   // top bars, the panels. The one card carries the story and, when a beat
   // asks for it, the one control.
   if (tourStep !== null) classes.push('intro-open', 'story-open')
+  // The split view needs the whole width for its two halves, so there the
+  // card docks along the bottom instead of the right.
+  if (tourStep !== null && story.beat?.view === 5) classes.push('dock-bottom')
 
   return (
     <div className={classes.join(' ')}>

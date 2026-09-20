@@ -43,8 +43,9 @@ export function Controls({ control, estate }: { control: Control; estate: Estate
   )
   if (control === 'rho') return (
     <label className="story-ctl" data-tour="rho">
-      <span>{copy.ctl_rho_lo} <strong>rho {rho.toFixed(2)}</strong> {copy.ctl_rho_hi}</span>
+      <span>{copy.ctl_rho}</span>
       <input type="range" min={0} max={1} step={0.05} value={rho} onChange={(e) => setRho(Number(e.target.value))} aria-label="Dependence between platform failures, rho" />
+      <span className="story-ctl-ends"><span>{copy.ctl_rho_lo}</span><span>{copy.ctl_rho_hi}</span></span>
     </label>
   )
   if (control === 'month') return (

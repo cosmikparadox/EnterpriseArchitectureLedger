@@ -11,7 +11,7 @@ import { gbp } from '../components/DetailPanel'
 import { buildGraph, withSyntheticRiders, type GNode } from '../app/graph'
 import { buildIndex, c1, edgeSpend, meteredSpend, reportedCost, ruleShare } from '../model/ledger'
 import type { AllocationRule, Estate } from '../model/types'
-import { copy, glossary, summary } from '../copy'
+import { copy, fill, glossary, summary } from '../copy'
 import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
@@ -35,6 +35,13 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
   const [showRank, setShowRank] = useState(false)
   const [watched, setWatched] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
+  // Focus: while the fan-in slider is the thing being moved, the picture is
+  // the chosen node and its riders and nothing else. The story asks for it
+  // on its beats; outside the story the first touch of the slider asks.
+  const tourStep = useLedger((s) => s.tourStep)
+  const sceneFocus = useLedger((s) => s.scene.focus)
+  const [focusing, setFocusing] = useState(false)
+  const inStory = tourStep !== null
 
   const estate = useMemo(() => withSyntheticRiders(base, selected, added), [base, selected, added])
   const ix = useMemo(() => buildIndex(estate), [estate])
@@ -45,6 +52,22 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
   const isPlatform = ix.platformById.has(selected)
   const riders = isPlatform ? ix.ridersOf.get(selected)! : []
   const platform = isPlatform ? ix.platformById.get(selected)! : null
+  const focus = useMemo(() => {
+    const on = inStory ? sceneFocus === 'riders' : focusing
+    if (!on || !isPlatform) return null
+    return { nodes: new Set([selected, ...riders.map((r) => r.uc.id)]) }
+  }, [inStory, sceneFocus, focusing, isPlatform, selected, riders])
+  // What the basis moved on this node, against the default equal split.
+  const basisMoved = useMemo(() => {
+    if (!platform) return null
+    let n = 0, max = 0
+    for (const r of riders) {
+      const d = Math.abs(ruleShare(ix, platform.id, r.uc.id, rule) - ruleShare(ix, platform.id, r.uc.id, 'equal'))
+      if (d > 0.5) { n++; max = Math.max(max, d) }
+    }
+    return { n, max }
+  }, [platform, riders, ix, rule])
+  const basisName = rule === 'equal' ? 'equal split' : rule === 'driver' ? 'driver-proportional' : rule === 'by_volume' ? 'by volume' : 'by headcount'
 
   // The ring split per node: metered share solid, rule share hatched.
   const nodeRing = useMemo(() => (n: GNode) => {
@@ -99,7 +122,8 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           isolatedSubdomain={null}
           flyToId={null}
           nodeRing={nodeRing}
-          onSelectNode={(id) => { setSelected(id); setAdded(0); setWatched(null); setCollapsed(false) }}
+          focus={focus}
+          onSelectNode={(id) => { setSelected(id); setAdded(0); setWatched(null); setCollapsed(false); setFocusing(false) }}
           onSelectLink={() => {}}
           onBackground={() => {}}
         />
@@ -147,11 +171,16 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
                   Add use cases riding this node: <strong>{added}</strong>
                   <input
                     type="range" min={0} max={24} value={added}
-                    onChange={(e) => setAdded(Number(e.target.value))}
+                    onChange={(e) => { setAdded(Number(e.target.value)); setFocusing(true) }}
                     style={{ width: '100%' }}
                     aria-label="Add synthetic use cases riding this platform"
                   />
                 </label>
+                <div className="callout" key={rule}>
+                  {rule === 'equal' ? copy.basis_equal
+                    : basisMoved && basisMoved.n > 0 ? fill(copy.basis_moved, { basis: basisName, n: basisMoved.n, riders: riders.length, max: Math.round(basisMoved.max).toLocaleString('en-GB') })
+                    : fill(copy.basis_same, { basis: basisName })}
+                </div>
                 <div className="row"><span className="l">Use cases riding</span><span className="v">{riders.length}</span></div>
                 <div className="row"><span className="l"><Term k="fixed_pool" /></span><span className="v">{gbp(platform.fixed_pool_gbp_month)} /month</span></div>
                 <div className="row"><span className="l"><Term k="metered_spend" /></span><span className="v">{gbp(meteredSpend(ix, platform.id))} /month</span></div>
@@ -182,7 +211,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
                         }}
                       >
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.uc.name}</span>
-                        <span style={{ fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                        <span className="flash" key={Math.round(byRule)} style={{ fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                           {gbp(metered)} + {gbp(byRule)}
                         </span>
                       </button>

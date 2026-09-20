@@ -90,9 +90,9 @@ export const BEATS: Beat[] = [
     waitFor: (now) => now.selectedId !== null && now.selectedId !== IDENTITY_ID },
   { part: 3, stem: 'pool', view: 1, overlay: null, scene: { ...PICTURE, badge: 'pool' }, card: true, rows: ['metered', 'pool'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 1200 },
-  { part: 3, stem: 'rule', view: 2, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first'],
+  { part: 3, stem: 'rule', view: 2, overlay: null, scene: { ...PICTURE, focus: 'riders' }, card: true, rows: ['metered', 'pool', 'rule_first'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFanInAdded(0) } },
-  { part: 3, stem: 'crowd', view: 2, overlay: null, scene: { ...PICTURE }, card: true, control: 'fanin', rows: ['metered', 'pool', 'rule_first'],
+  { part: 3, stem: 'crowd', view: 2, overlay: null, scene: { ...PICTURE, focus: 'riders' }, card: true, control: 'fanin', rows: ['metered', 'pool', 'rule_first'],
     // One rider at a time, each with room to arrive, rather than three in a
     // burst that re-laid the whole picture.
     enter: ({ store, timeline, reduced }) => {
@@ -101,16 +101,16 @@ export const BEATS: Beat[] = [
     },
     settleMs: 500 + 1600 + 900,
     waitFor: (now, at) => now.fanInAdded !== at.fanInAdded },
-  { part: 3, stem: 'fail', view: 3, overlay: null, scene: { ...PICTURE }, card: true, control: 'fail', rows: ['metered', 'pool', 'rule_first'],
+  { part: 3, stem: 'fail', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'fail', rows: ['metered', 'pool', 'rule_first'],
     enter: ({ store, timeline, reduced }) => {
       store.setSelectedId(IDENTITY_ID); store.setSubdomain(TOUR_SUBDOMAIN)
       timeline.after(900, () => store.failIt(IDENTITY_ID), reduced)
     },
     settleMs: 900 + 1200,
     waitFor: (now, at) => now.failRequest !== null && now.failRequest.nonce !== at.failRequest?.nonce },
-  { part: 3, stem: 'together', view: 3, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint'],
+  { part: 3, stem: 'together', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint'],
     enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN) } },
-  { part: 3, stem: 'rho', view: 3, overlay: null, scene: { ...PICTURE }, card: true, control: 'rho', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
+  { part: 3, stem: 'rho', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'rho', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
     enter: ({ store, timeline, reduced }) => {
       store.setSubdomain(TOUR_SUBDOMAIN); store.setRho(0)
       timeline.after(300, () => {
@@ -120,7 +120,7 @@ export const BEATS: Beat[] = [
     },
     settleMs: 300 + 3200 + 900,
     waitFor: (now, at) => now.rho !== at.rho },
-  { part: 3, stem: 'grow', view: 4, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
+  { part: 3, stem: 'grow', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
     enter: ({ store, timeline, reduced }) => {
       store.setSelectedId(DATA_PLATFORM_ID)
       const marker = store.ratified
@@ -128,21 +128,21 @@ export const BEATS: Beat[] = [
       timeline.after(400, () => { timeline.add(animateValue(0, marker, 3200, (v) => store.setCursor(Math.round(v)), reduced)) }, reduced)
     },
     settleMs: 400 + 3200 },
-  { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE }, card: true, control: 'month', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec'],
+  { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, control: 'month', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec'],
     enter: ({ store }) => { store.setSelectedId(DATA_PLATFORM_ID); store.setCursor(store.ratified) },
     waitFor: (now, at) => now.cursor !== at.cursor },
   { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
     enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN) } },
   { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
     enter: ({ store }) => { store.setMoves({}); store.setRule('equal'); store.setSelectedId(null) } },
-  { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE }, card: true, control: 'move', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
+  { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'move', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
     enter: ({ store, timeline, reduced }) => {
       store.setRule('equal'); store.setSelectedId(MOVER_ID)
       timeline.after(700, () => store.setMoves({ [MOVER_ID]: MOVER_TO }), reduced)
     },
     settleMs: 700,
     waitFor: (now, at) => JSON.stringify(now.moves) !== JSON.stringify(at.moves) },
-  { part: 3, stem: 'basis', view: 6, overlay: null, scene: { ...PICTURE }, card: true, control: 'basis', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
+  { part: 3, stem: 'basis', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'basis', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
     enter: ({ store }) => { if (Object.keys(store.moves).length === 0) store.setMoves({ [MOVER_ID]: MOVER_TO }) },
     waitFor: (now, at) => now.rule !== at.rule },
   { part: 3, stem: 'close', view: 6, overlay: null, scene: { ...PICTURE }, card: true, closing: true,

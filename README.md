@@ -1125,6 +1125,89 @@ prefers-reduced-motion it is a cut. And the drawings of the six documents
 are drawings: the numbers on them are made up to look like the shape and
 say so in the caption.
 
+### 49. Focus, the wave, docking, the decision, and the walkthrough
+
+The owner's third review, from screenshots of part three and of the
+explorer. One subsystem, worn several ways, and four fixes around it.
+
+Focus. A beat, or a control outside the story, declares what it is about:
+a node and a relation. Everything else on the canvas drops to a ghost: nodes
+to a trace, their labels off, links between two ghosts to a faint line, the
+hulls of domains not named to a quarter. The set changes as the control
+moves, so the picture answers the slider. The crowd beat focuses the chosen
+node and its riders, the failure beats the node and everything the failure
+reached, the leaving beats the platform and what had attached by that month,
+the boundary beats the moved use case, its platforms and the two domains
+either side of the line. Outside the story the fan-in slider, the
+dependence slider and the month handle do the same on their own screens
+from the first touch. It reuses the opacity tween that runs the reveals, so
+it costs nothing per frame.
+
+The wave. A failure spreads outward from the node in order of distance:
+each lit link and each reached use case takes a time from its distance to
+the source and a ring later per hop, and lights when its time comes, with a
+short halo pulse. The dependence slider now has a picture: at the left end
+the failure reaches only the failed node's own riders; as it moves right,
+the platforms those riders also ride go down with it, most shared first,
+and the failure reaches their riders too. A change of reach on the same
+failure keeps what is lit and times only what is new, so the slider grows
+the wave rather than replaying it. The mechanism is illustrative and says
+so in More detail; the figures on the card still come from the simulation.
+
+The word rho is gone from the control. It reads "How often the platforms
+fail on the same day", with "never together" and "always together" at the
+ends; the letter is in More detail.
+
+Docking. The card has a fixed home per layout and the canvas is inset to
+clear it, so the picture is framed and centred in the space left rather than
+dodging a card that moves. Single canvas: the right column. Split view: a
+low sheet along the bottom, with the two halves taking the width and the
+company name clear of the half titles. The owner asked for soft collision
+detection; a card that dodges the camera would jump whenever the camera
+moved, and a fixed dock with a re-framed canvas gives the same clear view
+predictably. Recorded as a deviation from the ask.
+
+Framing. The library fits the box around every object, labels and rings
+included, which landed the picture at about half the canvas. The canvas now
+fits the sphere around the node positions, standing the camera off along
+its own line of sight so that sphere fills the shorter side with a little
+room at the rim. And the layout's 300 ticks now run before the first frame
+rather than across the first five seconds: a screen mounts with the estate
+already settled and framed. The digest is unchanged, 6b8903cf, because the
+tick count is.
+
+The boundary move is shown as a decision. A note pinned to the moved use
+case names the giving domain, the receiving domain and the use case, with
+an arrow that draws, and says who moved it in the only terms the data
+supports: the domain architecture function redrew the line; no system and
+no line on the graph changed. Everything but the two domains, the use case
+and its platforms ghosts.
+
+The matrix. Its cell colours and vertical headers were scoped to the old
+chapter's class and the story renders the sheet without it, so the sheet
+showed sixteen horizontal headers and no colour. One selector.
+
+Riders added by the fan-in slider fan out in a ring that widens as more
+arrive, and only the first three carry a label. The rule share of each
+rider flashes when it changes, and a line under the slider says how many of
+the node's figures the basis moved and by how much, or that this basis moved
+nothing against an equal split. The fixed pool's "Allocated by rule" row
+now reads "Allocated by rule, not billed", the distinction a finance reader
+already knows.
+
+The walkthrough. On the explorer a tapped node's panel carries a play
+button, "Walk me through it", and the node's figures arrive one step at a
+time on a card at the top left, with the canvas focused on each: what it
+is, what runs on it, how it is billed, when it stops, what leaving would
+cost, when it arrived. Four steps for a use case. Every sentence is
+assembled from the data. The owner asked for why each platform was
+purchased and whether it aligns with strategy; the estate has no decision
+record, and the paper refuses an unevidenced counterfactual, so the
+walkthrough says value as the work that runs on the node, and says in one
+line that a real ledger would link the decision record here and this estate
+has none. Nothing is invented about a vendor. Recorded as a deviation from
+the ask.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two

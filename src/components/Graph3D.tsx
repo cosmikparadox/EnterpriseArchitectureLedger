@@ -92,6 +92,19 @@ export interface Graph3DProps {
    * is where the entries come from.
    */
   book?: { id: string; title: string; rows: string[]; note: string } | null
+  /**
+   * Focus. Everything outside the set drops to a ghost: nodes to a trace,
+   * their labels off, links between two ghosts to a faint line, hulls not
+   * named to a quarter. The one control on the card changes the set, so the
+   * picture answers the slider and nothing else competes with it.
+   */
+  focus?: { nodes: Set<string>; hulls?: Set<string> } | null
+  /**
+   * A wave. The lit links and affected nodes light in order of their distance
+   * from the source rather than all at once, so a failure is seen to spread.
+   * A new nonce replays it. `hop` puts a node or a link key on a later ring.
+   */
+  wave?: { from: string; nonce: number; hop?: Map<string, number> } | null
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -104,6 +117,8 @@ const HULL_FILL = 0.085
 const HULL_EDGE = 0.3
 /** Strength of the pull that keeps each part of the business in its sector. */
 const SECTOR_PULL = 0.1
+/** What a node outside the focus fades to: a trace, so the shape of the estate stays. */
+const GHOST = 0.07
 
 interface Positioned { x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number }
 
@@ -133,6 +148,10 @@ interface NodeObjs {
   fadeFrom: number
   fadeTo: number
   fadeT0: number
+  /** The wave has reached this node. */
+  lit?: boolean
+  /** The halo pulse the wave gave it ends here. */
+  pulseUntil?: number
 }
 
 function disposeMesh(m: THREE.Mesh): void {
@@ -168,6 +187,7 @@ export function Graph3D(props: Graph3DProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const gRef = useRef<any>(null)
   const hullGroup = useRef<THREE.Group | null>(null)
+  const fitRef = useRef<((ms: number) => void) | null>(null)
   const propsRef = useRef(props)
   propsRef.current = props
 
@@ -212,7 +232,13 @@ export function Graph3D(props: Graph3DProps) {
       // two loads settle differently. Counting ticks instead of milliseconds is
       // what makes the shape the same every time. 300 is where d3's default
       // alpha decay reaches its floor, so nothing is cut short.
-      .cooldownTicks(300)
+      //
+      // The ticks run before the first frame rather than across the first
+      // five seconds. A screen that mounts with the estate already settled
+      // and framed is calm; one that assembles in front of the reader, on
+      // every switch of view, read as churn.
+      .warmupTicks(300)
+      .cooldownTicks(0)
       .cooldownTime(Infinity)
 
     // Pull the hubs toward the centre so fan-in stays visible.
@@ -301,10 +327,32 @@ export function Graph3D(props: Graph3DProps) {
       if (!framed) {
         framed = true
         const ms = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600
-        g.zoomToFit(ms, 70)
+        fit(ms)
       }
     })
 
+    // Framing. The library fits the box around every object, labels and
+    // rings included, which lands the picture at about half the canvas. This
+    // fits the sphere around the node positions instead: the layout is
+    // centred on the origin, so the camera stands off along its own line of
+    // sight far enough for that sphere to fill the shorter side, with a
+    // little room for the labels at the rim.
+    const fit = (ms: number) => {
+      const nodes = g.graphData().nodes as (GNode & Positioned)[]
+      if (nodes.length === 0) return
+      let radius = 0
+      for (const n of nodes) radius = Math.max(radius, Math.hypot(n.x ?? 0, n.y ?? 0, n.z ?? 0))
+      const cam = g.camera() as THREE.PerspectiveCamera
+      const fovV = (cam.fov * Math.PI) / 180
+      const aspect = Math.max(0.2, el.clientWidth / Math.max(1, el.clientHeight))
+      const fovH = 2 * Math.atan(Math.tan(fovV / 2) * aspect)
+      const fov = Math.min(fovV, fovH)
+      const d = (radius * 1.05 + 12) / Math.sin(fov / 2)
+      const p = g.cameraPosition() as { x: number; y: number; z: number }
+      const len = Math.hypot(p.x, p.y, p.z) || 1
+      g.cameraPosition({ x: (p.x / len) * d, y: (p.y / len) * d, z: (p.z / len) * d }, { x: 0, y: 0, z: 0 }, ms)
+    }
+    fitRef.current = fit
     // Re-frame the estate when the canvas changes size, until the viewer takes
     // the camera. Opening a panel or turning the split narrows the canvas, and
     // without this the graph stays framed for a box that no longer exists and
@@ -338,7 +386,7 @@ export function Graph3D(props: Graph3DProps) {
       // the graph ends up zoomed into the middle of itself.
       if (userMovedCamera || !framed) return
       clearTimeout(refit)
-      refit = setTimeout(() => { if (!userMovedCamera && framed) g.zoomToFit(300, 70) }, 300)
+      refit = setTimeout(() => { if (!userMovedCamera && framed) fit(300) }, 300)
     })
     ro.observe(el)
     g.width(el.clientWidth).height(el.clientHeight)
@@ -510,9 +558,11 @@ export function Graph3D(props: Graph3DProps) {
         freshIds.current.add(n.id)
         const link = props.data.links.find((l) => l.ucId === n.id || l.platformId === n.id)
         const anchor = link ? before.get(link.ucId === n.id ? link.platformId : link.ucId) : undefined
+        // A ring that widens as more arrive, so twenty do not share one spot.
         const angle = k++ * 2.399
-        n.x = (anchor?.x ?? 0) + Math.cos(angle) * 14
-        n.y = (anchor?.y ?? 0) + Math.sin(angle) * 14
+        const ring = 14 + 4 * Math.sqrt(k)
+        n.x = (anchor?.x ?? 0) + Math.cos(angle) * ring
+        n.y = (anchor?.y ?? 0) + Math.sin(angle) * ring
         n.z = (anchor?.z ?? 0) + (k % 2 ? 8 : -8)
       }
       for (const [id, o] of objs.current) if (!byId.has(id)) { disposeNode(o); objs.current.delete(id) }
@@ -544,7 +594,11 @@ export function Graph3D(props: Graph3DProps) {
   const objs = useRef(new Map<string, NodeObjs>())
   const linkShown = useRef(new Set<string>())
   const linkReveal = useRef(0)
-  useEffect(() => () => { if (fadeRaf.current) cancelAnimationFrame(fadeRaf.current) }, [])
+  const waveRaf = useRef(0)
+  const waveSeen = useRef(0)
+  /** When the wave reaches each affected node, by id. */
+  const litAt = useRef(new Map<string, number>())
+  useEffect(() => () => { if (fadeRaf.current) cancelAnimationFrame(fadeRaf.current); if (waveRaf.current) cancelAnimationFrame(waveRaf.current) }, [])
 
   useEffect(() => {
     const g = gRef.current
@@ -630,7 +684,10 @@ export function Graph3D(props: Graph3DProps) {
       // The label is built whenever the mode could ever want it, and shown or
       // hidden by state. A canvas per label, once, rather than once per change.
       let label: SpriteText | null = null
-      if (labelMode !== 'none') {
+      // Riders the fan-in slider adds are named only up to the third; past
+      // that they are dots, or twenty labels pile onto one node.
+      const unnamed = /^uc_added_(\d+)$/.exec(n.id)
+      if (labelMode !== 'none' && !(unnamed && Number(unnamed[1]) > 3)) {
         label = new SpriteText(n.name)
         label.color = dark ? '#e7eaef' : '#20242b'
         // Hub labels are the only text on that screen and they carry the
@@ -757,7 +814,11 @@ export function Graph3D(props: Graph3DProps) {
     const dim = dimmed(n)
     const isSel = selectedId === n.id
     const isNeighbour = neighbours.has(n.id)
-    const affected = propsRef.current.affectedUseCases?.has(n.id) === true
+    const f = propsRef.current.focus
+    const ghosted = !!f && !f.nodes.has(n.id)
+    // A node the wave has not reached yet still stands; it goes to wireframe
+    // when the wave arrives, in the loop below.
+    const affected = propsRef.current.affectedUseCases?.has(n.id) === true && (litAt.current.get(n.id) ?? 0) <= performance.now()
     const failed = propsRef.current.failedNodeId === n.id
 
     o.mesh.material = affected ? o.wire : o.solid
@@ -765,18 +826,18 @@ export function Graph3D(props: Graph3DProps) {
     // has dimmed is still there, faintly, because the sharing is the lesson.
     // A layer arriving comes in one node at a time when the scene asks for
     // it: each node in the same pass starts a little after the last.
-    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : dim ? 0.12 : 1
+    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : ghosted ? GHOST : dim ? 0.12 : 1
     const wasHidden = o.fadeTo === 0
     const delay = !instant && wasHidden && target > 0 && propsRef.current.stagger ? Math.min(1400, arriving.current++ * 45) : 0
     fadeTo(o, target, instant, delay)
     o.solid.emissive.set(failed ? '#d05a6a' : isSel ? o.colour : '#000000')
     o.solid.emissiveIntensity = failed ? 0.9 : isSel ? 0.55 : 0
-    o.halo.visible = isSel && !dim
+    o.halo.visible = (isSel && !dim) || (o.pulseUntil ?? 0) > performance.now()
     o.ring.visible = isSel
     o.fail.visible = failed
-    if (o.ringSprite) o.ringSprite.visible = !dim
+    if (o.ringSprite) o.ringSprite.visible = !dim && !ghosted
     if (o.label) {
-      o.label.visible =
+      o.label.visible = ghosted ? false :
         labelMode === 'all' ? !dim
         : labelMode === 'selected' ? (isSel || isNeighbour)
         : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
@@ -823,7 +884,8 @@ export function Graph3D(props: Graph3DProps) {
       const arrived = props.dimHulls
         ? !props.dimHulls.has(sub)
         : data.nodes.some((n) => n.kind === 'use_case' && n.subdomain === sub && !dimmed(n))
-      const target = arrived ? 1 : 0
+      const fh = props.focus?.hulls
+      const target = !arrived ? 0 : fh && !fh.has(sub) ? 0.22 : 1
       const a = hullAlpha.current.get(sub) ?? { cur: target, from: target, to: target, t0: 0 }
       if (!hullAlpha.current.has(sub)) hullAlpha.current.set(sub, a)
       if (a.to !== target) {
@@ -858,13 +920,68 @@ export function Graph3D(props: Graph3DProps) {
       const tick = () => { applyLinkVisibility(); if (performance.now() < lastAt + 40) linkReveal.current = requestAnimationFrame(tick); else linkReveal.current = 0 }
       linkReveal.current = requestAnimationFrame(tick)
     }
-    g.linkColor((raw: object) => {
-      const l = raw as GLink
-      if (props.litLinks?.has(`${l.ucId}>${l.platformId}`)) return '#d05a6a'
+    // The wave. A new nonce puts a time on every lit link and every affected
+    // node: later the further it sits from the source, and a ring later per
+    // hop. The colour accessor reads those times, and is re-issued each
+    // frame until the last has passed.
+    const wave = props.wave
+    if (wave && wave.nonce !== waveSeen.current) {
+      const fresh = Math.floor(wave.nonce / 1000) !== Math.floor(waveSeen.current / 1000)
+      waveSeen.current = wave.nonce
+      const nodes = g.graphData().nodes as (GNode & Positioned)[]
+      const src = nodes.find((n) => n.id === wave.from)
+      const dist = (id: string) => { const n = nodes.find((x) => x.id === id); return src && n ? Math.hypot((n.x ?? 0) - (src.x ?? 0), (n.y ?? 0) - (src.y ?? 0), (n.z ?? 0) - (src.z ?? 0)) : 0 }
+      const at = (key: string, id: string) => now + 380 + (wave.hop?.get(key) ?? 0) * 600 + dist(id) * 3.2
+      // A fresh failure replays from the source. A change of reach on the
+      // same failure keeps what is already lit and times only what is new,
+      // so the slider grows the wave rather than restarting it.
+      for (const raw of g.graphData().links as object[]) {
+        const l = raw as GLink & { __litAt?: number }
+        const key = `${l.ucId}>${l.platformId}`
+        if (!props.litLinks?.has(key)) { l.__litAt = 0; continue }
+        if (!fresh && l.__litAt && l.__litAt <= now) continue
+        l.__litAt = at(key, wave.hop?.has(l.platformId) ? l.platformId : l.ucId)
+      }
+      for (const id of [...litAt.current.keys()]) if (!props.affectedUseCases?.has(id)) { litAt.current.delete(id); const o = objs.current.get(id); if (o) { o.lit = false; o.pulseUntil = 0 } }
+      for (const id of props.affectedUseCases ?? []) {
+        const had = litAt.current.get(id)
+        if (!fresh && had !== undefined && had <= now) continue
+        litAt.current.set(id, at(id, id))
+        const o = objs.current.get(id)
+        if (o) { o.lit = false; o.pulseUntil = 0 }
+      }
+    } else if (!wave) {
+      litAt.current.clear()
+      for (const raw of g.graphData().links as object[]) (raw as GLink & { __litAt?: number }).__litAt = 0
+    }
+    const focus = props.focus
+    const linkColour = (raw: object) => {
+      const l = raw as GLink & { __litAt?: number }
+      const key = `${l.ucId}>${l.platformId}`
+      if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
+      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return dark ? '#1c2026' : '#e9e9e6'
       if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
       if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
       return dark ? '#7d848e' : '#9aa0a8'
-    })
+    }
+    g.linkColor(linkColour)
+    const lastLit = Math.max(0, ...litAt.current.values(), ...(g.graphData().links as (GLink & { __litAt?: number })[]).map((l) => l.__litAt ?? 0))
+    if (waveRaf.current) cancelAnimationFrame(waveRaf.current)
+    if (lastLit > now) {
+      const tick = () => {
+        const t = performance.now()
+        g.linkColor(linkColour)
+        for (const [id, when] of litAt.current) {
+          const o = objs.current.get(id)
+          const n = data.nodes.find((x) => x.id === id)
+          if (!o || !n) continue
+          if (!o.lit && when <= t) { o.lit = true; o.pulseUntil = t + 520; applyNodeState(n, o, true) }
+          else if (o.lit && o.pulseUntil && o.pulseUntil <= t) { o.pulseUntil = 0; applyNodeState(n, o, true) }
+        }
+        if (t < lastLit + 600) waveRaf.current = requestAnimationFrame(tick); else waveRaf.current = 0
+      }
+      waveRaf.current = requestAnimationFrame(tick)
+    }
     rebuildHulls()
   }
 
@@ -872,7 +989,7 @@ export function Graph3D(props: Graph3DProps) {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
-      props.affectedUseCases, props.litLinks, props.hideLinksOf])
+      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
@@ -1050,14 +1167,14 @@ export function Graph3D(props: Graph3DProps) {
     // '*' asks for the whole estate: the camera pulls back along its own line
     // of sight until everything fits, slowly, so the picture widens rather
     // than cuts.
-    if (wanted === '*') { g.zoomToFit(reduced ? 0 : 1800, 60); return }
+    if (wanted === '*') { fitRef.current?.(reduced ? 0 : 1800); return }
     const all = g.graphData().nodes as (GNode & Positioned)[]
     const n = all.find((x) => x.id === wanted)
     if (!n || n.x === undefined) return
     // Stand off by a fraction of the estate's own radius, so the camera frames
     // the node in context instead of ending up inside the graph.
     const extent = Math.max(...all.map((m) => Math.hypot(m.x ?? 0, m.y ?? 0, m.z ?? 0)), 1)
-    const d = Math.max(120, extent * 1.3)
+    const d = Math.max(120, extent * 2.5)
     const r = Math.hypot(n.x, n.y ?? 0, n.z ?? 0) || 1
     // Under prefers-reduced-motion the camera cuts rather than travels. The
     // tour flies to a node at almost every step, and a viewer who has asked for

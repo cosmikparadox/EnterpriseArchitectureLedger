@@ -48,6 +48,10 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [failure, setFailure] = useState<FailureRun | null>(null)
   const [phase, setPhase] = useState(0)
+  const tourStep = useLedger((s) => s.tourStep)
+  const sceneFocus = useLedger((s) => s.scene.focus)
+  const [focusing, setFocusing] = useState(false)
+  const inStory = tourStep !== null
 
   const mc = useMonteCarlo(estate, rho, runs)
   const isPlatform = ix.platformById.has(selected)
@@ -87,6 +91,44 @@ export function Risk({ estate, ix, dark }: RiskProps) {
     return () => clearTimeout(t)
   }, [phase])
 
+  // How far the failure reaches at this dependence. At the left end of the
+  // slider only the failed node's own riders go; as it moves right, the
+  // platforms those riders also ride go down with it, most shared first,
+  // and their riders go with them. The picture of what rho means.
+  const reach = useMemo(() => {
+    if (!failure) return null
+    const affected = new Set(failure.affected)
+    const litLinks = new Set(failure.litLinks)
+    const hop = new Map<string, number>()
+    const count = new Map<string, number>()
+    for (const id of failure.affected) for (const e of ix.useCaseById.get(id)!.edges) if (e.platform_id !== failure.platformId) count.set(e.platform_id, (count.get(e.platform_id) ?? 0) + 1)
+    const ranked = [...count.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([id]) => id)
+    const also = ranked.slice(0, Math.round(rho * ranked.length))
+    const rng = makeRng(0xc0de ^ ((failRequest?.nonce ?? 0) * 2654435761))
+    for (const q of also) {
+      hop.set(q, 1)
+      for (const id of failure.affected) if (ix.useCaseById.get(id)!.edges.some((e) => e.platform_id === q)) { litLinks.add(`${id}>${q}`); hop.set(`${id}>${q}`, 1) }
+      for (const r of ix.ridersOf.get(q)!) {
+        if (affected.has(r.uc.id)) continue
+        if (rng.next() < r.edge.conditional_failure_prob) { affected.add(r.uc.id); litLinks.add(`${r.uc.id}>${q}`); hop.set(r.uc.id, 2); hop.set(`${r.uc.id}>${q}`, 2) }
+      }
+    }
+    const subdomains = new Set([...affected].map((id) => ix.useCaseById.get(id)!.subdomain))
+    const volume = [...affected].reduce((a, id) => a + ix.useCaseById.get(id)!.volume_per_month, 0)
+    return { affected, litLinks, platforms: new Set(also), hop, subdomains, volume, reached: affected.size - failure.affected.size }
+  }, [failure, rho, ix, failRequest])
+  // The nonce's thousands are the failure; the rest is how far it reaches,
+  // so a slider move that changes nothing replays nothing.
+  const wave = useMemo(() => failure && reach ? { from: failure.platformId, nonce: (failRequest?.nonce ?? 0) * 1000 + reach.platforms.size, hop: reach.hop } : null, [failure, reach, failRequest])
+  const focus = useMemo(() => {
+    const on = inStory ? sceneFocus === 'blast' : focusing
+    if (!on || !platform) return null
+    const nodes = new Set<string>([platform.id])
+    if (reach) { for (const id of reach.affected) nodes.add(id); for (const id of reach.platforms) nodes.add(id) }
+    else for (const r of ix.ridersOf.get(platform.id)!) nodes.add(r.uc.id)
+    return { nodes }
+  }, [inStory, sceneFocus, focusing, platform, reach, ix])
+
   const sub = mc.result?.subdomains.find((s) => s.id === subdomain) ?? null
   const subName = estate.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
   const platformStats = mc.result?.platforms.find((p) => p.id === selected) ?? null
@@ -116,7 +158,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           <Hint tip={copy.dependence_low_tip}><span className="term">{copy.dependence_low}</span></Hint>
           <input
             type="range" min={0} max={1} step={0.05} value={rho}
-            onChange={(e) => setRho(Number(e.target.value))}
+            onChange={(e) => { setRho(Number(e.target.value)); setFocusing(true) }}
             aria-label="Dependence between platform failures, rho"
             style={{ width: 130 }}
           />
@@ -143,9 +185,11 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           isolatedSubdomain={null}
           flyToId={null}
           failedNodeId={failure ? failure.platformId : null}
-          affectedUseCases={phase >= 2 && failure ? failure.affected : undefined}
-          litLinks={phase >= 2 && failure ? failure.litLinks : undefined}
-          onSelectNode={(id) => { setSelected(id); setFailure(null); setPhase(0); clearFailRequest(); setCollapsed(false) }}
+          affectedUseCases={phase >= 1 && reach ? new Set([...reach.affected, ...reach.platforms]) : undefined}
+          litLinks={phase >= 1 && reach ? reach.litLinks : undefined}
+          wave={phase >= 1 ? wave : null}
+          focus={focus}
+          onSelectNode={(id) => { setSelected(id); setFailure(null); setPhase(0); clearFailRequest(); setCollapsed(false); setFocusing(false) }}
           onSelectLink={() => {}}
           onBackground={() => {}}
         />
@@ -193,9 +237,10 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           {failure && (
             <section>
               <h3><Term k="blast_radius">Blast radius</Term>, this run</h3>
-              <div className="row"><span className="l"><Term k="conditional_failure">Use cases affected</Term></span><span className="v">{failure.affected.size}</span></div>
-              <div className="row"><span className="l">Subdomains crossed</span><span className="v">{failure.subdomains.size}</span></div>
-              <div className="row"><span className="l">Volume interrupted</span><span className="v">{failure.volume.toLocaleString('en-GB')} /month</span></div>
+              <div className="row"><span className="l"><Term k="conditional_failure">Use cases affected</Term></span><span className="v flash" key={reach?.affected.size}>{reach?.affected.size ?? failure.affected.size}</span></div>
+              <div className="row"><span className="l">Subdomains crossed</span><span className="v">{reach?.subdomains.size ?? failure.subdomains.size}</span></div>
+              <div className="row"><span className="l">Volume interrupted</span><span className="v">{Math.round(reach?.volume ?? failure.volume).toLocaleString('en-GB')} /month</span></div>
+              {reach && reach.platforms.size > 0 && <div className="note">{fill(copy.reach_note, { direct: failure.affected.size, reached: reach.reached, platforms: reach.platforms.size })}</div>}
               <div className="note">
                 Sampled from each edge's conditional failure probability. Press Fail it again
                 for a different pattern.

@@ -17,6 +17,9 @@ import { copy, summary } from '../copy'
 import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { RuleSelect } from '../components/RuleSelect'
+import { SUBDOMAIN_COLOUR } from '../app/graph'
+import { MOVER_ID } from '../story/script'
+import { fill } from '../copy'
 
 export interface BoundariesProps {
   estate: Estate
@@ -35,6 +38,9 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
   const picked = useLedger((s) => s.selectedId)
   const setPicked = useLedger((s) => s.setSelectedId)
   const [collapsed, setCollapsed] = useState(false)
+  const tourStep = useLedger((s) => s.tourStep)
+  const sceneFocus = useLedger((s) => s.scene.focus)
+  const inStory = tourStep !== null
 
   const estate: Estate = useMemo(() => ({
     ...base,
@@ -97,6 +103,38 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
   const moves = Object.keys(moved).length
   const pickedUc = picked ? estate.use_cases.find((u) => u.id === picked) ?? null : null
 
+  // The story's move, as a decision. The picture is the use case that moved,
+  // the platforms it rides, and the two domains either side of the line;
+  // the dashed lines shown are its own. A note pinned to it says what was
+  // decided and by whom, in the only terms the data supports.
+  const storyMove = inStory && sceneFocus === 'move'
+  const mover = base.use_cases.find((u) => u.id === MOVER_ID) ?? null
+  const moverTo = moved[MOVER_ID] ?? null
+  const focus = useMemo(() => {
+    if (!storyMove || !mover) return null
+    const nodes = new Set<string>([mover.id, ...mover.edges.map((e) => e.platform_id)])
+    const hulls = new Set<string>([mover.subdomain, moverTo ?? mover.subdomain])
+    return { nodes, hulls }
+  }, [storyMove, mover, moverTo])
+  const dashed = useMemo(() => storyMove && mover ? new Set([...crossing].filter((k) => k.startsWith(`${mover.id}>`))) : crossing, [storyMove, mover, crossing])
+  const subName = (id: string) => base.subdomains.find((s) => s.id === id)?.name ?? id
+  const decision = storyMove && mover && moverTo && moverTo !== mover.subdomain ? {
+    kind: 'node' as const,
+    id: mover.id,
+    content: (
+      <div className="decision">
+        <div className="decision-head">{copy.decision_head}</div>
+        <div className="decision-row">
+          <span className="sw" style={{ background: SUBDOMAIN_COLOUR[mover.subdomain] }} />{subName(mover.subdomain)}
+          <span className="decision-arrow" />
+          <span className="sw" style={{ background: SUBDOMAIN_COLOUR[moverTo] }} />{subName(moverTo)}
+        </div>
+        <div className="decision-uc">{mover.name}</div>
+        <div className="decision-line">{fill(copy.decision_line, { uc: mover.name, from: subName(mover.subdomain), to: subName(moverTo) })}</div>
+      </div>
+    ),
+  } : null
+
   return (
     <>
       <div className="topbar">
@@ -118,7 +156,9 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           selectedId={picked}
           isolatedSubdomain={null}
           flyToId={null}
-          dashedLinks={crossing}
+          dashedLinks={dashed}
+          focus={focus}
+          popover={decision}
           onSelectNode={(id) => { if (ixAfter.useCaseById.has(id)) { setPicked(id); setCollapsed(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}

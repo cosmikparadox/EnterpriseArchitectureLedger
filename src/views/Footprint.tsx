@@ -37,6 +37,10 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
   const ratified = useLedger((s) => s.ratified)
   const setRatified = useLedger((s) => s.setRatified)
   const [collapsed, setCollapsed] = useState(false)
+  const tourStep = useLedger((s) => s.tourStep)
+  const sceneFocus = useLedger((s) => s.scene.focus)
+  const [focusing, setFocusing] = useState(false)
+  const inStory = tourStep !== null
 
   const platform = ix.platformById.get(selected) ?? null
   const riders = platform ? ix.ridersOf.get(platform.id)! : []
@@ -113,6 +117,13 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
     for (const u of estate.use_cases) if (!now.attachedIds.has(u.id) && u.adopted_month > cursor) out.add(u.id)
     return out
   }, [now, estate, cursor])
+  // While the month handle is the thing being moved, the picture is this
+  // platform and what has attached to it so far, and nothing else.
+  const focus = useMemo(() => {
+    const on = inStory ? sceneFocus === 'footprint' : focusing
+    if (!on || !platform) return null
+    return { nodes: new Set([platform.id, ...now.attachedIds]) }
+  }, [inStory, sceneFocus, focusing, platform, now])
 
   return (
     <>
@@ -142,7 +153,8 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           flyToId={null}
           dimNodes={dimNodes}
           hideLinksOf={dimNodes}
-          onSelectNode={(id) => { if (ix.platformById.has(id)) { setSelected(id); setCollapsed(false) } }}
+          focus={focus}
+          onSelectNode={(id) => { if (ix.platformById.has(id)) { setSelected(id); setCollapsed(false); setFocusing(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}
         />
@@ -187,7 +199,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 />
                 <FootprintChart
                   months={MONTHS} series={oneOff} cursor={cursor} ratified={ratified}
-                  onCursor={setCursor} height={150} unit="GBP, one off" scrubberTour="month"
+                  onCursor={(m) => { setCursor(m); setFocusing(true) }} height={150} unit="GBP, one off" scrubberTour="month"
                 />
                 <div className="note">
                   Two charts, one time axis. The monthly bill and the cost of leaving are not

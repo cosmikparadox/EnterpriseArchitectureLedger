@@ -376,8 +376,12 @@ export const copy = {
     'fail on the same day. Move the slider from one end to the other.',
   b_rho_see: 'Across the range the {sub} figure ran from GBP {lo} to GBP {hi}. The honest reading is the range.',
   b_rho_more:
-    'The slider is rho under a Student t copula with four degrees of freedom. ' +
-    'A declared input, not a measurement, and the tool says so.',
+    'The slider is a dependence parameter, rho, from 0 to 1, under a Student ' +
+    't copula with four degrees of freedom. A declared input, not a ' +
+    'measurement, and the tool says so. On the canvas the picture is the ' +
+    'mechanism: at the left end a failure reaches only the use cases on the ' +
+    'failed node; as the slider moves right, the platforms those use cases ' +
+    'also ride go down with it, and the failure reaches their use cases too.',
   b_grow_h: 'Entry three: leaving. How the footprint grew',
   b_grow:
     'Now the cloud data platform. Watch the months run: use cases attach to ' +
@@ -412,6 +416,11 @@ export const copy = {
     'Move {mover} out of {mover_from} into another domain. Nothing in the ' +
     'estate changes; only the line moved.',
   b_move_see: 'Under an equal split, {moved_equal} reported figures moved.',
+  decision_head: 'A line redrawn',
+  decision_line:
+    'The domain architecture function moved {uc} from {from} to {to}. No ' +
+    'system changed and no line on the graph moved. Only the declared ' +
+    'boundary did, and every figure that reads the boundary moved with it.',
   b_basis_h: 'Change the rule',
   b_basis:
     'Now change the allocation basis to by headcount, which reads the ' +
@@ -441,8 +450,9 @@ export const copy = {
 
   ctl_fanin: 'Add use cases riding this node',
   ctl_fail: 'Fail it',
-  ctl_rho_lo: 'independent',
-  ctl_rho_hi: 'together',
+  ctl_rho: 'How often the platforms fail on the same day',
+  ctl_rho_lo: 'never together',
+  ctl_rho_hi: 'always together',
   ctl_month: 'Month',
   ctl_basis: 'Allocation basis',
   ctl_move_to: 'Move it to',
@@ -762,6 +772,67 @@ export const copy = {
   badge_pool_head: '{name}, the fixed pool',
   badge_pool_line: 'GBP {pool} a month, used or not',
   badge_pool_sub: 'To be shared among the {riders} use cases riding it.',
+  panel_allocated_label: 'Allocated by rule, not billed',
+  basis_moved:
+    'Changing the basis to {basis} moved {n} of {riders} figures on this ' +
+    'node, the largest by GBP {max} a month. Nothing was used differently.',
+  basis_equal: 'This is the default, an equal split. Change the basis above to see which figures move.',
+  basis_same: 'Under {basis} every figure on this node is what it was under an equal split.',
+  reach_note:
+    '{direct} interrupted on the failed node; {reached} more reached through ' +
+    'the {platforms} platforms that went down with it at this dependence.',
+  // The explorer's walkthrough: one node, six steps, the same rhythm as the story.
+  walk_play: 'Walk me through it',
+  walk_close: 'Done',
+  walk_p_what_h: 'What it is',
+  walk_p_what:
+    '{name} is a {category}: a {kind} that {riders} use cases across {n_sub} ' +
+    'domains run on. On the canvas it is the lit node; the lines into it are ' +
+    'the work that depends on it.',
+  walk_p_runs_h: 'What runs on it',
+  walk_p_runs:
+    '{rider_list}. Between them, that is the business value on this node: ' +
+    'not a figure, but a list of things the company does that stop if it does.',
+  walk_p_billed_h: 'How it is billed',
+  walk_p_billed:
+    'Two parts. A meter on {driver}, GBP {metered} a month, counted and ' +
+    'billed. And a fixed pool of GBP {pool} a month, licences and the team ' +
+    'who run it, shared out among the riders by a rule: allocated, not billed.',
+  walk_p_stops_h: 'When it stops',
+  walk_p_stops:
+    'Everything riding it stops with it: {riders} use cases across {n_sub} ' +
+    'domains. About {lef} loss events a year, a typical one costing GBP ' +
+    '{loss}. The wireframe nodes are the ones an outage reached.',
+  walk_p_leaving_h: 'What leaving would cost',
+  walk_p_leaving:
+    'The work of moving off it today is about GBP {exec}: migration, ' +
+    'rewiring, running two systems for a while. There is a second part, the ' +
+    'value of the choices given up, which the ledger declines to price ' +
+    'without a dated decision record, and this estate has none.',
+  walk_p_when_h: 'When it arrived',
+  walk_p_when:
+    'Adopted at month {adopted}, ratified as strategic at month {ratified}. ' +
+    'A real ledger would link the decision record here: who chose it, what ' +
+    'the alternative was. This estate is synthetic and has no such record, ' +
+    'so the ledger says so rather than invent one.',
+  walk_u_what_h: 'What it is',
+  walk_u_what:
+    '{name} is one thing {sub} does, {volume} times a month. It is the lit ' +
+    'dot; the lines from it are the systems it runs on.',
+  walk_u_rides_h: 'What it rides',
+  walk_u_rides:
+    'It rides {n_pf} platforms: {pf_list}. Each is shared with other use ' +
+    'cases, which is where every figure below comes from.',
+  walk_u_told_h: 'What it is told it costs',
+  walk_u_told:
+    'GBP {reported} a month, of which GBP {metered} was read off a meter. ' +
+    'The rest is its share of each platform\'s pool under the current rule, ' +
+    'and moves when the rule or the crowd moves, though it did nothing different.',
+  walk_u_none: 'no single platform',
+  walk_u_exit_h: 'What would strand it',
+  walk_u_exit:
+    'Leaving {stranded} would strand it outright. That is the dependency ' +
+    'the ledger keeps on its page, one line per platform.',
   intro_callout_usecase: 'Tap a use case',
   intro_callout_platform: 'Tap a platform',
   intro_focus_clear: 'Clear',

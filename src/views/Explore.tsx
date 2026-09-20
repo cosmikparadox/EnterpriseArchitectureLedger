@@ -1,6 +1,6 @@
 // View 1, Explore. Spec section 4.1.
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
@@ -14,6 +14,7 @@ import { describeSubdomain } from '../model/describe'
 import { copy, fill } from '../copy'
 import { useLayoutReport } from '../app/layoutReport'
 import { MeterBadge, PoolBadge } from '../story/Badges'
+import { Walkthrough, type Focus } from './Walkthrough'
 
 const GESTURE_KEY = 'ledger.gesture.seen'
 const gestureSeen = () => { try { return localStorage.getItem(GESTURE_KEY) === '1' } catch { return false } }
@@ -79,6 +80,11 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // once, on this device. Remembered per viewer, and a browser that will not
   // remember it just shows it again.
   const [dragged, setDragged] = useState(gestureSeen)
+  // The walkthrough: a play button on the panel, and the node's figures
+  // arrive one step at a time with the canvas focused on each.
+  const [walk, setWalk] = useState<string | null>(null)
+  const [walkFocus, setWalkFocus] = useState<Focus | null>(null)
+  const onWalkFocus = useCallback((f: Focus | null) => setWalkFocus(f), [])
   const gestureHint = inStory && scene.hint && !dragged ? copy.canvas_gesture : null
   const book = inStory && scene.book && selectedId ? {
     id: selectedId,
@@ -164,11 +170,12 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           gestureHint={gestureHint}
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
+          focus={!inStory && walk ? walkFocus : null}
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}
           onSelectNode={(id) => {
             if (inStory) { setFocus({ kind: 'node', id }); setSelectedId(id); return }
-            setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false)
+            setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false); if (walk && walk !== id) setWalk(null)
           }}
           onSelectLink={(l) => { if (inStory) { setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
           onBackground={() => { if (inStory) { setFocus(null); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
@@ -230,9 +237,13 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           selectedLink={selectedLink}
           collapsed={collapsed}
           onToggleCollapsed={() => setCollapsed((v) => !v)}
-          onClose={() => { setSelectedId(null); setSelectedLink(null) }}
+          onClose={() => { setSelectedId(null); setSelectedLink(null); setWalk(null) }}
           onSelectNode={pick}
+          onPlay={selectedId ? () => { setWalk(selectedId); setFlyTo(selectedId) } : undefined}
         />
+        {!inStory && walk && (ix.platformById.has(walk) || ix.useCaseById.has(walk)) && (
+          <Walkthrough ix={ix} rule={rule} id={walk} onFocus={onWalkFocus} onClose={() => setWalk(null)} />
+        )}
       </div>
     </>
   )

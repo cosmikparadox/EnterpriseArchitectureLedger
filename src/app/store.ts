@@ -54,10 +54,12 @@ export interface Scene {
   badge: 'meter' | 'pool' | null
   /** The ledger book in the corner, wired to the selected node. */
   book: boolean
+  /** What the beat's control is about; everything else on the canvas ghosts. */
+  focus: 'riders' | 'blast' | 'footprint' | 'move' | null
 }
 
-export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false }
-export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false }
+export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null }
+export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false, focus: null }
 
 /**
  * A request to fail a platform, raised from anywhere. The nonce is what makes

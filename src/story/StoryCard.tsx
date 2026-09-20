@@ -68,11 +68,11 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
     const el = cardRef.current
     if (!el) return
     const root = document.documentElement
-    const publish = () => { const r = el.getBoundingClientRect(); root.style.setProperty('--tour-card-actual-h', `${Math.ceil(r.height)}px`); root.dataset.storyCard = `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}` }
+    const publish = () => { const r = el.getBoundingClientRect(); root.style.setProperty('--tour-card-actual-h', `${Math.ceil(r.height)}px`); root.style.setProperty('--tour-card-actual-w', `${Math.ceil(r.width)}px`); root.dataset.storyCard = `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}` }
     publish()
     const ro = new ResizeObserver(publish)
     ro.observe(el)
-    return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h'); delete root.dataset.storyCard }
+    return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h'); root.style.removeProperty('--tour-card-actual-w'); delete root.dataset.storyCard }
   }, [n, pos])
 
   const go = (k: number) => { if (k < 0) return; if (k > LAST_BEAT) { setTourStep(null); return } setTourStep(k) }
