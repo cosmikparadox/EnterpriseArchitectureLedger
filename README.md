@@ -1379,9 +1379,11 @@ spreading it out moves the shared point to the connectors and multiplies
 the contracts; at full dependence the two bad months converge; and the
 coordination cost and the latency of a process that crosses vendors belong
 in the decision record, not in a figure here. (As first written this text
-also said the rule share grows with concentration across boundaries and
-offered a domain standardising on an approved vendor as the inside case;
-the owner's review struck both, see deviation 54 onward.)
+also counted the rule share among what grows with concentration across
+boundaries, and offered a domain standardising on an approved vendor as
+the inside case. Both were struck on the owner's review: under a permitted
+rule no rule share moves when a line moves, canon 9.2.8, and the ledger
+gives no advice.)
 
 **The move, as a sequence.** The boundaries beat now comes in on the use
 case first: the picture ghosts to it, its platforms and the two domains
@@ -1435,7 +1437,10 @@ failure threshold is the monthly probability from the annual rate,
 times the outage fraction, and `simulate` calls `runOnce` once per run with
 no twelve-month loop. Every P99 is a monthly figure. Every live string that
 said "bad year" now says "bad month", and the P99 is described as a month
-worse than this in about once in a hundred months. The one annual phrase
+worse than this in about once in a hundred months. The acceptance script's
+expected heading for beat 25 followed the approved copy change, from "A
+bad year, two ways" to "A bad month, two ways"; a test expectation, not a
+check made to pass. The one annual phrase
 that stays is the loss event frequency in the walkthrough, because that
 input really is an annual rate. This document's own "annual loss
 distribution" was corrected as well.
