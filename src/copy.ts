@@ -34,7 +34,7 @@ export const copy = {
     'In the concentrated estate identity carries the largest blast radius and ' +
     'a business platform is a close second. In best of breed all four ' +
     'integration nodes reach every use case. The three largest blast radii ' +
-    'are all integration. The graph shows where it went. The org chart does not.',
+    'are all integration. The graph shows the shared point. The org chart does not.',
 
   view6_top:
     'The graph is mined. The boundaries are drawn by people. Redraw them and ' +
@@ -134,30 +134,6 @@ export const copy = {
     '{runs} at rho {rho}, the nearest stored point. Serve the folder over ' +
     'http to move the slider freely.',
 
-  // -------------------------------------------------------------------------
-  // The guided tour. Brief B3 and B4.
-  //
-  // Three sentences a step, in a fixed order and never labelled: what to do,
-  // what you are looking at, what it costs. Every cost sentence carries a GBP
-  // figure filled in from the running tool through fill(), never a number typed
-  // in here. Each sentence is under twenty words.
-  //
-  // The do and see sentences use no jargon. "Fan-in", "copula", "P99" and
-  // "comonotonic" appear only in the optional more line, which is closed until
-  // somebody asks for it.
-  //
-  // Step 7 is not three sentences. It is the closing card, and the brief sets
-  // its shape: four blocks and two buttons.
-  // -------------------------------------------------------------------------
-
-  // Card chrome.
-  tour_counter: '{n} of {total}',
-  tour_back: 'Back',
-  tour_next: 'Next',
-  tour_skip: 'Skip tour',
-  tour_more: 'More detail',
-  tour_did_it: 'You did that.',
-
   // ---- The story. One beat per Next. ----
   //
   // Written to be read aloud, one idea at a time. A beat has a line and, where
@@ -215,8 +191,8 @@ export const copy = {
     'None of that work happens by hand. It runs on {n_platforms} systems ' +
     'the company bought or built. Each grey circle is one: a platform.',
   b_platforms_see:
-    'The bigger the circle, the more use cases depend on it. Notice that no ' +
-    'platform sits inside one domain.',
+    'The bigger the circle, the more use cases depend on it. Notice that ' +
+    'almost every platform is shared across domains.',
   b_platforms_more:
     'The platforms are shared. That is the first thing this whole story turns ' +
     'on, and the picture says it before any number does. Tap a circle to see ' +
@@ -236,8 +212,8 @@ export const copy = {
     'The platforms do not reach each other on their own. {n_int} more nodes ' +
     'exist only to carry logins, calls and messages between them.',
   b_connectors_see:
-    'The teal diamonds are those connectors: {int_list}. Nearly every use ' +
-    'case passes through them.',
+    'The teal diamonds are those connectors: {int_list}. Every use case ' +
+    'passes through them.',
   b_flow_h: 'What flows through it',
   b_flow:
     'Every line carries work, and work carries value. Warm lines carry work ' +
@@ -257,7 +233,7 @@ export const copy = {
   b_busiest_h: 'The busiest node',
   b_busiest:
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
-    'use cases. If it stops, most of the business stops with it.',
+    'use cases. If it stops, most of the business can stop with it.',
   b_busiest_see: 'That is the lit node. Remember it; part three is about it.',
 
   // Part two: how it is decided today.
@@ -351,7 +327,9 @@ export const copy = {
     'The pool is shared among the {riders} use cases riding the platform by ' +
     'a rule somebody chose. The rings show it: solid is metered, hatched is ' +
     'rule.',
-  b_rule_see: '{first} is told GBP {before} a month. Part of that is the rule.',
+  b_rule_see:
+    '{first} is told GBP {before} a month for this platform alone. Part of ' +
+    'that is the rule.',
   b_rule_more:
     'The rule is an equal split, or a split in proportion to use. The riders ' +
     'are the use cases riding the platform; their share of the pool is their ' +
@@ -361,16 +339,16 @@ export const copy = {
     'Watch three more use cases arrive on this node, then add or remove ' +
     'some yourself.',
   b_crowd_see:
-    '{first} did nothing different, and its number moved from GBP {before} ' +
-    'to GBP {after}.',
+    '{first} did nothing different. Its bill on this platform moved from GBP ' +
+    '{before} to GBP {after}.',
   b_crowd_more:
     'A rule share changes only when the rule or the crowd changes. Leaving ' +
     'does not release it: the pool stays and is shared among fewer riders. ' +
     'See the Ledger paper, 9.2.6.',
   b_fail_h: 'Entry two: risk. When it stops',
   b_fail:
-    'When a shared platform stops, everything riding it stops, across teams ' +
-    'that never speak. Fail it and watch which use cases go dark.',
+    'When a shared platform stops, the work riding it is exposed, across ' +
+    'teams that never speak. Fail it and watch which use cases go dark.',
   b_fail_see: 'How far that reaches is the blast radius.',
   b_together_h: 'A bad month, two ways',
   b_together:
@@ -423,17 +401,19 @@ export const copy = {
     'most of the work. On the right, specialists. Watch the three entries ' +
     'run on both at once: cost, then risk, then leaving.',
   b_diversify_see:
-    'The shared point did not disappear. It moved to the connectors. A bad ' +
-    'month for {sub}: GBP {left} on the left, GBP {right} on the right.',
+    'The shared point did not disappear. On the left one connector carries ' +
+    '{left_riders} use cases. On the right {n_int} connectors each carry ' +
+    'every use case. A bad month for {sub}: GBP {left} on the left, GBP ' +
+    '{right} on the right.',
   b_diversify_more:
     'Neither shape is right, and the ledger does not pick one. Concentration ' +
     'inside a domain boundary is cheap to reason about. One domain shares ' +
-    'the pool, and an outage stays in that domain. In this estate no ' +
-    'platform sits inside one domain, so that case is not on screen. ' +
+    'the pool, and an outage stays in that domain. In each estate only one ' +
+    'platform sits inside one domain. ' +
     'Concentration across boundaries is where the blast radius and the exit ' +
     'grow together, because every domain rides the same node. Spreading it ' +
-    'out moves the shared point to the connectors and multiplies the ' +
-    'contracts. It does not remove it. At full dependence the two bad months ' +
+    'out multiplies the shared connectors and the contracts. It does not ' +
+    'remove it. At full dependence the two bad months ' +
     'converge. When platforms fail together it stops mattering how many ' +
     'there are. These three entries do not price the coordination cost of ' +
     'many vendors. Nor the latency of a process that crosses them. Both ' +
@@ -446,7 +426,7 @@ export const copy = {
     'told: {left_c1} percent on the left, {right_c1} on the right.',
   shapes_risk:
     'Risk. The busiest node fails on each side. Left: {left_aff} use cases ' +
-    'stop. Right: {right_aff}, because the shared point is a connector now. ' +
+    'stop. Right: {right_aff}, because every use case crosses that connector. ' +
     'A bad month for {sub}: GBP {left} against GBP {right}.',
   shapes_exit:
     'Leaving. The largest single exit is GBP {left_exec} of work, off ' +
@@ -667,10 +647,10 @@ export const copy = {
   book_note: 'Three entries per use case. They do not add.',
   // The book's rows, filled for whatever node is tapped.
   book_v_cost_p: 'GBP {metered} metered, GBP {pool} by rule',
-  book_v_risk_p: '{riders} use cases stop with it',
+  book_v_risk_p: '{riders} use cases can stop with it',
   book_v_exit_p: 'GBP {exec} of work to leave',
-  book_v_cost_u: 'GBP {reported} a month',
-  book_v_risk_u: 'stops if {worst} does',
+  book_v_cost_u: 'GBP {reported} a month, all platforms',
+  book_v_risk_u: 'can stop if {worst} does',
   book_v_exit_u: 'stranded by {stranded}',
   badge_meter_head: '{name}, the meter',
   badge_meter_units: '{units} {driver} a month',
@@ -707,7 +687,7 @@ export const copy = {
     'not billed.',
   walk_p_stops_h: 'When it stops',
   walk_p_stops:
-    'Everything riding it stops with it: {riders} use cases across {n_sub} ' +
+    'Everything riding it is exposed: {riders} use cases across {n_sub} ' +
     'domains. About {lef} loss events a year, a typical one costing GBP ' +
     '{loss}. The wireframe nodes are the ones an outage reached.',
   walk_p_leaving_h: 'What leaving would cost',
@@ -732,7 +712,8 @@ export const copy = {
     'cases, which is where every figure below comes from.',
   walk_u_told_h: 'What it is told it costs',
   walk_u_told:
-    'GBP {reported} a month, of which GBP {metered} was read off a meter. ' +
+    'GBP {reported} a month across all its platforms, of which GBP {metered} ' +
+    'was read off a meter. ' +
     'The rest is its share of each platform\'s pool under the current rule. ' +
     'It moves when the rule or the crowd moves, though it did nothing different.',
   walk_u_none: 'no single platform',
@@ -763,8 +744,9 @@ export const copy = {
     'It depends on {n_edges} platforms: {edge_list}. Take any one away and ' +
     'it cannot run.',
   desc_uc_cost:
-    'It is told it costs GBP {reported} a month. GBP {metered} of that is ' +
-    'metered; the rest is its share of pools it does not control.',
+    'Across all its platforms it is told it costs GBP {reported} a month. ' +
+    'GBP {metered} of that is metered. The rest is its share of pools it ' +
+    'does not control.',
   desc_uc_risk:
     'Its biggest exposure is {worst}. When that is down, this is down ' +
     '{worst_pct} times in a hundred.',
@@ -861,7 +843,7 @@ export const glossary = {
   },
   blast_radius: {
     label: 'Blast radius',
-    tip: 'The work that stops if this node stops, counted in monthly volume.',
+    tip: 'The work that can stop if this node stops, counted in monthly volume.',
   },
   allocation_basis: {
     label: 'Allocation basis',
@@ -905,7 +887,7 @@ export const viewPurpose: Record<number, string> = {
   2: 'Part of every bill is handed out by a rule. Move the slider and watch a number change that nobody chose.',
   3: 'Break a node and see what stops. Then see why each bad month added up is not the group\'s bad month.',
   4: 'Watch things pile onto one node month by month, and what leaving would have taken by the time anyone decided.',
-  5: 'The same thirty use cases wired two ways. Concentration does not go away when you diversify. It moves.',
+  5: 'The same thirty use cases wired two ways. Concentration does not go away when you diversify. It multiplies.',
   6: 'Move a use case into another group and watch the reported numbers move with it.',
 }
 
@@ -937,7 +919,7 @@ export const summary = {
     'rule part runs from {c1_lo} to {c1_hi} percent.',
   s1_mechanism:
     'Each line into a node is a dependency. The more lines, the more work ' +
-    'stops when the node does.',
+    'can stop when the node does.',
 
   // View 1, a platform selected.
   s1n_head:
@@ -947,13 +929,13 @@ export const summary = {
     '{riders} use cases split that pool. {c1} percent of what they are told ' +
     'it costs was decided by a rule, not read off a meter.',
   s1n_mechanism:
-    'If this node stops, {blast_uc} use cases across {blast_sub} subdomains ' +
-    'stop with it.',
+    'If this node stops, up to {blast_uc} use cases across {blast_sub} ' +
+    'subdomains can stop with it.',
 
   // View 1, a use case selected.
   s1u_head:
     '{name} rides {n_edges} shared nodes and is told it costs GBP {reported} ' +
-    'a month.',
+    'a month across all of them.',
   s1u_number:
     'GBP {metered} of that is metered. The rest is its share of pools it ' +
     'does not control.',
@@ -965,11 +947,11 @@ export const summary = {
   s2_head:
     'GBP {pool} a month on {name} is shared out by a rule, not a meter.',
   s2_number_idle:
-    '{first} is told GBP {base}. Add riders and that figure moves, though ' +
-    'it uses nothing more.',
+    '{first} is told GBP {base} for this platform alone. Add riders and that ' +
+    'figure moves, though it uses nothing more.',
   s2_number_moved:
-    'With {added} added, {first} is told GBP {now} instead of GBP {base}. ' +
-    'It used nothing more.',
+    'With {added} added, {first} is told GBP {now} for this platform instead ' +
+    'of GBP {base}. It used nothing more.',
   s2_mechanism:
     'A rule share changes only when the rule or the crowd changes. Leaving ' +
     'this node does not release it.',
@@ -1013,8 +995,8 @@ export const summary = {
     'A bad month for {sub} runs GBP {left} on one side and GBP {right} on the ' +
     'other. Both are at the dependence currently set.',
   s5_mechanism:
-    'Splitting the estate moved the shared point to the connectors. The ' +
-    'concentration relocated.',
+    'Splitting the estate did not remove the shared point. It multiplied it ' +
+    'across the connectors.',
 
   // View 6.
   s6_head_none:

@@ -1609,6 +1609,20 @@ run count and the seed are unchanged.
 - The sentence "Nothing is invented about a vendor" in deviation 49 depends
   on the open decision about replacing the real product names in the
   concentrated estate, as the second estate already does. Not edited.
+- D1. The exit figure shown as "the work of leaving" is `kCommitted` minus
+  `exit_k_reversible` (3,742,720 minus 250,000 at month 31), and that
+  alternative is flagged `counterfactual_evidenced: false`. The option part
+  is refused for lack of evidence while this figure uses the same
+  unevidenced alternative. Owner decision pending.
+- D2. From month 31 to 60 the exit figure grows from 3.49m to 5.19m with no
+  new use case attaching. The growth is the 0.02 per month coefficient
+  alone. Owner decision pending.
+- D3. The left and right estates run on different Monte Carlo seeds,
+  20260905 and 20260906. On a common seed the right Claims figure at rho
+  0.5 is 243,275, not 261,507. Owner decision pending.
+- D4. The dependence slider's low and high are the minimum and maximum of
+  noisy 10,000-run estimates (185,887 to 210,729). At 200,000 runs the span
+  is about 175,000 to 203,000. Owner decision pending.
 - Whether to add the cost of the next use case (canon 9.4) as a beat;
   whether `{cust_share}` stays in the value flow beat, given it adds unlike
   units of work; and whether figures should be shown as ranges rather than
