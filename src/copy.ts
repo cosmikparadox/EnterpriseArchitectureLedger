@@ -304,12 +304,27 @@ export const copy = {
     'name of whoever wrote it. This one keeps three entries per use case.',
   b_why_see:
     'What it costs. What it risks. What leaving would cost. Kept apart, ' +
-    'because they do not add. We will build all three on {top}.',
+    'because they do not add.',
+  b_mine_h: 'The blueprint fills the book',
+  b_mine:
+    'Nothing new is collected. The three entries for {top} are read off the ' +
+    'picture from part one: who rides it, how much work they send it, what ' +
+    'stops when it stops.',
+  b_mine_see:
+    'The lines run from the node to the book. We fill all three on {top}, ' +
+    'one at a time, starting with the one that can be measured.',
+  b_mine_more:
+    'This is the whole idea in one picture. The graph on the left is the ' +
+    'blueprint operations already keeps; the book on the right is a balance ' +
+    'sheet with one page per use case. The ledger is the wiring between them, ' +
+    'and every entry it writes can be traced back along a wire to the graph.',
   b_meter_h: 'Entry one: cost. The meter',
   b_meter:
     'Start with what can be measured. {top} has a meter that ticks with use: ' +
     'every login is counted and billed.',
-  b_meter_see: 'The meter is the only part of the bill anyone actually measures.',
+  b_meter_see:
+    'Watch the reading beside the node: the meter is the only part of the ' +
+    'bill anyone actually measures.',
   b_meter_more:
     'The meter\'s unit is called the driver, the thing that gets counted: ' +
     'logins for an identity platform, policy transactions for a policy ' +
@@ -318,7 +333,9 @@ export const copy = {
   b_pool:
     'The rest of the bill is a fixed pool: licences and the team who run it, ' +
     'paid whether anyone logs in or not.',
-  b_pool_see: 'Nobody meters a pool. It has to be shared out.',
+  b_pool_see:
+    'The block beside the node is the pool. Nobody meters a pool. It has to ' +
+    'be shared out.',
   b_rule_h: 'The rule',
   b_rule:
     'The pool is shared among the {riders} use cases riding the platform by ' +
@@ -451,6 +468,38 @@ export const copy = {
   doc_5_age: 'renewals in four currencies',
   doc_6: 'Budget lines',
   doc_6_age: 'by cost centre, not by use case',
+  docs_open: 'Open',
+  docs_tap: 'Tap one to see what it looks like.',
+  docpic_1_tag: 'v7, last edited 14 months ago',
+  docpic_1_sub:
+    'Nested boxes, one colour per box, scored one to five in a workshop. ' +
+    'Nothing on it is a price, and nothing on it says which system does what.',
+  docpic_2_tag: '412 rows, 31 columns',
+  docpic_2_more: '403 more rows, 23 more columns',
+  docpic_2_sub:
+    'One row per application, one owner per row, and a cost centre. No row ' +
+    'says which use cases ride it or what they would lose if it stopped.',
+  docpic_3_tag: '22 drawings, three authors',
+  docpic_3_sub:
+    'Boxes and arrows in three hands, none dated the same, two marked final. ' +
+    'The arrows say something flows. They do not say how much, or what it ' +
+    'costs.',
+  docpic_4_tag: 'reviewed quarterly',
+  docpic_4_impact: 'impact',
+  docpic_4_likelihood: 'likelihood',
+  docpic_4_sub:
+    'Each risk is a row and a dot on a five by five grid: likelihood times ' +
+    'impact, high, medium or low. Not a number, not a use case, not a month.',
+  docpic_5_tag: 'renewals in four currencies',
+  docpic_5_soon: 'in 60 days',
+  docpic_5_sub:
+    'One row per vendor, with the term, the notice period and what it costs a ' +
+    'year. Nowhere does it say what leaving would cost, or who would feel it.',
+  docpic_6_tag: 'this financial year',
+  docpic_6_missing: 'No column names a use case.',
+  docpic_6_sub:
+    'Money by cost centre, budget against actual. The people who pay for a ' +
+    'platform and the people whose work runs on it are on different pages.',
   docs_note: 'Illustrative. Every estate has its own set.',
   silo_cost: 'What it costs',
   silo_cost_sub: 'finance spreadsheet, by cost centre',
@@ -701,6 +750,18 @@ export const copy = {
   intro_legend_done: 'All {n_sub} named. The rest of the tool calls a domain a subdomain, the paper\'s word.',
   // The pulsing marker on the canvas.
   intro_callout_domain: 'Tap a domain',
+  canvas_gesture: 'Drag to look around. Scroll or pinch to zoom.',
+  book_title: 'The ledger, {name}',
+  book_row_1: 'Entry one: what it costs',
+  book_row_2: 'Entry two: what it risks',
+  book_row_3: 'Entry three: what leaving would cost',
+  book_note: 'Three entries per use case. They do not add.',
+  badge_meter_head: '{name}, the meter',
+  badge_meter_units: '{units} {driver} a month',
+  badge_meter_spend: 'GBP {spend} metered, counted and billed',
+  badge_pool_head: '{name}, the fixed pool',
+  badge_pool_line: 'GBP {pool} a month, used or not',
+  badge_pool_sub: 'To be shared among the {riders} use cases riding it.',
   intro_callout_usecase: 'Tap a use case',
   intro_callout_platform: 'Tap a platform',
   intro_focus_clear: 'Clear',

@@ -55,9 +55,9 @@ export const BEATS: Beat[] = [
   { part: 1, stem: '', view: 1, overlay: 'part', scene: { ...SCENE_NONE, blank: true }, card: false },
 
   // ---- part 1: the architecture ----
-  { part: 1, stem: 'domains', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, callout: { kind: 'hull', id: '', text: '' } },
+  { part: 1, stem: 'domains', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, hint: true, callout: { kind: 'hull', id: '', text: '' } },
     card: true, enter: ({ store }) => { store.setSelectedId(null); store.setShowHulls(true) } },
-  { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true }, card: true },
+  { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, hint: true }, card: true },
   { part: 1, stem: 'platforms', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true }, card: true },
   { part: 1, stem: 'lines', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, links: true }, card: true },
   { part: 1, stem: 'connectors', view: 1, overlay: null, scene: { ...PICTURE, stagger: true }, card: true },
@@ -71,27 +71,35 @@ export const BEATS: Beat[] = [
   { part: 2, stem: 'docs', view: 1, overlay: 'docs', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 2, stem: 'matrix', view: 1, overlay: 'matrix', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 2, stem: 'silos', view: 1, overlay: 'silos', scene: { ...SCENE_NONE, blank: true }, card: true },
+  // The camera is still where part one left it, close on the busiest node.
+  // The graph comes back wide and slowly: the whole picture, not a corner.
   { part: 2, stem: 'graph_today', view: 1, overlay: null, scene: { ...PICTURE, stagger: false }, card: true,
-    enter: ({ store }) => { store.setSelectedId(null) } },
+    enter: ({ store }) => { store.setSelectedId(null); store.setFlyToId('*') } },
   { part: 2, stem: '', view: 1, overlay: 'end', scene: { ...SCENE_NONE, blank: true }, card: false },
 
   // ---- part 3: the ledger ----
   { part: 3, stem: '', view: 1, overlay: 'part', scene: { ...SCENE_NONE, blank: true }, card: false },
   { part: 3, stem: 'why', view: 1, overlay: null, scene: { ...PICTURE }, card: true,
-    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFlyToId(IDENTITY_ID) } },
-  { part: 3, stem: 'meter', view: 1, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered'],
-    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) },
+    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFlyToId('*') } },
+  // The book opens in the corner and three wires run to it from the node:
+  // the entries are read off the graph, not collected somewhere else.
+  { part: 3, stem: 'mine', view: 1, overlay: null, scene: { ...PICTURE, book: true }, card: true,
+    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 2400 },
+  { part: 3, stem: 'meter', view: 1, overlay: null, scene: { ...PICTURE, badge: 'meter' }, card: true, rows: ['metered'],
+    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 2400,
     waitFor: (now) => now.selectedId !== null && now.selectedId !== IDENTITY_ID },
-  { part: 3, stem: 'pool', view: 1, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool'],
-    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) } },
+  { part: 3, stem: 'pool', view: 1, overlay: null, scene: { ...PICTURE, badge: 'pool' }, card: true, rows: ['metered', 'pool'],
+    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 1200 },
   { part: 3, stem: 'rule', view: 2, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFanInAdded(0) } },
   { part: 3, stem: 'crowd', view: 2, overlay: null, scene: { ...PICTURE }, card: true, control: 'fanin', rows: ['metered', 'pool', 'rule_first'],
+    // One rider at a time, each with room to arrive, rather than three in a
+    // burst that re-laid the whole picture.
     enter: ({ store, timeline, reduced }) => {
       store.setSelectedId(IDENTITY_ID); store.setFanInAdded(0)
-      timeline.after(400, () => { timeline.add(animateValue(0, 3, 1500, (v) => store.setFanInAdded(Math.round(v)), reduced)) }, reduced)
+      for (let i = 1; i <= 3; i++) timeline.after(500 + (i - 1) * 800, () => store.setFanInAdded(i), reduced)
     },
-    settleMs: 400 + 1500,
+    settleMs: 500 + 1600 + 900,
     waitFor: (now, at) => now.fanInAdded !== at.fanInAdded },
   { part: 3, stem: 'fail', view: 3, overlay: null, scene: { ...PICTURE }, card: true, control: 'fail', rows: ['metered', 'pool', 'rule_first'],
     enter: ({ store, timeline, reduced }) => {

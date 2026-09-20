@@ -79,6 +79,19 @@ export interface Graph3DProps {
   reducedMotion?: boolean
   /** Reveal newly shown nodes and links one after another rather than together. */
   stagger?: boolean
+  /**
+   * A few words at the foot of the canvas saying it can be turned, shown until
+   * the viewer drags. The story shows it once, on the first picture.
+   */
+  gestureHint?: string | null
+  /** The viewer dragged the canvas: the hint has done its job. */
+  onGesture?: () => void
+  /**
+   * A small ledger book pinned to a corner of the canvas, with a line drawn
+   * from one node to each of its ruled rows. Part three's opening: the graph
+   * is where the entries come from.
+   */
+  book?: { id: string; title: string; rows: string[]; note: string } | null
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -272,6 +285,9 @@ export function Graph3D(props: Graph3DProps) {
     let framed = false
     g.onEngineTick(() => { if (++ticks % 8 === 0) rebuildHulls() })
     g.onEngineStop(() => {
+      // Nodes held in place while an addition settled are let go once it has.
+      for (const n of pinned.current) { delete n.fx; delete n.fy; delete n.fz }
+      pinned.current = []
       // The settled layout, as a digest on the document root. This is how
       // "the same shape on every load" is checked rather than asserted.
       document.documentElement.dataset.layoutDigest = layoutDigest(g.graphData().nodes as (GNode & Positioned)[])
@@ -297,6 +313,21 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const controls = g.controls() as any
     controls?.addEventListener?.('start', () => { userMovedCamera = true })
+    // A drag, as opposed to a tap, is what the gesture hint waits for: a
+    // pointer that has travelled more than a few pixels while down.
+    let downAt: { x: number; y: number } | null = null
+    const onDown = (e: PointerEvent) => { downAt = { x: e.clientX, y: e.clientY } }
+    const onMove = (e: PointerEvent) => {
+      if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 8) return
+      downAt = null
+      gestureEl.current?.classList.add('gone')
+      propsRef.current.onGesture?.()
+    }
+    const onUp = () => { downAt = null }
+    el.addEventListener('pointerdown', onDown)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerup', onUp)
+    el.addEventListener('pointercancel', onUp)
 
     let refit: ReturnType<typeof setTimeout> | undefined
     const ro = new ResizeObserver(() => {
@@ -315,6 +346,10 @@ export function Graph3D(props: Graph3DProps) {
     return () => {
       clearTimeout(refit)
       ro.disconnect()
+      el.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointercancel', onUp)
       document.removeEventListener('visibilitychange', onVisibility)
       for (const o of objs.current.values()) disposeNode(o)
       objs.current.clear()
@@ -442,9 +477,46 @@ export function Graph3D(props: Graph3DProps) {
   }
 
   // ---- data ----
+  //
+  // The first data set is laid out from its seeds. Any later one is a change
+  // to a picture the viewer is looking at, an added rider or a moved use case,
+  // and the library would re-run the whole layout from the seeds again, so
+  // every node jolted. Instead each node that was already there keeps its
+  // place, held still while the change settles and let go once it has, and a
+  // node that is new starts beside the platform it rides and fades in.
+  const prevData = useRef<GraphData | null>(null)
+  const freshIds = useRef(new Set<string>())
+  const pinned = useRef<(GNode & Positioned)[]>([])
   useEffect(() => {
     const g = gRef.current
     if (!g) return
+    const live = g.graphData().nodes as (GNode & Positioned)[]
+    const settled = prevData.current !== null && live.some((n) => n.x !== undefined)
+    prevData.current = props.data
+    freshIds.current = new Set()
+    if (settled) {
+      const before = new Map(live.map((n) => [n.id, n]))
+      const byId = new Map(props.data.nodes.map((n) => [n.id, n]))
+      let k = 0
+      for (const n of props.data.nodes as (GNode & Positioned)[]) {
+        const was = before.get(n.id)
+        if (was && was.x !== undefined) {
+          n.x = was.x; n.y = was.y; n.z = was.z
+          // A use case moved to another part of the business is free to find
+          // its new sector; everything else holds.
+          if (was.subdomain === n.subdomain) { n.fx = was.x; n.fy = was.y; n.fz = was.z; pinned.current.push(n) }
+          continue
+        }
+        freshIds.current.add(n.id)
+        const link = props.data.links.find((l) => l.ucId === n.id || l.platformId === n.id)
+        const anchor = link ? before.get(link.ucId === n.id ? link.platformId : link.ucId) : undefined
+        const angle = k++ * 2.399
+        n.x = (anchor?.x ?? 0) + Math.cos(angle) * 14
+        n.y = (anchor?.y ?? 0) + Math.sin(angle) * 14
+        n.z = (anchor?.z ?? 0) + (k % 2 ? 8 : -8)
+      }
+      for (const [id, o] of objs.current) if (!byId.has(id)) { disposeNode(o); objs.current.delete(id) }
+    }
     g.graphData(props.data as unknown as { nodes: object[]; links: object[] })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.data])
@@ -545,7 +617,7 @@ export function Graph3D(props: Graph3DProps) {
       // View 2's donut. A sprite, so it always faces the viewer: spec section
       // 4.2 asks for the ring in screen space.
       let ringSprite: THREE.Sprite | null = null
-      const split = props.nodeRing?.(n) ?? null
+      const split = propsRef.current.nodeRing?.(n) ?? null
       if (split) {
         ringSprite = new THREE.Sprite(new THREE.SpriteMaterial({
           map: ringTexture(split, dark), transparent: true, depthWrite: false,
@@ -576,13 +648,50 @@ export function Graph3D(props: Graph3DProps) {
       // fresh object takes the current state here or it would show whole until
       // something changed. This is why the title card used to show the estate.
       applyNodeState(n, o, true)
+      // A node added to a picture already on screen arrives rather than appears.
+      if (freshIds.current.has(n.id)) {
+        freshIds.current.delete(n.id)
+        o.solid.opacity = 0; o.fadeFrom = 0; o.fadeTo = 0; mesh.visible = false
+        applyNodeState(n, o, false)
+      }
       return group
     })
 
     // Fresh objects need the current state put on them.
     applyState()
+    // Only the theme and the label mode rebuild every node. A change of data
+    // builds objects for the new nodes alone; a change of ring is painted on.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.data, props.dark, props.labelMode, props.nodeRing])
+  }, [props.dark, props.labelMode])
+
+  // View 2's rings, repainted in place when the split changes.
+  useEffect(() => {
+    const g = gRef.current
+    if (!g) return
+    for (const n of g.graphData().nodes as GNode[]) {
+      const o = objs.current.get(n.id)
+      if (!o) continue
+      const split = props.nodeRing?.(n) ?? null
+      if (split && o.ringSprite) {
+        const old = o.ringSprite.material.map
+        o.ringSprite.material.map = ringTexture(split, props.dark)
+        o.ringSprite.material.needsUpdate = true
+        old?.dispose()
+      } else if (split && !o.ringSprite) {
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: ringTexture(split, props.dark), transparent: true, depthWrite: false }))
+        const sz = n.val * 5.4
+        sprite.scale.set(sz, sz, 1)
+        o.mesh.parent?.add(sprite)
+        o.ringSprite = sprite
+      } else if (!split && o.ringSprite) {
+        o.mesh.parent?.remove(o.ringSprite)
+        o.ringSprite.material.map?.dispose()
+        o.ringSprite.material.dispose()
+        o.ringSprite = null
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.nodeRing, props.dark])
 
   // ---- state, and the fade between states ----
   //
@@ -890,6 +999,43 @@ export function Graph3D(props: Graph3DProps) {
   useEffect(() => follow(calloutEl.current, props.callout), [props.callout])
   useEffect(() => follow(popoverEl.current, props.popover, true), [props.popover])
 
+  // The book's wires: one curve from the node to each ruled row, redrawn
+  // every other frame in canvas pixels, so they follow the camera.
+  const gestureEl = useRef<HTMLDivElement | null>(null)
+  const bookEl = useRef<HTMLDivElement | null>(null)
+  const wiresEl = useRef<SVGSVGElement | null>(null)
+  useEffect(() => {
+    const book = props.book
+    const svg = wiresEl.current
+    const bx = bookEl.current
+    if (!book || !svg || !bx) return
+    let raf = 0
+    let frame = 0
+    const tick = () => {
+      raf = requestAnimationFrame(tick)
+      if (frame++ % 2 !== 0) return
+      const g = gRef.current
+      const hb = holder.current?.getBoundingClientRect()
+      if (!g || !hb) return
+      const n = (g.graphData().nodes as (GNode & Positioned)[]).find((x) => x.id === book.id)
+      if (!n || n.x === undefined) { svg.style.visibility = 'hidden'; return }
+      svg.style.visibility = ''
+      const p = g.graph2ScreenCoords(n.x, n.y ?? 0, n.z ?? 0)
+      const rows = bx.querySelectorAll<HTMLElement>('.book-row')
+      const paths = svg.querySelectorAll<SVGPathElement>('path')
+      rows.forEach((row, i) => {
+        const r = row.getBoundingClientRect()
+        const fromLeft = p.x < r.left - hb.left
+        const x2 = (fromLeft ? r.left : r.right) - hb.left
+        const y2 = r.top - hb.top + r.height / 2
+        const cx = (p.x + x2) / 2
+        paths[i]?.setAttribute('d', `M${p.x.toFixed(1)},${p.y.toFixed(1)} C${cx.toFixed(1)},${p.y.toFixed(1)} ${cx.toFixed(1)},${y2.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`)
+      })
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [props.book])
+
   // ---- search flies the camera. Spec section 4.1 ----
   //
   // flyToId carries a nonce after a '#', because the request is an event and not
@@ -900,18 +1046,23 @@ export function Graph3D(props: Graph3DProps) {
     const g = gRef.current
     if (!g || !props.flyToId) return
     const wanted = props.flyToId.split('#')[0]!
+    const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+    // '*' asks for the whole estate: the camera pulls back along its own line
+    // of sight until everything fits, slowly, so the picture widens rather
+    // than cuts.
+    if (wanted === '*') { g.zoomToFit(reduced ? 0 : 1800, 60); return }
     const all = g.graphData().nodes as (GNode & Positioned)[]
     const n = all.find((x) => x.id === wanted)
     if (!n || n.x === undefined) return
     // Stand off by a fraction of the estate's own radius, so the camera frames
     // the node in context instead of ending up inside the graph.
     const extent = Math.max(...all.map((m) => Math.hypot(m.x ?? 0, m.y ?? 0, m.z ?? 0)), 1)
-    const d = Math.max(120, extent * 0.85)
+    const d = Math.max(120, extent * 1.3)
     const r = Math.hypot(n.x, n.y ?? 0, n.z ?? 0) || 1
     // Under prefers-reduced-motion the camera cuts rather than travels. The
     // tour flies to a node at almost every step, and a viewer who has asked for
     // less motion should still arrive there, just without the trip.
-    const travelMs = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900
+    const travelMs = reduced ? 0 : 900
     g.cameraPosition(
       { x: (n.x * (r + d)) / r, y: ((n.y ?? 0) * (r + d)) / r, z: ((n.z ?? 0) * (r + d)) / r },
       { x: n.x, y: n.y ?? 0, z: n.z ?? 0 },
@@ -933,6 +1084,30 @@ export function Graph3D(props: Graph3DProps) {
         <div ref={popoverEl} className="popover" hidden role="dialog">
           <div className="popover-body">{props.popover.content}</div>
         </div>
+      )}
+      {props.gestureHint && (
+        <div ref={gestureEl} className="canvas-gesture" aria-hidden="true">
+          <svg className="gesture-orbit" viewBox="0 0 48 48" width="34" height="34">
+            <circle cx="24" cy="24" r="8" />
+            <path d="M8 20 A17 17 0 0 1 36 12" />
+            <path d="M40 28 A17 17 0 0 1 12 36" />
+            <path d="M36 6 L36 13 L29 13" />
+            <path d="M12 42 L12 35 L19 35" />
+          </svg>
+          <span>{props.gestureHint}</span>
+        </div>
+      )}
+      {props.book && (
+        <>
+          <svg ref={wiresEl} className="canvas-wires" aria-hidden="true">
+            {props.book.rows.map((_, i) => <path key={i} className={`wire w${i + 1}`} />)}
+          </svg>
+          <div ref={bookEl} className="canvas-book" aria-hidden="true">
+            <div className="book-title">{props.book.title}</div>
+            {props.book.rows.map((r, i) => <div key={i} className={`book-row ov-in d${i + 1}`}><span className="book-n">{i + 1}</span><span className="book-l">{r}</span><span className="book-rule" /></div>)}
+            <div className="book-note ov-in d4">{props.book.note}</div>
+          </div>
+        </>
       )}
     </div>
   )

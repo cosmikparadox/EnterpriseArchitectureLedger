@@ -13,6 +13,11 @@ import { usePrefersReducedMotion } from '../app/useNarrow'
 import { describeSubdomain } from '../model/describe'
 import { copy, fill } from '../copy'
 import { useLayoutReport } from '../app/layoutReport'
+import { MeterBadge, PoolBadge } from '../story/Badges'
+
+const GESTURE_KEY = 'ledger.gesture.seen'
+const gestureSeen = () => { try { return localStorage.getItem(GESTURE_KEY) === '1' } catch { return false } }
+const markGesture = () => { try { localStorage.setItem(GESTURE_KEY, '1') } catch { /* private window: the hint simply shows again next time */ } }
 
 export interface ExploreProps {
   estate: Estate
@@ -70,6 +75,17 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // Outside the story a tapped domain explains itself in a pop-up on the
   // canvas, with the same lines the story gave it.
   const [hullPop, setHullPop] = useState<string | null>(null)
+  // The drag hint shows on the first picture until the viewer has dragged
+  // once, on this device. Remembered per viewer, and a browser that will not
+  // remember it just shows it again.
+  const [dragged, setDragged] = useState(gestureSeen)
+  const gestureHint = inStory && scene.hint && !dragged ? copy.canvas_gesture : null
+  const book = inStory && scene.book && selectedId ? {
+    id: selectedId,
+    title: fill(copy.book_title, { name: ix.platformById.get(selectedId)?.name ?? '' }),
+    rows: [copy.book_row_1, copy.book_row_2, copy.book_row_3],
+    note: copy.book_note,
+  } : null
   // The panel is always present outside the story, opening on the estate
   // summary when nothing is picked, so the canvas yields to it whenever it
   // is not collapsed. The story never shows it.
@@ -145,6 +161,9 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           hideLinksOf={inStory ? storySets.hide : undefined}
           dimHulls={inStory ? storySets.hulls : undefined}
           callout={callout}
+          gestureHint={gestureHint}
+          onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
+          book={book}
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}
           onSelectNode={(id) => {
@@ -159,7 +178,11 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
             if (inStory) { nameDomain(sub); setFocus({ kind: 'hull', id: sub }); setSelectedId(null); return }
             setHullPop((cur) => (cur === sub ? null : sub))
           }}
-          popover={!inStory && hullPop ? {
+          popover={inStory && scene.badge && selectedId ? {
+            kind: 'node',
+            id: selectedId,
+            content: scene.badge === 'meter' ? <MeterBadge ix={ix} id={selectedId} reduced={reduced} /> : <PoolBadge ix={ix} id={selectedId} />,
+          } : !inStory && hullPop ? {
             kind: 'hull',
             id: hullPop,
             content: (() => {

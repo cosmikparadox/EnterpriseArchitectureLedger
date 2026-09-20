@@ -5,11 +5,12 @@
 // the three silos. All of it is DOM, all of it fades on CSS transitions, and
 // none of it is drawn over the graph: the canvas is faded out underneath.
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { copy } from '../copy'
 import type { Estate } from '../model/types'
 import { c1, type Index } from '../model/ledger'
 import type { Beat, Part } from './script'
+import { DocPicture } from './DocPictures'
 
 const PART_TITLE: Record<Part, [string, string]> = {
   0: ['', ''],
@@ -28,6 +29,17 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
       return share < 0.45 ? 'g' : share < 0.7 ? 'a' : 'r'
     }),
   })), [estate, ix])
+
+  // Part two's documents open one at a time into a drawing of what each
+  // looks like. Escape or a tap outside closes it.
+  const [openDoc, setOpenDoc] = useState<number | null>(null)
+  useEffect(() => { setOpenDoc(null) }, [n])
+  useEffect(() => {
+    if (openDoc === null) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpenDoc(null) } }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [openDoc])
 
   if (!beat.overlay) return null
   const [t, sub] = PART_TITLE[beat.part]
@@ -59,15 +71,26 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
         </div>
       )}
       {beat.overlay === 'docs' && (
-        <div className="ov-centre ov-docs">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className={`ov-doc ov-in d${i}`}>
-              <strong>{(copy as Record<string, string>)[`doc_${i}`]}</strong>
-              <span>{(copy as Record<string, string>)[`doc_${i}_age`]}</span>
+        <>
+          <div className="ov-centre ov-docs">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <button key={i} type="button" className={`ov-doc ov-in d${i}${openDoc === i ? ' ov-doc-open' : ''}`} onClick={() => setOpenDoc(i)} aria-expanded={openDoc === i}>
+                <strong>{(copy as Record<string, string>)[`doc_${i}`]}</strong>
+                <span>{(copy as Record<string, string>)[`doc_${i}_age`]}</span>
+                <em className="ov-doc-open-hint">{copy.docs_open}</em>
+              </button>
+            ))}
+            <div className="ov-note ov-in d6">{copy.docs_note} {copy.docs_tap}</div>
+          </div>
+          {openDoc !== null && (
+            <div className="ov-lightbox" onClick={() => setOpenDoc(null)} role="dialog" aria-label="Document">
+              <div className="ov-sheet" onClick={(e) => e.stopPropagation()}>
+                <button type="button" className="popover-close ov-sheet-close" aria-label="Close" onClick={() => setOpenDoc(null)}>×</button>
+                <DocPicture i={openDoc} estate={estate} />
+              </div>
             </div>
-          ))}
-          <div className="ov-note ov-in d6">{copy.docs_note}</div>
-        </div>
+          )}
+        </>
       )}
       {beat.overlay === 'matrix' && (
         <div className="ov-centre">

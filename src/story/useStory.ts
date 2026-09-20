@@ -42,7 +42,7 @@ export function useStory(): StoryState {
     // Order matters. The screen first, so its canvas exists; then the scene,
     // which the canvas reads; then the beat's own actions.
     if (beat.view !== 'keep' && store.view !== beat.view) store.setView(beat.view)
-    store.setScene({ callout: null, ...beat.scene })
+    store.setScene({ callout: null, hint: false, badge: null, book: false, ...beat.scene })
     beat.enter?.({ store: useLedger.getState(), timeline, reduced })
 
     // A change of screen or of the whole canvas gets a short crossing, so the

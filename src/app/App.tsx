@@ -5,7 +5,7 @@
 // it carries the graph version and the decomposition owner, which canon 9.8.2
 // makes required fields: an entry missing either is not a ledger entry.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import estateJson from '../../data/estate.json'
 import bestOfBreedJson from '../../data/estate_bestofbreed.json'
 import type { AllocationRule, Estate } from '../model/types'
@@ -22,6 +22,7 @@ import { Boundaries } from '../views/Boundaries'
 import { StoryCard } from '../story/StoryCard'
 import { Overlay } from '../story/Overlay'
 import { useStory } from '../story/useStory'
+import { beatAt, LAST_BEAT } from '../story/script'
 
 const estate = estateJson as unknown as Estate
 const bestOfBreed = bestOfBreedJson as unknown as Estate
@@ -83,6 +84,17 @@ export function App() {
   const tourStep = useLedger((s) => s.tourStep)
   const setTourStep = useLedger((s) => s.setTourStep)
   const story = useStory()
+  // On the first beat of a part the name comes back at the top and the part
+  // title glides up under it: for one frame the wordmark stands where the
+  // title was, large, then its transitions carry it home.
+  const [arriving, setArriving] = useState(false)
+  useLayoutEffect(() => {
+    if (story.n === null || story.n < 2 || beatAt(story.n - 1)?.overlay !== 'part') return
+    setArriving(true)
+    let r2 = 0
+    const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setArriving(false)) })
+    return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); setArriving(false) }
+  }, [story.n])
   // A deep link into the story arrives with the view still on the front
   // page; the beat's own view is set by the engine, but until it has, view 1
   // is the canvas everything is drawn on.
@@ -145,12 +157,12 @@ export function App() {
                 beat, then small at the top with the part beneath it. Hidden
                 while a part title or an end line has the canvas. */}
             {story.n > 0 && (
-              <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
+              <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${arriving ? ' wordmark-start' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
                 <div className="wordmark-name">{copy.wordmark_name}</div>
                 <div className="wordmark-tag">{story.n === 1 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
               </div>
             )}
-            <Overlay beat={story.beat} n={story.n} estate={estate} ix={ix} onTap={() => setTourStep(Math.min(31, (story.n ?? 0) + 1))} />
+            <Overlay beat={story.beat} n={story.n} estate={estate} ix={ix} onTap={() => setTourStep(Math.min(LAST_BEAT, (story.n ?? 0) + 1))} />
             {story.beat.card && <StoryCard beat={story.beat} n={story.n} done={story.done} estate={estate} bestOfBreed={bestOfBreed} ix={ix} />}
           </>
         )}

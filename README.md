@@ -47,7 +47,7 @@ npm run build        # static build into dist/
 ## The story
 
 Launching the app is a grey canvas and a welcome. From there the story runs in
-32 beats at `#/tour/1` to `#/tour/31`, one thing per Next, on one card. The
+33 beats at `#/tour/1` to `#/tour/32`, one thing per Next, on one card. The
 card floats: drag it by its header, resize it by its corner; its header and
 footer stay put and only its body scrolls, so Back and Next are always where
 they were. The screens' own rails, top bars and panels are never shown during
@@ -60,7 +60,12 @@ one line after another. Part two shows how decisions are made today, on a
 blank canvas: the documents the architecture lives in, the matrix they are
 boiled down to, the three places cost, risk and exit cost are kept, and the
 fact that operations tooling already discovers the graph with no money on it.
-Part three builds the ledger on the busiest node, one entry at a time, and the
+Each of the six documents opens, on a tap, into a drawing of what that kind of
+document looks like. Part three opens with the graph pulled back to its full
+extent, then a ledger book in the corner of the canvas with three wires drawn
+from the busiest node to its three ruled rows: the entries are read off the
+graph. Part three then builds the ledger on that node, one entry at a time,
+with a reading pinned to the node for the meter and for the pool, and the
 entries accumulate on the card: the meter, the pool, the rule, the crowd, what
 stops, a bad year two ways, how much things fail together, how the footprint
 grew, what leaving costs, whether spreading it out helps, whose lines decided
@@ -80,15 +85,16 @@ pictures. Arrow keys walk the story; a tap anywhere passes a title.
 | 2 | Part one: the architecture | a tap or Next |
 | 3 to 8 | domains, use cases, platforms, lines, connectors, the busiest node, each arriving one by one | tap a domain, a dot, a circle or a line to have it describe itself |
 | 9, 10 | end of part one; Part two: how it is decided today | a tap or Next |
-| 11 to 14 | the documents; the matrix; the three silos; the graph that already exists | Next |
+| 11 to 14 | the documents, each opening into a drawing of itself; the matrix; the three silos; the graph that already exists, pulled back to its full extent | tap a document; Next |
 | 15, 16 | end of part two; Part three: the ledger | a tap or Next |
-| 17 to 19 | why a ledger; the meter; the fixed pool | select another platform |
-| 20, 21 | the rule; the crowd changes, with the fan-in slider on the card | you move the slider |
-| 22 to 24 | fail it, with the button on the card; a bad year two ways; the dependence slider on the card | you fail it; you move the slider |
-| 25, 26 | the months run; the month handle on the card | you move the handle |
-| 27 | two shapes, with a draggable divider | nothing |
-| 28 to 30 | the lines people drew; move one use case, on the card; change the basis, on the card | you move it; you change the basis |
-| 31 | the ledger, closed | Explore on your own |
+| 17, 18 | why a ledger, on the whole graph; the book in the corner, wired to the busiest node | Next |
+| 19, 20 | the meter, counting up beside the node; the fixed pool, stamped beside the node | select another platform |
+| 21, 22 | the rule; the crowd changes, one rider arriving at a time, with the fan-in slider on the card | you move the slider |
+| 23 to 25 | fail it, with the button on the card; a bad year two ways; the dependence slider on the card | you fail it; you move the slider |
+| 26, 27 | the months run; the month handle on the card | you move the handle |
+| 28 | two shapes, with a draggable divider | nothing |
+| 29 to 31 | the lines people drew; move one use case, on the card; change the basis, on the card | you move it; you change the basis |
+| 32 | the ledger, closed | Explore on your own |
 
 Every figure in a beat's sentences and in the ledger rows is read from the
 running tool through `fill()`, never typed into the copy deck. A beat's
@@ -1045,6 +1051,80 @@ Launching the app is the welcome. The front page is gone; "Skip the story"
 on the card lands on the Explore screen with everything up, and the rail's
 Tour button starts the story again.
 
+### 48. The second pass on the story: smooth, wide, drawn, wired
+
+The owner's second review of the story, from screenshots, found eight
+things. Each is a change to how a beat moves, not to what it says.
+
+The company name landed with a jump. Its entrance animation touched
+`transform`, which for its duration overrode the translate that centres the
+name, so the name painted off centre and snapped into place when the
+animation ended. The entrance is now opacity only. On the first beat of each
+part the name comes back at the top and the part title glides up under it:
+for one frame the wordmark stands where the title stood, at the title's
+size, then its transitions carry it home over 900 ms.
+
+A hint at the foot of the canvas says the picture can be turned: an orbit
+glyph and "Drag to look around". It appears on the first picture, once the
+domains have landed, and fades the moment the viewer drags. A drag, not a
+tap: a pointer that travels more than a few pixels while down. It is
+remembered per browser so a returning viewer is not told twice; a browser
+that will not remember it just shows it again.
+
+The six documents of part two open on a tap into a drawing of what that kind
+of document looks like: a capability heat map as nested boxes tinted by a
+score, an inventory as a spreadsheet with more columns than fit, integration
+diagrams as boxes and crossing arrows in three hands, a risk register as a
+table beside a five by five grid, contracts as a renewals list in four
+currencies, budget lines as cost centres with no use case column. Each is
+an illustration of the common shape, drawn here, not a copy of anyone's
+document. Platform names appear where an inventory or a contract list would
+carry them, in grey, as furniture, with no judgment beside them; the
+capability names and risk names are generic. The drawing opens in a
+lightbox on the canvas, which is the one place the tool dims anything, and
+it keeps to the canvas left of the card's column so its close button is
+never under the card. Escape or a tap outside closes it.
+
+Part two's return to the graph, and part three's opening, used to land
+where part one left the camera: close on the busiest node, with labels the
+size of the heading. Both now ask the camera for the whole estate, and the
+camera pulls back along its own line of sight over 1.8 s while the picture
+fades in over 1.5 s. The flight to the busiest node in part one stands
+further off for the same reason.
+
+Part three has a new beat after "Why a ledger". A ledger book opens in the
+corner of the canvas with three ruled rows, and three wires draw themselves
+from the busiest node to the rows, one after another. The point of the
+picture is the relationship the owner asked to see: the graph is the
+blueprint, the book is the balance sheet, and the entries are read off the
+graph rather than collected somewhere else. The wires are redrawn every
+other frame in canvas pixels, so they follow the camera.
+
+The meter and the pool beats used to change only the card. Each now has a
+reading pinned to the node. The meter counts up from nothing to the
+month's driver units and the money they meter, with a ticking dot, so the
+reader watches the one measured part of the bill being measured. The pool
+arrives as one block, stamped, because nobody meters it. Both are the same
+pop-up the canvas already used for a tapped domain, with different content.
+
+The crowd beat jolted for two reasons. Every change to the graph's data
+re-issued the node builder, and the library rebuilt every node from
+scratch; and the library re-heated the layout from its seeds, so every node
+re-settled. Now the builder is issued once per theme and label mode, a data
+change builds objects for new nodes only, and view 2's rings are repainted
+on the sprites they already have. On a data change each node that was
+already on screen keeps its place, held still while the change settles and
+let go once it has; a use case moved to another part of the business is the
+one exception and is free to find its sector. A new node starts beside the
+platform it rides and fades in. The three riders arrive one at a time, 800
+ms apart, instead of three in a burst.
+
+Two of these are honest limits. The glide is a CSS transition of `top`
+between a percentage and a length, which the browser interpolates; under
+prefers-reduced-motion it is a cut. And the drawings of the six documents
+are drawings: the numbers on them are made up to look like the shape and
+say so in the caption.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two
@@ -1166,12 +1246,12 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
 | 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 47.5 KB. |
-| T1 | tour walks steps 1 to 7 on Next alone | PASS | 7 cards, every placeholder resolved, no page errors. |
+| T1 | the story walks all 33 beats on Next alone | PASS | 33 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
 | T2 | on 390 by 844, the card never covers the node the beat is about | PASS | The ledger beats with a selected node on screen; none under the card. |
 | T3 | each waitFor fires on the action it describes | PASS | 7 of 7 fired, each through the control on the card. |
-| T4 | deep link to one beat cold-loads into it | PASS | #/tour/26 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
+| T4 | deep link to one beat cold-loads into it | PASS | #/tour/27 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
-| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 21 and 27 among them: all sized, none under the panel. |
+| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 22 and 28 among them: all sized, none under the panel. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
 | T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/17. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |

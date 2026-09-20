@@ -239,22 +239,22 @@ add('3 non-additivity, as restated', 'PASS',
 // the card never covers the node the step is about. T3 performs each step's
 // asked-for action by script and waits for the tick. T4 cold-loads one step.
 
-// The story: 32 beats on one card. Beat 0 is the welcome; part one builds the
+// The story: 33 beats on one card. Beat 0 is the welcome; part one builds the
 // picture, part two shows how it is decided today, part three builds the
 // ledger. Each beat shows one thing.
 const BEAT_HEADING: Record<number, string> = {
   1: 'The Architecture Ledger', 3: 'Domains', 4: 'Use cases', 5: 'Platforms', 6: 'Lines', 7: 'Connectors', 8: 'The busiest node',
   11: 'Where the architecture lives', 12: 'What decisions are made on', 13: 'Three questions, three places', 14: 'The graph already exists',
-  17: 'Why a ledger', 18: 'Entry one: cost. The meter', 19: 'The fixed pool', 20: 'The rule', 21: 'The crowd changes',
-  22: 'Entry two: risk. When it stops', 23: 'A bad year, two ways', 24: 'How much they fail together',
-  25: 'Entry three: leaving. How the footprint grew', 26: 'What leaving would cost', 27: 'Does spreading it out help?',
-  28: 'Whose lines decided all of it', 29: 'Move one use case', 30: 'Change the rule', 31: 'The ledger, closed',
+  17: 'Why a ledger', 18: 'The blueprint fills the book', 19: 'Entry one: cost. The meter', 20: 'The fixed pool', 21: 'The rule', 22: 'The crowd changes',
+  23: 'Entry two: risk. When it stops', 24: 'A bad year, two ways', 25: 'How much they fail together',
+  26: 'Entry three: leaving. How the footprint grew', 27: 'What leaving would cost', 28: 'Does spreading it out help?',
+  29: 'Whose lines decided all of it', 30: 'Move one use case', 31: 'Change the rule', 32: 'The ledger, closed',
 }
 const NO_CARD = new Set([0, 2, 9, 10, 15, 16])
 // Long enough for each beat's own animations to finish before the card is
-// read: 21 animates 1.5s, 22 fails after 0.9s, 24 sweeps for about 4s, 25 runs the months for 3.2s.
-const BEAT_SETTLE: Record<number, number> = { 21: 2600, 22: 2800, 24: 5000, 25: 4200, 29: 1600 }
-const LAST = 31
+// read: 18 wires the book, 19 counts the meter, 22 adds riders for 3s, 23 fails after 0.9s, 25 sweeps for about 4s, 26 runs the months for 3.2s.
+const BEAT_SETTLE: Record<number, number> = { 18: 3000, 19: 3000, 22: 3600, 23: 2800, 25: 5000, 26: 4200, 30: 1600 }
+const LAST = 32
 const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   if (i === 0) await page.locator('.overlay-welcome').click()
   else if (NO_CARD.has(i)) await page.keyboard.press('ArrowRight')
@@ -286,8 +286,8 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
     if (n < LAST) await nextBeat(page, n)
   }
   const t1ok = errors.length === 0 && unresolved.length === 0 && missing.length === 0
-  add('T1 the story walks all 32 beats on Next alone', t1ok ? 'PASS' : 'FAIL',
-    t1ok ? `32 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors`
+  add('T1 the story walks all 33 beats on Next alone', t1ok ? 'PASS' : 'FAIL',
+    t1ok ? `33 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors`
          : `errors ${errors.length}; unresolved ${unresolved.join(' | ')}; missing ${missing.join(', ')}`)
   await ctx.close()
 }
@@ -327,15 +327,15 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   // control the card puts up for it, or the store where the action is a tap
   // on the 3D canvas.
   const actions: { step: number; what: string; run: () => Promise<void> }[] = [
-    { step: 18, what: 'select a different platform', run: async () => {
+    { step: 19, what: 'select a different platform', run: async () => {
       await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
     } },
-    { step: 21, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
-    { step: 22, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
-    { step: 24, what: 'move the dependence slider on the card', run: async () => { await page.locator('.story').getByLabel('Dependence between platform failures, rho').fill('0.35') } },
-    { step: 26, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
-    { step: 29, what: 'move the use case to another domain', run: async () => { await page.locator('.story select').selectOption('finance') } },
-    { step: 30, what: 'change the allocation basis on the card', run: async () => { await page.locator('.story').getByLabel('Allocation basis for the fixed pool').selectOption('by_head') } },
+    { step: 22, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
+    { step: 23, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
+    { step: 25, what: 'move the dependence slider on the card', run: async () => { await page.locator('.story').getByLabel('Dependence between platform failures, rho').fill('0.35') } },
+    { step: 27, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
+    { step: 30, what: 'move the use case to another domain', run: async () => { await page.locator('.story select').selectOption('finance') } },
+    { step: 31, what: 'change the allocation basis on the card', run: async () => { await page.locator('.story').getByLabel('Allocation basis for the fixed pool').selectOption('by_head') } },
   ]
   const fired: string[] = []
   const silent: string[] = []
@@ -359,15 +359,15 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/26', { waitUntil: 'load' })
+  await page.goto('http://localhost:5190/#/tour/27', { waitUntil: 'load' })
   await page.waitForSelector('.story')
   await page.waitForTimeout(3000)
   const heading = (await page.locator('.story h1').innerText()).trim()
   const view = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { view: unknown; selectedId: string | null } } }).__ledger?.getState().view)
   const selected = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { selectedId: string | null } } }).__ledger?.getState().selectedId)
-  const ok = heading === BEAT_HEADING[26] && view === 4 && selected === 'meridian' && errors.length === 0
+  const ok = heading === BEAT_HEADING[27] && view === 4 && selected === 'meridian' && errors.length === 0
   add('T4 deep link to one beat cold-loads into it', ok ? 'PASS' : 'FAIL',
-    `#/tour/26: heading "${heading}", view ${String(view)}, selected "${selected}", page errors ${errors.length}`)
+    `#/tour/27: heading "${heading}", view ${String(view)}, selected "${selected}", page errors ${errors.length}`)
   await ctx.close()
 }
 
@@ -526,7 +526,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 {
   const bad: string[] = []
   let measured = 0
-  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/21', '#/tour/27']
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/22', '#/tour/28']
   for (const [w, h] of [[1850, 1000], [1233, 1325], [1280, 800]] as const) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } })
     const page = await ctx.newPage()
@@ -569,7 +569,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const offsiteLinks: string[] = []
-  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/31']) {
+  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/32']) {
     await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
     await page.waitForTimeout(hash === '#/' ? 400 : 2000)
     const hrefs = await page.evaluate(() =>

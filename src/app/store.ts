@@ -30,7 +30,7 @@ export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6
  * happens when it stops, how much things fail together, how the footprint
  * grew, what diversifying does, where the lines are drawn, and a close.
  */
-export const TOUR_STEPS = 31
+export const TOUR_STEPS = 32
 /** The first beat of the third part, where the numbers start. Kept for the router. */
 export const FIRST_LEDGER_CHAPTER = 18
 
@@ -48,10 +48,16 @@ export interface Scene {
   stagger: boolean
   /** Marker on the canvas, if any. */
   callout: { kind: 'hull' | 'node'; id: string; text: string } | null
+  /** The drag hint at the foot of the canvas, until the viewer has dragged once. */
+  hint: boolean
+  /** A live reading pinned to the selected node: its meter, or its fixed pool. */
+  badge: 'meter' | 'pool' | null
+  /** The ledger book in the corner, wired to the selected node. */
+  book: boolean
 }
 
-export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null }
-export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null }
+export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false }
+export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false }
 
 /**
  * A request to fail a platform, raised from anywhere. The nonce is what makes
