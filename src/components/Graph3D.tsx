@@ -4,7 +4,7 @@
 // are added to its scene directly, because they have to follow the layout as it
 // settles.
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import ForceGraph3D from '3d-force-graph'
 import * as THREE from 'three'
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
@@ -105,6 +105,10 @@ export interface Graph3DProps {
    * A new nonce replays it. `hop` puts a node or a link key on a later ring.
    */
   wave?: { from: string; nonce: number; hop?: Map<string, number> } | null
+  /** Boundary-crossing lines drawn faint rather than bright: the story's lines beat. */
+  dashedFaint?: boolean
+  /** A note in the corner of the canvas, in the book's frame, with its own content. */
+  note?: ReactNode | null
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -118,9 +122,16 @@ const HULL_EDGE = 0.3
 /** Strength of the pull that keeps each part of the business in its sector. */
 const SECTOR_PULL = 0.1
 /** What a node outside the focus fades to: a trace, so the shape of the estate stays. */
-const GHOST = 0.07
+const GHOST = 0.2
 
 interface Positioned { x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number }
+
+/** Development-only timings, read by the perf probe. */
+function perf(k: string, ms: number): void {
+  const w = window as unknown as { __perf?: Record<string, number[]> }
+  w.__perf ??= {}
+  ;(w.__perf[k] ??= []).push(Math.round(ms * 10) / 10)
+}
 
 /** FNV-1a over every node's id and settled position, to a hundredth. */
 function layoutDigest(nodes: (GNode & Positioned)[]): string {
@@ -152,6 +163,8 @@ interface NodeObjs {
   lit?: boolean
   /** The halo pulse the wave gave it ends here. */
   pulseUntil?: number
+  /** The split painted on the view 2 ring, so it is repainted only when it changes. */
+  ringFrac?: number
 }
 
 function disposeMesh(m: THREE.Mesh): void {
@@ -331,6 +344,26 @@ export function Graph3D(props: Graph3DProps) {
       }
     })
 
+    // The card's column. The canvas stays full width, so the picture can
+    // be dragged anywhere and nothing ends at an invisible wall; the camera's
+    // view is offset instead, so the picture is centred in the space the
+    // card leaves. The card publishes its width on the root; the shell says
+    // which side it docks on.
+    const inset = () => {
+      const root = document.documentElement
+      if (root.dataset.storyDock !== 'right' || window.innerWidth <= 720) return 0
+      const w = parseFloat(getComputedStyle(root).getPropertyValue('--tour-card-actual-w')) || 0
+      return w > 0 ? w + 24 : 0
+    }
+    let insetNow = 0
+    const applyOffset = () => {
+      const cam = g.camera() as THREE.PerspectiveCamera
+      const W = el.clientWidth, H = el.clientHeight
+      insetNow = inset()
+      if (insetNow > 0 && W > insetNow + 80) cam.setViewOffset(W + insetNow, H, insetNow, 0, W, H)
+      else cam.clearViewOffset()
+      cam.updateProjectionMatrix()
+    }
     // Framing. The library fits the box around every object, labels and
     // rings included, which lands the picture at about half the canvas. This
     // fits the sphere around the node positions instead: the layout is
@@ -344,7 +377,8 @@ export function Graph3D(props: Graph3DProps) {
       for (const n of nodes) radius = Math.max(radius, Math.hypot(n.x ?? 0, n.y ?? 0, n.z ?? 0))
       const cam = g.camera() as THREE.PerspectiveCamera
       const fovV = (cam.fov * Math.PI) / 180
-      const aspect = Math.max(0.2, el.clientWidth / Math.max(1, el.clientHeight))
+      applyOffset()
+      const aspect = Math.max(0.2, (el.clientWidth - insetNow) / Math.max(1, el.clientHeight))
       const fovH = 2 * Math.atan(Math.tan(fovV / 2) * aspect)
       const fov = Math.min(fovV, fovH)
       const d = (radius * 1.05 + 12) / Math.sin(fov / 2)
@@ -381,6 +415,7 @@ export function Graph3D(props: Graph3DProps) {
     const ro = new ResizeObserver(() => {
       g.width(el.clientWidth)
       g.height(el.clientHeight)
+      applyOffset()
       // Only once the layout has settled. Fitting while the simulation is still
       // spreading the nodes frames an estate a fraction of its final size, and
       // the graph ends up zoomed into the middle of itself.
@@ -390,10 +425,18 @@ export function Graph3D(props: Graph3DProps) {
     })
     ro.observe(el)
     g.width(el.clientWidth).height(el.clientHeight)
+    // The card resizing, or the dock changing, moves the free space.
+    const mo = new MutationObserver(() => {
+      const before = insetNow
+      applyOffset()
+      if (before !== insetNow && framed && !userMovedCamera) fit(400)
+    })
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'data-story-dock'] })
 
     return () => {
       clearTimeout(refit)
       ro.disconnect()
+      mo.disconnect()
       el.removeEventListener('pointerdown', onDown)
       el.removeEventListener('pointermove', onMove)
       el.removeEventListener('pointerup', onUp)
@@ -543,29 +586,58 @@ export function Graph3D(props: Graph3DProps) {
     prevData.current = props.data
     freshIds.current = new Set()
     if (settled) {
+      // The objects the library already holds are kept, for nodes and for
+      // links alike, with their fields refreshed. The library binds its
+      // three.js objects to the data objects by identity, so a kept object
+      // is a node or a line that is not rebuilt: a slider step costs the
+      // few nodes that are new, not every geometry on the canvas.
       const before = new Map(live.map((n) => [n.id, n]))
+      const liveLinks = g.graphData().links as (GLink & { source?: unknown; target?: unknown })[]
+      const beforeLinks = new Map(liveLinks.map((l) => [`${l.ucId}>${l.platformId}`, l]))
       const byId = new Map(props.data.nodes.map((n) => [n.id, n]))
       let k = 0
-      for (const n of props.data.nodes as (GNode & Positioned)[]) {
+      let travelling = 0
+      const nodes = props.data.nodes.map((n) => {
         const was = before.get(n.id)
         if (was && was.x !== undefined) {
-          n.x = was.x; n.y = was.y; n.z = was.z
-          // A use case moved to another part of the business is free to find
-          // its new sector; everything else holds.
-          if (was.subdomain === n.subdomain) { n.fx = was.x; n.fy = was.y; n.fz = was.z; pinned.current.push(n) }
-          continue
+          const movedSub = was.subdomain !== n.subdomain
+          Object.assign(was, n)
+          // A use case moved to another part of the business is free to
+          // travel to its new sector; everything else holds still.
+          if (!movedSub) { was.fx = was.x; was.fy = was.y; was.fz = was.z; pinned.current.push(was) }
+          else { delete was.fx; delete was.fy; delete was.fz; travelling++ }
+          return was
         }
-        freshIds.current.add(n.id)
-        const link = props.data.links.find((l) => l.ucId === n.id || l.platformId === n.id)
-        const anchor = link ? before.get(link.ucId === n.id ? link.platformId : link.ucId) : undefined
+        const fresh = n as GNode & Positioned
+        freshIds.current.add(fresh.id)
+        const link = props.data.links.find((l) => l.ucId === fresh.id || l.platformId === fresh.id)
+        const anchor = link ? before.get(link.ucId === fresh.id ? link.platformId : link.ucId) : undefined
         // A ring that widens as more arrive, so twenty do not share one spot.
         const angle = k++ * 2.399
         const ring = 14 + 4 * Math.sqrt(k)
-        n.x = (anchor?.x ?? 0) + Math.cos(angle) * ring
-        n.y = (anchor?.y ?? 0) + Math.sin(angle) * ring
-        n.z = (anchor?.z ?? 0) + (k % 2 ? 8 : -8)
-      }
+        fresh.x = (anchor?.x ?? 0) + Math.cos(angle) * ring
+        fresh.y = (anchor?.y ?? 0) + Math.sin(angle) * ring
+        fresh.z = (anchor?.z ?? 0) + (k % 2 ? 8 : -8)
+        return fresh
+      })
+      const links = props.data.links.map((l) => {
+        const was = beforeLinks.get(`${l.ucId}>${l.platformId}`)
+        if (!was) return l
+        was.spend = l.spend; was.units = l.units; was.cfp = l.cfp
+        return was
+      })
       for (const [id, o] of objs.current) if (!byId.has(id)) { disposeNode(o); objs.current.delete(id) }
+      // A move travels: the released node is carried to its sector by the
+      // forces over a couple of seconds, the hulls reshaping as it goes. An
+      // addition settles before the frame, in a short warm-up.
+      if (travelling > 0 && freshIds.current.size === 0) g.warmupTicks(0).cooldownTicks(150)
+      // Thirty ticks settle a rider beside its platform; the profile put the
+      // eighty this used to run at most of a slider step's cost.
+      else g.warmupTicks(30).cooldownTicks(0)
+      const t0 = performance.now()
+      g.graphData({ nodes, links } as unknown as { nodes: object[]; links: object[] })
+      if (import.meta.env.DEV) perf('graphData', performance.now() - t0)
+      return
     }
     g.graphData(props.data as unknown as { nodes: object[]; links: object[] })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -730,6 +802,8 @@ export function Graph3D(props: Graph3DProps) {
       if (!o) continue
       const split = props.nodeRing?.(n) ?? null
       if (split && o.ringSprite) {
+        if (o.ringFrac !== undefined && Math.abs(o.ringFrac - split.meteredFrac) < 0.002) continue
+        o.ringFrac = split.meteredFrac
         const old = o.ringSprite.material.map
         o.ringSprite.material.map = ringTexture(split, props.dark)
         o.ringSprite.material.needsUpdate = true
@@ -740,6 +814,7 @@ export function Graph3D(props: Graph3DProps) {
         sprite.scale.set(sz, sz, 1)
         o.mesh.parent?.add(sprite)
         o.ringSprite = sprite
+        o.ringFrac = split.meteredFrac
       } else if (!split && o.ringSprite) {
         o.mesh.parent?.remove(o.ringSprite)
         o.ringSprite.material.map?.dispose()
@@ -848,6 +923,7 @@ export function Graph3D(props: Graph3DProps) {
   const applyState = () => {
     const g = gRef.current
     if (!g) return
+    const tState = performance.now()
     const { dark, selectedId, isolatedSubdomain, data } = props
 
     const neighbours = new Set<string>()
@@ -885,7 +961,7 @@ export function Graph3D(props: Graph3DProps) {
         ? !props.dimHulls.has(sub)
         : data.nodes.some((n) => n.kind === 'use_case' && n.subdomain === sub && !dimmed(n))
       const fh = props.focus?.hulls
-      const target = !arrived ? 0 : fh && !fh.has(sub) ? 0.22 : 1
+      const target = !arrived ? 0 : fh && !fh.has(sub) ? 0.35 : 1
       const a = hullAlpha.current.get(sub) ?? { cur: target, from: target, to: target, t0: 0 }
       if (!hullAlpha.current.has(sub)) hullAlpha.current.set(sub, a)
       if (a.to !== target) {
@@ -959,7 +1035,7 @@ export function Graph3D(props: Graph3DProps) {
       const l = raw as GLink & { __litAt?: number }
       const key = `${l.ucId}>${l.platformId}`
       if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
-      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return dark ? '#1c2026' : '#e9e9e6'
+      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return dark ? '#2a2f37' : '#dcdcd8'
       if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
       if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
       return dark ? '#7d848e' : '#9aa0a8'
@@ -983,6 +1059,7 @@ export function Graph3D(props: Graph3DProps) {
       waveRaf.current = requestAnimationFrame(tick)
     }
     rebuildHulls()
+    if (import.meta.env.DEV) perf('applyState', performance.now() - tState)
   }
 
   useEffect(() => {
@@ -993,16 +1070,26 @@ export function Graph3D(props: Graph3DProps) {
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
+  // Re-issuing either accessor makes the library rebuild every line, so
+  // each is re-issued only when what it returns could differ: the widest
+  // spend, the set of lit lines, the set of dashed lines, the theme.
+  const maxSpend = useMemo(() => Math.max(...props.data.links.map((l) => l.spend), 1), [props.data])
+  const litKey = useMemo(() => (props.litLinks ? [...props.litLinks].sort().join() : ''), [props.litLinks])
+  const dashedKey = useMemo(() => (props.dashedLinks ? [...props.dashedLinks].sort().join() : null), [props.dashedLinks])
   useEffect(() => {
     const g = gRef.current
     if (!g) return
-    const { dark, data } = props
-    const maxSpend = Math.max(...data.links.map((l) => l.spend), 1)
     g.linkWidth((raw: object) => {
       const l = raw as GLink
-      const lit = props.litLinks?.has(`${l.ucId}>${l.platformId}`) === true
+      const lit = propsRef.current.litLinks?.has(`${l.ucId}>${l.platformId}`) === true
       return (lit ? 1.6 : 0) + 0.25 + 2.6 * Math.sqrt(l.spend / maxSpend)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxSpend, litKey])
+  useEffect(() => {
+    const g = gRef.current
+    if (!g) return
+    const { dark } = props
     if (props.dashedLinks) {
       const dashed = props.dashedLinks
       g.linkThreeObject(((raw: object) => {
@@ -1012,7 +1099,7 @@ export function Graph3D(props: Graph3DProps) {
         const mat = isDashed
           ? new THREE.LineDashedMaterial({
             color: dark ? '#e8c46a' : '#a97c12', dashSize: 3, gapSize: 2.4,
-            transparent: true, opacity: 0.95,
+            transparent: true, opacity: props.dashedFaint ? 0.3 : 0.95,
           })
           : new THREE.LineBasicMaterial({
             color: dark ? '#7d848e' : '#9aa0a8', transparent: true, opacity: 0.35,
@@ -1038,7 +1125,7 @@ export function Graph3D(props: Graph3DProps) {
       g.linkPositionUpdate(null as any)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.data, props.dark, props.litLinks, props.dashedLinks])
+  }, [dashedKey, props.dark, props.dashedFaint])
 
   // ---- where the selected node is on screen ----
   //
@@ -1214,6 +1301,7 @@ export function Graph3D(props: Graph3DProps) {
           <span>{props.gestureHint}</span>
         </div>
       )}
+      {props.note && <div className="canvas-book canvas-note" aria-hidden="true">{props.note}</div>}
       {props.book && (
         <>
           <svg ref={wiresEl} className="canvas-wires" aria-hidden="true">

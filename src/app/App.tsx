@@ -102,6 +102,13 @@ export function App() {
     if (tourStep !== null && view === 'landing') setView(1)
     if (tourStep === null && view === 'landing') setView(1)
   }, [tourStep, view, setView])
+  // Where the card docks, for the canvas: it keeps its full width and
+  // offsets its camera to centre the picture in the space the card leaves.
+  useEffect(() => {
+    const dock = tourStep === null ? '' : story.beat?.view === 5 ? 'bottom' : 'right'
+    document.documentElement.dataset.storyDock = dock
+    return () => { delete document.documentElement.dataset.storyDock }
+  }, [tourStep, story.beat])
   const classes = ['app']
   if (onLanding) classes.push('landing-mode')
   // During the story every control the screens own is hidden: the rail, the

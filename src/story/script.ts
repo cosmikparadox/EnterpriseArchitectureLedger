@@ -133,7 +133,7 @@ export const BEATS: Beat[] = [
     waitFor: (now, at) => now.cursor !== at.cursor },
   { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
     enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN) } },
-  { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
+  { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE, focus: 'lines' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
     enter: ({ store }) => { store.setMoves({}); store.setRule('equal'); store.setSelectedId(null) } },
   { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'move', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
     enter: ({ store, timeline, reduced }) => {

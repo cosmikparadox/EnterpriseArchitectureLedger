@@ -55,7 +55,7 @@ export interface Scene {
   /** The ledger book in the corner, wired to the selected node. */
   book: boolean
   /** What the beat's control is about; everything else on the canvas ghosts. */
-  focus: 'riders' | 'blast' | 'footprint' | 'move' | null
+  focus: 'riders' | 'blast' | 'footprint' | 'lines' | 'move' | null
 }
 
 export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null }

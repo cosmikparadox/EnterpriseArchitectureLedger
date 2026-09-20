@@ -17,8 +17,10 @@ import { MeterBadge, PoolBadge } from '../story/Badges'
 import { Walkthrough, type Focus } from './Walkthrough'
 
 const GESTURE_KEY = 'ledger.gesture.seen'
-const gestureSeen = () => { try { return localStorage.getItem(GESTURE_KEY) === '1' } catch { return false } }
-const markGesture = () => { try { localStorage.setItem(GESTURE_KEY, '1') } catch { /* private window: the hint simply shows again next time */ } }
+// Remembered for the session only: the story is the first-run experience,
+// and a viewer who comes back to it should be told again.
+const gestureSeen = () => { try { return sessionStorage.getItem(GESTURE_KEY) === '1' } catch { return false } }
+const markGesture = () => { try { sessionStorage.setItem(GESTURE_KEY, '1') } catch { /* private window: the hint simply shows again next time */ } }
 
 export interface ExploreProps {
   estate: Estate

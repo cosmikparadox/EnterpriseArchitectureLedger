@@ -10,6 +10,8 @@ import type { AllocationRule, Estate, UseCase } from '../model/types'
 import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, TOUR_SUBDOMAIN } from './script'
 
 const PLACEHOLDER = '...'
+/** The month handle sits before the platform was adopted: nothing to leave yet. */
+const PLACEHOLDER_NOT_YET = 'nothing yet, it had not been adopted'
 export const gbp = (n: number) => Math.round(n).toLocaleString('en-GB')
 const BASIS: Record<AllocationRule, string> = { equal: 'equal split', driver: 'driver-proportional', by_volume: 'by volume', by_head: 'by headcount' }
 
@@ -17,6 +19,7 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const rule = useLedger((s) => s.rule)
   const rho = useLedger((s) => s.rho)
   const ratified = useLedger((s) => s.ratified)
+  const cursor = useLedger((s) => s.cursor)
   const subdomain = useLedger((s) => s.subdomain) ?? TOUR_SUBDOMAIN
   const fanInAdded = useLedger((s) => s.fanInAdded)
   const moves = useLedger((s) => s.moves)
@@ -48,6 +51,9 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const attached = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= ratified).length : 0
   const months = dataPlatform ? Math.max(0, ratified - dataPlatform.adopted_month) : 0
   const exec = dataPlatform ? executionComponent(dataPlatform, attached, months) : 0
+  // The same, at the month under the handle, so the card answers the handle.
+  const attachedNow = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= cursor).length : 0
+  const execNow = dataPlatform && cursor >= dataPlatform.adopted_month ? executionComponent(dataPlatform, attachedNow, Math.max(0, cursor - dataPlatform.adopted_month)) : 0
 
   // Boundaries: how many reported figures move under each basis once the
   // moves in the store are applied.
@@ -85,6 +91,9 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     ratified,
     attached,
     exec: gbp(exec),
+    cursor,
+    attached_now: attachedNow,
+    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `GBP ${gbp(execNow)}` : PLACEHOLDER_NOT_YET,
     left: sub ? gbp(sub.jointP99) : PLACEHOLDER,
     right: subRight ? gbp(subRight.jointP99) : PLACEHOLDER,
     mover: mover?.name ?? '',

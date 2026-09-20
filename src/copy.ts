@@ -391,7 +391,10 @@ export const copy = {
   b_exit:
     'At that month the work of leaving had already reached about GBP {exec}: ' +
     'migration, rewiring, running two systems for a while.',
-  b_exit_see: 'Drag the month handle and watch it grow. No single decision created it.',
+  b_exit_see:
+    'Month {cursor}: {attached_now} use cases attached, and the work of ' +
+    'leaving stands at {exit_now}. Drag the handle either way. No single ' +
+    'decision created it.',
   b_exit_more:
     'That figure is the execution component. There is a second part, the ' +
     'value of the choices given up, which the ledger declines to state ' +
@@ -409,13 +412,25 @@ export const copy = {
   b_lines_drawn_h: 'Whose lines decided all of it',
   b_lines_drawn:
     'Every figure so far depended on the domain boundaries. The graph was ' +
-    'mined from the systems. The boundaries were drawn by people.',
-  b_lines_drawn_see: 'The dashed lines cross a boundary. Those are the ones a redraw would touch.',
+    'mined from the systems. The boundaries, the coloured shapes, were ' +
+    'drawn by people, and drawing them well is a large part of what ' +
+    'enterprise architecture is for.',
+  b_lines_drawn_see:
+    'The faint dashed lines cross a boundary. A redraw touches every figure ' +
+    'that reads one, and none of the systems.',
+  b_lines_drawn_more:
+    'The graph is the same whichever way the lines are drawn. What the lines ' +
+    'decide is which figures belong to whom: the rule share of a pool, the ' +
+    'bad year of a domain, whose leaving strands what. That is why the ' +
+    'ledger records the decomposition and its owner on every entry, and why ' +
+    'a figure that moves when a line moves is the one to trust least.',
   b_move_h: 'Move one use case',
   b_move:
-    'Move {mover} out of {mover_from} into another domain. Nothing in the ' +
-    'estate changes; only the line moved.',
-  b_move_see: 'Under an equal split, {moved_equal} reported figures moved.',
+    'Move {mover} out of {mover_from} into another domain, and watch the ' +
+    'new domain take it in. Nothing in the estate changes; only the line moved.',
+  b_move_see:
+    'Under an equal split, {moved_equal} reported figures moved. A person ' +
+    'redrew a line, and the figures that read it followed.',
   decision_head: 'A line redrawn',
   decision_line:
     'The domain architecture function moved {uc} from {from} to {to}. No ' +

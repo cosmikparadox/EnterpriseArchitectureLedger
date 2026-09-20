@@ -1208,6 +1208,60 @@ line that a real ledger would link the decision record here and this estate
 has none. Nothing is invented about a vendor. Recorded as a deviation from
 the ask.
 
+### 50. The corrections to 49: no wall, no dead area, and the real cost of a slider step
+
+The owner's screenshots of 49 found five things, two of them mine to be
+plain about.
+
+The docking in 49 inset the WebGL canvas to clear the card. That put the
+canvas's edge at the card's column: the picture was cut by an invisible
+wall there, and the column under the card could not be dragged. Wrong
+approach. The canvas now keeps its full width and the camera's view is
+offset instead, with `setViewOffset`, so the picture is framed and centred
+in the space the card leaves while every pixel of the canvas still turns
+the estate. The card publishes its width on the root and the shell says
+which side it docks on; the canvas reads both and re-fits when they change.
+
+The drag hint was remembered per browser, so a second run of the story had
+none. It is remembered per session now: the story is the first-run
+experience, and a viewer who comes back to it is told again.
+
+The ghost level of 49, seven percent, left the estate nearly invisible
+behind the focus. It is twenty percent, with the faint lines and the
+quarter hulls lifted to match.
+
+The slider was still choppy after 48 and 49, and the profile finally named
+the causes rather than the symptoms. Each step handed the library new node
+and link objects, and the library binds its three.js objects to the data
+objects by identity, so every line on the canvas was rebuilt on every step.
+The link width accessor was re-issued on every data change, which rebuilds
+every line again. Every ring texture was repainted whether or not its split
+had changed. And the layout ran three hundred synchronous ticks per step.
+Now the objects the library holds are kept and their fields refreshed, the
+width and dashed accessors are re-issued only when what they return could
+differ, a ring is repainted only when its split moves, and an addition
+settles in thirty ticks. Measured in the container, the main-thread work of
+one fan-in step fell from about ninety milliseconds to about twelve; the
+rest of a frame there is the software renderer, which a real GPU does not
+pay. The figure formatter also builds one formatter per precision instead
+of an Intl object per call.
+
+The month handle changed nothing on the card, because the card quoted the
+ratified month only. It now quotes the month under the handle: how many use
+cases had attached and what the work of leaving stood at, or that the
+platform had not yet been adopted.
+
+The boundary beats are re-staged. The lines beat says what the coloured
+shapes are and why redrawing them matters, with the crossing lines faint
+rather than bright; the copy makes the human point, that drawing the
+boundaries well is much of what enterprise architecture is for, without
+telling anyone which drawing is right. The decision note sits in the
+corner of the canvas, in the book's frame, instead of covering the graph.
+And the moved use case now travels: it is released from its pin and the
+forces carry it into its new sector over a couple of seconds while every
+other node holds, the hulls reshaping every few ticks as it goes, so the
+receiving domain is seen to take it in.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two

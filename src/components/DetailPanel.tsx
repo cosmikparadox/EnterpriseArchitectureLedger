@@ -14,8 +14,14 @@ import { PanelShell } from './PanelShell'
 /** The estate is observed at month 60, the end of the view 4 window. */
 export const AS_AT_MONTH = 60
 
-export const gbp = (n: number, dp = 0) =>
-  'GBP ' + n.toLocaleString('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp })
+// One formatter per precision. toLocaleString builds an Intl object on every
+// call, and a slider step formats a few hundred figures.
+const FORMATS = new Map<number, Intl.NumberFormat>()
+export const gbp = (n: number, dp = 0) => {
+  let f = FORMATS.get(dp)
+  if (!f) { f = new Intl.NumberFormat('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp }); FORMATS.set(dp, f) }
+  return 'GBP ' + f.format(n)
+}
 
 const pct = (n: number, dp = 0) => (n * 100).toFixed(dp) + ' percent'
 

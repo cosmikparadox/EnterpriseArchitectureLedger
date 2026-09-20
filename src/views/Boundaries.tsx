@@ -118,10 +118,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
   }, [storyMove, mover, moverTo])
   const dashed = useMemo(() => storyMove && mover ? new Set([...crossing].filter((k) => k.startsWith(`${mover.id}>`))) : crossing, [storyMove, mover, crossing])
   const subName = (id: string) => base.subdomains.find((s) => s.id === id)?.name ?? id
-  const decision = storyMove && mover && moverTo && moverTo !== mover.subdomain ? {
-    kind: 'node' as const,
-    id: mover.id,
-    content: (
+  const decision = storyMove && mover && moverTo && moverTo !== mover.subdomain ? (
       <div className="decision">
         <div className="decision-head">{copy.decision_head}</div>
         <div className="decision-row">
@@ -132,8 +129,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
         <div className="decision-uc">{mover.name}</div>
         <div className="decision-line">{fill(copy.decision_line, { uc: mover.name, from: subName(mover.subdomain), to: subName(moverTo) })}</div>
       </div>
-    ),
-  } : null
+    ) : null
 
   return (
     <>
@@ -157,8 +153,9 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           isolatedSubdomain={null}
           flyToId={null}
           dashedLinks={dashed}
+          dashedFaint={inStory}
           focus={focus}
-          popover={decision}
+          note={decision}
           onSelectNode={(id) => { if (ixAfter.useCaseById.has(id)) { setPicked(id); setCollapsed(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}
