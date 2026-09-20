@@ -14,7 +14,9 @@ import { describeSubdomain } from '../model/describe'
 import { copy, fill } from '../copy'
 import { useLayoutReport } from '../app/layoutReport'
 import { MeterBadge, PoolBadge } from '../story/Badges'
-import { Walkthrough, type Focus } from './Walkthrough'
+import { Walkthrough, revealFor, type Focus } from './Walkthrough'
+import { platformView, useCaseView } from '../app/graph'
+import { describeUseCase } from '../model/describe'
 
 const GESTURE_KEY = 'ledger.gesture.seen'
 // Remembered for the session only: the story is the first-run experience,
@@ -85,15 +87,45 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // The walkthrough: a play button on the panel, and the node's figures
   // arrive one step at a time with the canvas focused on each.
   const [walk, setWalk] = useState<string | null>(null)
+  const [walkStep, setWalkStep] = useState(0)
   const [walkFocus, setWalkFocus] = useState<Focus | null>(null)
+  const reveal = walk ? revealFor(ix.platformById.has(walk), walkStep) : undefined
   const onWalkFocus = useCallback((f: Focus | null) => setWalkFocus(f), [])
   const gestureHint = inStory && scene.hint && !dragged ? copy.canvas_gesture : null
-  const book = inStory && scene.book && selectedId ? {
-    id: selectedId,
-    title: fill(copy.book_title, { name: ix.platformById.get(selectedId)?.name ?? '' }),
-    rows: [copy.book_row_1, copy.book_row_2, copy.book_row_3],
-    note: copy.book_note,
-  } : null
+  // The book's rows are read off the graph for whatever node is tapped: a
+  // platform's meter, pool, riders and execution work; a use case's bill,
+  // what it stops with, and what strands it.
+  const book = useMemo(() => {
+    if (!inStory || !scene.book || !selectedId) return null
+    const gbpN = (n: number) => Math.round(n).toLocaleString('en-GB')
+    let values: [string, string, string] | null = null
+    let name = ''
+    if (ix.platformById.has(selectedId)) {
+      const p = ix.platformById.get(selectedId)!
+      const v = platformView(ix, selectedId, rule, 60 - p.adopted_month)
+      name = v.name
+      values = [
+        fill(copy.book_v_cost_p, { metered: gbpN(v.meteredSpend), pool: gbpN(v.fixedPool) }),
+        fill(copy.book_v_risk_p, { riders: v.riders }),
+        fill(copy.book_v_exit_p, { exec: gbpN(v.executionComponent) }),
+      ]
+    } else if (ix.useCaseById.has(selectedId)) {
+      const d = describeUseCase(ix, selectedId, rule)
+      const uv = useCaseView(ix, selectedId, rule)
+      name = String(d.name)
+      values = [
+        fill(copy.book_v_cost_u, { reported: String(d.reported) }),
+        fill(copy.book_v_risk_u, { worst: String(d.worst) }),
+        fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none }),
+      ]
+    } else return null
+    return {
+      id: selectedId,
+      title: fill(copy.book_title, { name }),
+      rows: [copy.book_row_1, copy.book_row_2, copy.book_row_3].map((label, i) => ({ label, value: values![i] })),
+      note: copy.book_note,
+    }
+  }, [inStory, scene.book, selectedId, ix, rule])
   // The panel is always present outside the story, opening on the estate
   // summary when nothing is picked, so the canvas yields to it whenever it
   // is not collapsed. The story never shows it.
@@ -241,10 +273,11 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           onToggleCollapsed={() => setCollapsed((v) => !v)}
           onClose={() => { setSelectedId(null); setSelectedLink(null); setWalk(null) }}
           onSelectNode={pick}
-          onPlay={selectedId ? () => { setWalk(selectedId); setFlyTo(selectedId) } : undefined}
+          onPlay={selectedId ? () => { setWalk(selectedId); setWalkStep(0); setFlyTo(selectedId) } : undefined}
+          reveal={!inStory && walk === selectedId ? reveal : undefined}
         />
         {!inStory && walk && (ix.platformById.has(walk) || ix.useCaseById.has(walk)) && (
-          <Walkthrough ix={ix} rule={rule} id={walk} onFocus={onWalkFocus} onClose={() => setWalk(null)} />
+          <Walkthrough ix={ix} rule={rule} id={walk} step={walkStep} onStep={setWalkStep} onFocus={onWalkFocus} onClose={() => setWalk(null)} />
         )}
       </div>
     </>

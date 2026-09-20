@@ -111,11 +111,35 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
         </div>
       )}
       {beat.overlay === 'silos' && (
-        <div className="ov-centre ov-silos">
-          <div className="ov-silo ov-in"><strong>{copy.silo_cost}</strong><span>{copy.silo_cost_sub}</span></div>
-          <div className="ov-silo ov-in d1"><strong>{copy.silo_risk}</strong><span>{copy.silo_risk_sub}</span></div>
-          <div className="ov-silo ov-in d2 ov-missing"><strong>{copy.silo_exit}</strong><span>{copy.silo_exit_sub}</span></div>
-          <div className="ov-note ov-in d3">{copy.silo_note}</div>
+        <div className="ov-centre">
+          {/* The question at the top, the three sources at the bottom, and a
+              curve from each that draws upward and stops short. Nothing
+              reaches the question: that is the picture. */}
+          <div className="ov-stage">
+            <div className="ov-ask ov-in"><div className="ov-ask-head">{copy.silo_ask_head}</div><strong>{copy.silo_ask}</strong></div>
+            <svg className="ov-curves" viewBox="0 0 760 420" aria-hidden="true">
+              {[127, 380, 633].map((x, i) => {
+                // Cubic from the source's top to just under the question; the
+                // dot marks where the curve gives up, at two thirds of the way.
+                const p0 = [x, 300], p1 = [x, 200], p2 = [380, 200], p3 = [380, 96]
+                const t = 0.66, u = 1 - t
+                const px = u * u * u * p0[0]! + 3 * u * u * t * p1[0]! + 3 * u * t * t * p2[0]! + t * t * t * p3[0]!
+                const py = u * u * u * p0[1]! + 3 * u * u * t * p1[1]! + 3 * u * t * t * p2[1]! + t * t * t * p3[1]!
+                return (
+                  <g key={x} className={`ov-curve c${i + 1}`}>
+                    <path d={`M${p0[0]},${p0[1]} C${p1[0]},${p1[1]} ${p2[0]},${p2[1]} ${p3[0]},${p3[1]}`} pathLength={100} />
+                    <circle cx={px} cy={py} r={4} />
+                  </g>
+                )
+              })}
+            </svg>
+            <div className="ov-silos-row">
+              <div className="ov-silo ov-in d1"><strong>{copy.silo_cost}</strong><span>{copy.silo_cost_sub}</span></div>
+              <div className="ov-silo ov-in d2"><strong>{copy.silo_risk}</strong><span>{copy.silo_risk_sub}</span></div>
+              <div className="ov-silo ov-in d3 ov-missing"><strong>{copy.silo_exit}</strong><span>{copy.silo_exit_sub}</span></div>
+            </div>
+          </div>
+          <div className="ov-note ov-in d6">{copy.silo_fail}</div>
         </div>
       )}
     </div>

@@ -7,7 +7,7 @@
 // was chosen, because the estate has no decision record and the ledger
 // would refuse to invent one.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { copy, fill } from '../copy'
 import { describePlatform, describeUseCase } from '../model/describe'
 import { platformView, useCaseView } from '../app/graph'
@@ -18,22 +18,31 @@ import type { AllocationRule } from '../model/types'
 type CopyMap = Record<string, string>
 export interface Focus { nodes: Set<string> }
 
-const P_STEPS = ['what', 'runs', 'billed', 'stops', 'leaving', 'when'] as const
-const U_STEPS = ['what', 'rides', 'told', 'exit'] as const
+export const P_STEPS = ['what', 'runs', 'billed', 'stops', 'leaving', 'when'] as const
+export const U_STEPS = ['what', 'rides', 'told', 'exit'] as const
+/** Which panel sections each step has earned, cumulatively, so the panel discloses as the walk goes. */
+export const P_REVEAL: Record<(typeof P_STEPS)[number], string[]> = { what: ['summary'], runs: ['riders'], billed: ['metered'], stops: ['failure'], leaving: ['switching'], when: ['adopted'] }
+export const U_REVEAL: Record<(typeof U_STEPS)[number], string[]> = { what: ['summary', 'volume'], rides: ['platforms'], told: ['cost'], exit: ['exit'] }
+export function revealFor(isPlatform: boolean, step: number): string[] {
+  const steps: readonly string[] = isPlatform ? P_STEPS : U_STEPS
+  const map = (isPlatform ? P_REVEAL : U_REVEAL) as Record<string, string[]>
+  return steps.slice(0, step + 1).flatMap((k) => map[k] ?? [])
+}
 
 export interface WalkthroughProps {
   ix: Index
   rule: AllocationRule
   id: string
+  step: number
+  onStep: (n: number) => void
   onFocus: (f: Focus | null) => void
   onClose: () => void
 }
 
-export function Walkthrough({ ix, rule, id, onFocus, onClose }: WalkthroughProps) {
+export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: WalkthroughProps) {
   const c = copy as unknown as CopyMap
   const ratified = useLedger((s) => s.ratified)
-  const [step, setStep] = useState(0)
-  useEffect(() => { setStep(0) }, [id])
+  const setStep = (f: number | ((s: number) => number)) => onStep(typeof f === 'function' ? f(step) : f)
   const isPlatform = ix.platformById.has(id)
   const steps: readonly string[] = isPlatform ? P_STEPS : U_STEPS
   const key = steps[step] ?? steps[0]!

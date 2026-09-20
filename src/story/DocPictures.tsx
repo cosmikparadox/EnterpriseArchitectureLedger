@@ -50,7 +50,19 @@ const k = (n: number) => `${n.toLocaleString('en-GB')}k`
 export function DocPicture({ i, estate }: { i: number; estate: Estate }) {
   const c = copy as unknown as Record<string, string>
   const head = <div className="dp-head"><strong>{c[`doc_${i}`]}</strong><span>{c[`docpic_${i}_tag`]}</span></div>
-  const foot = <div className="dp-foot">{c[`docpic_${i}_sub`]}</div>
+  // The gap: the three questions a decision needs, and the one line on why
+  // this document cannot answer them for one use case. Quiet, under the
+  // drawing, because the drawing has already made the point once.
+  const foot = (
+    <div className="dp-foot">
+      {c[`docpic_${i}_sub`]}
+      <div className="dp-gap dp-in" style={{ animationDelay: '700ms' }}>
+        <div className="dp-gap-head">{copy.docpic_gap_head}</div>
+        <div className="dp-chips">{[copy.ask_cost, copy.ask_risk, copy.ask_exit].map((q) => <span key={q} className="dp-chip">{q}</span>)}</div>
+        <div className="dp-gap-line">{c[`docpic_${i}_gap`]}</div>
+      </div>
+    </div>
+  )
   let body: ReactNode = null
   if (i === 1) body = (
     <div className="dp-cap">

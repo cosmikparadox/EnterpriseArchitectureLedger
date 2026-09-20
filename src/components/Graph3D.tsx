@@ -91,7 +91,7 @@ export interface Graph3DProps {
    * from one node to each of its ruled rows. Part three's opening: the graph
    * is where the entries come from.
    */
-  book?: { id: string; title: string; rows: string[]; note: string } | null
+  book?: { id: string; title: string; rows: { label: string; value?: string }[]; note: string } | null
   /**
    * Focus. Everything outside the set drops to a ghost: nodes to a trace,
    * their labels off, links between two ghosts to a faint line, hulls not
@@ -1309,7 +1309,7 @@ export function Graph3D(props: Graph3DProps) {
           </svg>
           <div ref={bookEl} className="canvas-book" aria-hidden="true">
             <div className="book-title">{props.book.title}</div>
-            {props.book.rows.map((r, i) => <div key={i} className={`book-row ov-in d${i + 1}`}><span className="book-n">{i + 1}</span><span className="book-l">{r}</span><span className="book-rule" /></div>)}
+            {props.book.rows.map((r, i) => <div key={i} className={`book-row ov-in d${i + 1}`}><span className="book-n">{i + 1}</span><span className="book-l">{r.label}{r.value && <span className="book-v">{r.value}</span>}</span><span className="book-rule" /></div>)}
             <div className="book-note ov-in d4">{props.book.note}</div>
           </div>
         </>

@@ -1262,6 +1262,55 @@ forces carry it into its new sector over a couple of seconds while every
 other node holds, the hulls reshaping every few ticks as it goes, so the
 receiving domain is seen to take it in.
 
+### 51. The bottom of the valley, the crescendo, the filled book, and the disclosed panel
+
+The owner's fourth review, of part two and of the explorer.
+
+Part two's documents said what each was and left the reader to infer the
+problem. Each drawing now ends with the problem, quietly: the three
+questions a decision needs for one use case, what it costs, what it risks,
+what leaving would cost, shown as three struck-through chips, and one line
+on why this document cannot answer them. A score is an opinion with a
+colour; an inventory has no column for the work; an arrow has no volume; a
+rating is a judgment, not a loss; a contract prices staying, never leaving;
+a cost centre is nobody's use case. The beat's own line says the same in
+one sentence: each is honest about something, and silent on the three
+questions.
+
+The silos beat is the crescendo and reads like one. The question sits at
+the top of the canvas, "what a decision needs, for one use case", and the
+three sources sit at the bottom. A curve draws upward from each source and
+stops two thirds of the way, with a mark where it gives up. Nothing reaches
+the question. The caption says why: three sources, three vocabularies, no
+shared key, so the decision is made on a colour. The curves are the same
+device as the wires that later run from the busiest node into the book, on
+purpose: what fails to connect in part two connects in part three.
+
+The book's rows were ruled blanks by design, so a tap on another node
+showed a book with nothing in it. They are filled now, read off the graph
+for whatever node is tapped: a platform's meter and pool, how many use
+cases stop with it, the execution work of leaving; a use case's monthly
+bill, what it stops with, what would strand it. The blanks are gone.
+
+The walkthrough card changed height with each step's text, so Back and
+Next moved. The card has a fixed height now and the buttons stay put. And
+the panel beside it discloses as the walk goes: on the first step only the
+headline, then the riders, the meter, what stops, what leaving costs, when
+it arrived, each section arriving as its step teaches its words. Outside a
+walk the panel is whole. This is the engine, not one node's treatment: any
+platform, connector or use case tapped on the explorer walks the same way.
+
+The owner also asked about a revenue vector on the canvas, which domains
+and platforms contribute to revenue rather than consume cost, and was
+careful that it must not be a versus story. Recorded here as a v2 note
+with two conditions. Revenue-bearing must be a declared fact per use case,
+with an owner and a date in the provenance strip, like the decomposition;
+the tool must not derive it. And it must never become a number or a pair,
+because the paper refuses that total. What can be shown honestly is flow:
+the work each platform carries, with the revenue-bearing share of it as a
+warmer tint on the lines, so a reader sees where revenue-bearing work
+concentrates without anyone claiming what it is worth.
+
 ## Acceptance check 3, replaced
 
 The spec's acceptance 3 required a gap of at least 20 percent between the two

@@ -261,7 +261,10 @@ export const copy = {
   b_docs:
     'Today the architecture lives in documents. Each is written by someone, ' +
     'dated, and ageing from the day it is saved.',
-  b_docs_see: 'Six kinds, kept in six places, none the same age.',
+  b_docs_see:
+    'Six kinds, kept in six places, none the same age. Open one: each is ' +
+    'honest about something, and silent on the three questions a decision ' +
+    'needs.',
   b_docs_more:
     'The method calls the whole collection an architecture repository, and ' +
     'it is only as current as its most recent edit. The picture you just ' +
@@ -494,6 +497,29 @@ export const copy = {
   doc_6: 'Budget lines',
   doc_6_age: 'by cost centre, not by use case',
   docs_open: 'Open',
+  // The three questions, and what each document cannot say about one use case.
+  ask_cost: 'What it costs',
+  ask_risk: 'What it risks',
+  ask_exit: 'What leaving would cost',
+  docpic_gap_head: 'For one use case, it cannot say',
+  docpic_1_gap:
+    'A score is an opinion with a colour on it. It does not say what one ' +
+    'use case costs, what stops when a system does, or what leaving would cost.',
+  docpic_2_gap:
+    'One row per application. The work that runs on it, and who loses that ' +
+    'work when it stops, is not a column.',
+  docpic_3_gap:
+    'An arrow says something flows. Not how much, not what it costs a ' +
+    'month, not what breaks when it stops.',
+  docpic_4_gap:
+    'High, medium, low is a judgment, not a loss. Nothing here says which ' +
+    'use cases an outage reaches, or what a bad year costs a domain.',
+  docpic_5_gap:
+    'The price of staying, by vendor. The price of leaving, by use case, is ' +
+    'written nowhere.',
+  docpic_6_gap:
+    'Money by cost centre. A use case that rides four platforms appears in ' +
+    'none of these rows, so its bill is nobody\'s.',
   docs_tap: 'Tap one to see what it looks like.',
   docpic_1_tag: 'v7, last edited 14 months ago',
   docpic_1_sub:
@@ -533,6 +559,12 @@ export const copy = {
   silo_exit: 'What leaving would cost',
   silo_exit_sub: 'not recorded anywhere',
   silo_note: 'No line joins them. None names a use case.',
+  silo_ask_head: 'What a decision needs, for one use case',
+  silo_ask: 'What it costs. What it risks. What leaving would cost.',
+  silo_fail:
+    'Three sources, three vocabularies, no shared key. None of them reaches ' +
+    'the question in a form a finance director can use, so the decision is ' +
+    'made on a colour.',
 
   // ---- Part two, the ledger. Chapters 7 to 15. ----
   //
@@ -781,6 +813,13 @@ export const copy = {
   book_row_2: 'Entry two: what it risks',
   book_row_3: 'Entry three: what leaving would cost',
   book_note: 'Three entries per use case. They do not add.',
+  // The book's rows, filled for whatever node is tapped.
+  book_v_cost_p: 'GBP {metered} metered, GBP {pool} by rule',
+  book_v_risk_p: '{riders} use cases stop with it',
+  book_v_exit_p: 'GBP {exec} of work to leave',
+  book_v_cost_u: 'GBP {reported} a month',
+  book_v_risk_u: 'stops if {worst} does',
+  book_v_exit_u: 'stranded by {stranded}',
   badge_meter_head: '{name}, the meter',
   badge_meter_units: '{units} {driver} a month',
   badge_meter_spend: 'GBP {spend} metered, counted and billed',

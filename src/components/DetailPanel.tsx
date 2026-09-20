@@ -47,6 +47,8 @@ export interface DetailPanelProps {
   onSelectNode: (id: string) => void
   /** Start the walkthrough of the selected node, when there is one. */
   onPlay?: () => void
+  /** During a walkthrough, which sections have been reached. Absent: all. */
+  reveal?: string[]
 }
 
 export function DetailPanel(props: DetailPanelProps) {
@@ -54,7 +56,10 @@ export function DetailPanel(props: DetailPanelProps) {
   // Outside the story the panel shows everything; the story never shows it.
   const tourStep: number | null = null
   const revealed = 'all' as const
-  const show = (_k: 'metered' | 'riders' | 'failure' | 'switching') => true
+  // A walkthrough discloses the panel a section at a time, in the order the
+  // steps teach the words; outside one, everything is up.
+  const show = (k: string) => !props.reveal || props.reveal.includes(k)
+  const sec = (k: string) => (show(k) ? (props.reveal ? 'reveal' : undefined) : undefined)
   const isPlatform = selectedNodeId !== null && ix.platformById.has(selectedNodeId)
   const isUseCase = selectedNodeId !== null && ix.useCaseById.has(selectedNodeId)
 
@@ -112,7 +117,7 @@ export function DetailPanel(props: DetailPanelProps) {
         {/* Chapter 7 shows the name alone; chapter 8 adds the headline once
             "meters" has been taught; the two readings follow the chapters
             that teach their words. */}
-        {tourStep !== 7 && (
+        {tourStep !== 7 && show('summary') && (
         <Summary
           head={summary.s1n_head} number={summary.s1n_number} mechanism={summary.s1n_mechanism}
           headOnly={tourStep === 8}
@@ -131,7 +136,7 @@ export function DetailPanel(props: DetailPanelProps) {
         {v.kind === 'integration' && revealed === 'all' && <div className="callout">{copy.integration_note}</div>}
 
         {show('metered') && (
-        <section data-tour="metered">
+        <section data-tour="metered" className={sec('metered')}>
           <h3>{copy.panel_section_metered}</h3>
           <Row k="fixed_pool" l="Fixed pool" v={gbp(v.fixedPool) + ' /month'} />
           <Row l="Driver" v={v.driverName} />
@@ -142,7 +147,7 @@ export function DetailPanel(props: DetailPanelProps) {
         )}
 
         {show('riders') && (
-        <section>
+        <section className={sec('riders')}>
           <h3>{copy.panel_section_riders}</h3>
           <Row k="fan_in" l="Use cases riding" v={String(v.riders)} />
           <Row k="subdomain" l="Subdomains" v={String(v.subdomains)} />
@@ -153,7 +158,7 @@ export function DetailPanel(props: DetailPanelProps) {
         )}
 
         {show('failure') && (
-        <section>
+        <section className={sec('failure')}>
           <h3>{copy.panel_section_failure}</h3>
           <Row l="Loss events per year" v={v.lef.toFixed(2)} />
           <Row l="Direct loss, median" v={gbp(v.lossMedian)} />
@@ -165,7 +170,7 @@ export function DetailPanel(props: DetailPanelProps) {
         )}
 
         {show('switching') && (
-        <section>
+        <section className={sec('switching')}>
           <h3>{copy.panel_section_switching}</h3>
           <div className="note">{copy.switching_split}</div>
           <Row k="execution_component" l="Execution component" v={gbp(v.executionComponent)} />
@@ -181,7 +186,7 @@ export function DetailPanel(props: DetailPanelProps) {
               <WKCurve curve={option.curve} />
             </div>
           )}
-          <Row l="Adopted" v={'month ' + v.adoptedMonth} />
+          {show('adopted') && <Row l="Adopted" v={'month ' + v.adoptedMonth} />}
         </section>
         )}
       </PanelShell>
@@ -195,6 +200,7 @@ export function DetailPanel(props: DetailPanelProps) {
         <h2>{v.name}</h2>
         <div className="kind">{v.subdomainName}, use case</div>
         {props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>}
+        {show('summary') && (
         <Summary
           head={summary.s1u_head} number={summary.s1u_number} mechanism={summary.s1u_mechanism}
           values={{
@@ -208,21 +214,27 @@ export function DetailPanel(props: DetailPanelProps) {
             }, 0)).toLocaleString('en-GB'),
           }}
         />
+        )}
 
-        <section>
+        {show('volume') && (
+        <section className={sec('volume')}>
           <h3>Volume</h3>
           <Row k="volume" l="Business volume" v={v.volume.toLocaleString('en-GB') + ' /month'} />
         </section>
+        )}
 
-        <section>
+        {show('cost') && (
+        <section className={sec('cost')}>
           <h3>Cost per unit</h3>
           <Row l="Metered part, exact" v={gbp(v.meteredPerUnit, 3)} />
           <Row l="Under the current rule" v={gbp(v.perUnitCurrent, 3)} />
           <Row l="Range across all rules" v={`${gbp(v.perUnitLow, 3)} to ${gbp(v.perUnitHigh, 3)}`} />
           <div className="callout">{copy.panel_spread_note}</div>
         </section>
+        )}
 
-        <section>
+        {show('platforms') && (
+        <section className={sec('platforms')}>
           <h3>Platforms depended on</h3>
           {v.edges.map((e) => (
             <div className="row" key={e.platformId}>
@@ -237,8 +249,10 @@ export function DetailPanel(props: DetailPanelProps) {
             </div>
           ))}
         </section>
+        )}
 
-        <section>
+        {show('exit') && (
+        <section className={sec('exit')}>
           <h3>Exit</h3>
           <div className="note">
             {v.strandedBy.length > 0
@@ -246,6 +260,7 @@ export function DetailPanel(props: DetailPanelProps) {
               : 'No single platform exit would strand this use case outright.'}
           </div>
         </section>
+        )}
       </PanelShell>
     )
   }

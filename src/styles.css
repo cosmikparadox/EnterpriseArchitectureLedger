@@ -879,13 +879,11 @@ button, input, select { font: inherit; color: inherit; }
 }
 .ov-doc strong, .ov-silo strong { display: block; font-size: 14px; margin-bottom: 4px; }
 .ov-doc span, .ov-silo span { font-size: 11.5px; color: var(--ink-3); }
-.ov-silos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; width: 100%; }
-.ov-silo { text-align: center; padding: 22px 14px; }
 .ov-silo.ov-missing { border-style: dashed; background: transparent; box-shadow: none; }
 .ov-silo.ov-missing strong { color: var(--ink-3); }
 .overlay-matrix .drawing-sheet { animation: ov-in 900ms cubic-bezier(.2,.7,.2,1) forwards; }
 @media (max-width: 720px) {
-  .ov-docs, .ov-silos { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ov-docs { grid-template-columns: 1fr 1fr; gap: 8px; }
   /* On a phone the card is a sheet along the bottom; a picture with a card
      keeps to the canvas above it. */
   .app.story-open .overlay-docs, .app.story-open .overlay-matrix, .app.story-open .overlay-silos { bottom: var(--tour-card-actual-h, 52vh); padding: 12px; }
@@ -1046,3 +1044,44 @@ button, input, select { font: inherit; color: inherit; }
 .play::before { content: ''; width: 0; height: 0; border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
 @media (max-width: 720px) { .story.walk { top: auto; left: 0; right: 0; } }
 @media (prefers-reduced-motion: reduce) { .flash, .decision-arrow::after { animation: none; } .decision-arrow::after { transform: none; } }
+
+
+/* ---- what a document cannot answer, under its drawing ---- */
+.dp-gap { margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 8px; }
+.dp-gap-head { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.dp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.dp-chip { font-size: 11px; color: var(--ink-3); padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; text-decoration: line-through; text-decoration-color: rgba(208, 90, 106, 0.8); text-decoration-thickness: 1.5px; }
+.dp-gap-line { font-size: 12px; color: var(--ink); line-height: 1.45; }
+
+/* ---- the silos beat: three sources, one question, curves that stop short ---- */
+.ov-stage { position: relative; width: min(760px, 100%); aspect-ratio: 760 / 420; }
+.ov-ask {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: min(360px, 62%);
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 16px; text-align: center;
+  box-shadow: 0 8px 24px rgba(31, 78, 121, 0.18);
+}
+.ov-ask-head { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+.ov-ask strong { font-size: 14px; }
+.ov-curves { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.ov-curve path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; animation: curve-stop 1500ms cubic-bezier(.2,.7,.2,1) forwards; opacity: 0.85; }
+.ov-curve circle { fill: #d05a6a; opacity: 0; animation: wm-in 400ms ease forwards; }
+.ov-curve.c1 path { animation-delay: 1000ms; } .ov-curve.c1 circle { animation-delay: 2400ms; }
+.ov-curve.c2 path { animation-delay: 1500ms; } .ov-curve.c2 circle { animation-delay: 2900ms; }
+.ov-curve.c3 path { animation-delay: 2000ms; } .ov-curve.c3 circle { animation-delay: 3400ms; }
+@keyframes curve-stop { to { stroke-dashoffset: 34; } }
+.ov-silos-row { position: absolute; left: 0; right: 0; top: 71%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.ov-silo { text-align: center; padding: 18px 12px; }
+@media (max-width: 720px) {
+  .ov-stage { aspect-ratio: 760 / 520; }
+  .ov-silos-row { gap: 8px; top: 62%; }
+  .ov-silo { padding: 10px 6px; }
+  .ov-silo strong { font-size: 12px; }
+  .ov-silo span { font-size: 10px; }
+}
+
+/* ---- the walkthrough card keeps its height, so Back and Next never move ---- */
+.story.walk { height: 300px; }
+.story.walk .story-body { flex: 1 1 auto; }
+.panel section.reveal { animation: intro-in 520ms cubic-bezier(.2,.7,.2,1); }
+.book-v { display: block; font-size: 11.5px; color: var(--ink-2); margin-top: 1px; }
+@media (prefers-reduced-motion: reduce) { .ov-curve path { animation: none; stroke-dashoffset: 34; } .ov-curve circle { animation: none; opacity: 1; } .panel section.reveal { animation: none; } }
