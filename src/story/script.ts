@@ -112,11 +112,14 @@ export const BEATS: Beat[] = [
     },
     settleMs: 900 + 1200,
     waitFor: (now, at) => now.failRequest !== null && now.failRequest.nonce !== at.failRequest?.nonce },
+  // The two figures are read on the failure from the beat before. Reached
+  // by Back, that failure has been cleared, so it is raised again here.
   { part: 3, stem: 'together', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint'],
-    enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN) } },
+    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setSubdomain(TOUR_SUBDOMAIN); if (!store.failRequest) store.failIt(IDENTITY_ID) } },
   { part: 3, stem: 'rho', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'rho', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
     enter: ({ store, timeline, reduced }) => {
-      store.setSubdomain(TOUR_SUBDOMAIN); store.setRho(0)
+      store.setSelectedId(IDENTITY_ID); store.setSubdomain(TOUR_SUBDOMAIN); store.setRho(0)
+      if (!store.failRequest) store.failIt(IDENTITY_ID)
       timeline.after(300, () => {
         timeline.add(animateValue(0, 1, 3000, (v) => store.setRho(round05(v)), reduced))
         timeline.after(3200, () => { timeline.add(animateValue(1, DEFAULT_RHO, 900, (v) => store.setRho(round05(v)), reduced)) }, reduced)

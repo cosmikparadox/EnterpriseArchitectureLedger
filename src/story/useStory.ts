@@ -38,6 +38,13 @@ export function useStory(): StoryState {
     const store = useLedger.getState()
     const entering = prev.current === null
     if (entering) store.resetStory()
+    // Back. A later beat's selection, failure, riders, moves or slider
+    // value would otherwise sit on the earlier beat's picture: the ring of
+    // a node this beat never named, the wireframes of a failure it has not
+    // shown yet. Everything later beats set is cleared, the camera pulls
+    // back to the whole estate, and the beat's own entry then sets what it
+    // needs, as it did the first time.
+    if (prev.current !== null && n < prev.current) { store.resetBeat(); store.setFlyToId('*') }
     prev.current = n
     setDone(false)
     const timeline = new Timeline()

@@ -136,6 +136,8 @@ export interface LedgerState {
   setShapesPhase: (p: 0 | 1 | 2) => void
   setTheme: (t: 'auto' | 'light' | 'dark') => void
   resetStory: () => void
+  /** Going back a beat: what later beats set is cleared, so the earlier beat shows what it showed the first time. */
+  resetBeat: () => void
 }
 
 const THEME_KEY = 'ledger.theme'
@@ -188,4 +190,6 @@ export const useLedger = create<LedgerState>((set) => ({
   setShapesPhase: (shapesPhase) => set({ shapesPhase }),
   setTheme: (theme) => { try { localStorage.setItem(THEME_KEY, theme) } catch { /* a browser that will not remember it just asks again */ } set({ theme }) },
   resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, flyToId: null }),
+  // The domains the reader named in part one are theirs and stay.
+  resetBeat: () => set({ selectedId: null, focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0 }),
 }))

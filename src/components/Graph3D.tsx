@@ -124,7 +124,6 @@ export interface Graph3DProps {
  *  node and the data platform near the centre if the layout drifts them out.
  *  Implemented as a pull toward the origin rather than a hard pin, so the rest
  *  of the physics stays honest. */
-const HUBS = new Set(['okta', 'meridian', 'lakehouse'])
 /** Hull fill and edge opacity when fully shown. */
 const HULL_FILL = 0.085
 const HULL_EDGE = 0.3
@@ -275,16 +274,10 @@ export function Graph3D(props: Graph3DProps) {
       .cooldownTicks(0)
       .cooldownTime(Infinity)
 
-    // Pull the hubs toward the centre so fan-in stays visible.
-    g.d3Force('hub', ((alpha: number) => {
-      for (const n of (g.graphData().nodes as (GNode & Positioned)[])) {
-        if (!HUBS.has(n.id)) continue
-        n.vx = (n.vx ?? 0) - (n.x ?? 0) * 0.12 * alpha
-        n.vy = (n.vy ?? 0) - (n.y ?? 0) * 0.12 * alpha
-        n.vz = (n.vz ?? 0) - (n.z ?? 0) * 0.12 * alpha
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any)
+    // No node is pulled to the centre. The identity hub used to be, so the
+    // whole picture was built around one platform before the story had said
+    // a word about it; the links alone now decide where it sits, and the
+    // story anchors on a node only when a beat names one.
     // Hold each part of the business in its sector. The link force pulls the
     // use cases of two parts that share most of their platforms onto the same
     // spot; this pull toward the part's anchor direction is what keeps their

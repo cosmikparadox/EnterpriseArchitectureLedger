@@ -54,7 +54,9 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   // nonce: pressing Fail it twice on the same node has to be two events, because
   // spec section 4.3 asks for a fresh pattern each press.
   useEffect(() => {
-    if (!failRequest) return
+    // A cleared request clears the failure too, so a beat left by Back does
+    // not leave its wireframes on the next one.
+    if (!failRequest) { setFailure(null); return }
     const f = sampleFailure(ix, failRequest.nodeId, 0xf1a1 ^ (failRequest.nonce * 2654435761))
     if (!f) return
     setFailure(f)

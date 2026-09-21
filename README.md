@@ -583,7 +583,7 @@ for, fixes half of it and leaves the other half moving.
 
 The cooldown is now 300 ticks with no time limit, 300 being where d3's default
 alpha decay reaches its floor. With both halves fixed the settled layout is
-byte-identical across loads: three loads in a row hash to `6b8903cf`. Graph3D
+byte-identical across loads: three loads in a row hash to `fecf52bb`. Graph3D
 publishes the digest, FNV-1a over every node's id and settled position, on the
 document root as `data-layout-digest` once the simulation stops, and acceptance
 A4 loads the page three times and compares. Until deviation 42 the digest was
@@ -1178,7 +1178,7 @@ fits the sphere around the node positions, standing the camera off along
 its own line of sight so that sphere fills the shorter side with a little
 room at the rim. And the layout's 300 ticks now run before the first frame
 rather than across the first five seconds: a screen mounts with the estate
-already settled and framed. The digest is unchanged, 6b8903cf, because the
+already settled and framed. The digest is unchanged, fecf52bb, because the
 tick count is.
 
 The boundary move is shown as a decision. A note pinned to the moved use
@@ -1721,6 +1721,30 @@ says only that where each use case's value lands was declared by the
 finance function. The line width per use case, which compares each use
 case with itself, stays. The legend's declared-by line stays.
 
+### 77. No node is pulled to the centre, and Back clears what later beats set
+
+The layout pulled three hub nodes toward the origin, so the whole picture
+was built around the identity platform before the story had said a word
+about it. That pull is gone. The links alone decide where the hub sits;
+it is still near the middle, because twenty-eight of thirty use cases
+ride it, but the story now anchors on a node only when a beat names one:
+the busiest node in part one, the identity platform through the ledger
+entries, the cloud data platform for the footprint, the moved use case
+for the boundary. The layout digest changed from 6b8903cf to fecf52bb and
+every screenshot was retaken.
+
+Going Back left later beats' state on the earlier picture: the ring of a
+node the earlier beat never named, a failure's wireframes on the crowd
+beat, three added riders on the rule beat, the camera still close on the
+busiest node in the flow beat. On Back the engine now clears what beats
+set (selection, failure, added riders, dependence, month, basis, moves,
+subdomain, phase) and pulls the camera back to the whole estate, then runs
+the beat's own entry as it did the first time. The domains the reader
+named in part one are theirs and stay. The two risk beats that read their
+figures on the failure raised by the beat before now raise it themselves
+when it is missing, so they are whole on arrival by Back too, and the
+risk view clears its sampled failure when the request is cleared.
+
 ## Open items, no action
 
 - Displayed P99 figures vary by up to 13 percent across seeds at 10,000
@@ -1883,7 +1907,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T4 | deep link to one beat cold-loads into it | PASS | #/tour/28 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 23 and 29 among them: all sized, none under the panel. |
-| A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `6b8903cf`. |
+| A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `fecf52bb`. |
 | T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/17. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | N1 | the copy deck: no dashes, no sentence over twenty words, no retired phrase | PASS | Every string in `src/copy.ts` scanned; two named exemptions, deviation 63. |
