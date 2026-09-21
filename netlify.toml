@@ -1,0 +1,16 @@
+# Netlify. The site is one file, dist/index.html, built by Vite. Connect this
+# repository in the Netlify app, or deploy the built folder with the CLI:
+#   npx netlify deploy --prod --dir dist
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# index.html is the whole application and changes whenever anything does.
+# Cache it briefly and revalidate; there is no hashed filename to bust.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300, must-revalidate"

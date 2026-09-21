@@ -42,6 +42,21 @@ Use this if a. is slow to serve 1.8 MB.
 Cloudflare compresses and edge-caches by default, which is most of the reason to
 prefer it here.
 
+## d. Netlify
+
+`netlify.toml` at the repository root carries the build command, the publish
+folder and the cache header, so either route needs nothing typed in.
+
+1. Connect to Git: Netlify app, Add new site, Import an existing project,
+   pick this repository and branch. The build runs `npm run build` and
+   publishes `dist`. Deploy.
+2. Or push the built folder from a machine with a Netlify login:
+   `npm run build`, then `npx netlify deploy --prod --dir dist`. The first
+   run asks which site.
+3. Or drag the `dist` folder onto the Sites page in the Netlify app.
+
+Netlify compresses on the way out and serves over https by default.
+
 ## Cache headers
 
 `index.html` is the whole application, and it changes every time anything
