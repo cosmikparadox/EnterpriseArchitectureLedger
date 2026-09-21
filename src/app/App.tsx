@@ -23,6 +23,7 @@ import { StoryCard } from '../story/StoryCard'
 import { Overlay } from '../story/Overlay'
 import { useStory } from '../story/useStory'
 import { beatAt, LAST_BEAT } from '../story/script'
+import { isSheet, isShort, SHEET_QUERY, SHORT_QUERY } from './layout'
 
 const estate = estateJson as unknown as Estate
 const bestOfBreed = bestOfBreedJson as unknown as Estate
@@ -111,11 +112,24 @@ export function App() {
   }, [tourStep, view, setView])
   // Where the card docks, for the canvas: it keeps its full width and
   // offsets its camera to centre the picture in the space the card leaves.
+  // The layout class of the screen, re-read when the viewport changes.
+  const [layoutTick, setLayoutTick] = useState(0)
   useEffect(() => {
-    const dock = tourStep === null ? '' : story.beat?.view === 5 ? 'bottom' : 'right'
+    if (typeof matchMedia !== 'function') return
+    const qs = [matchMedia(SHEET_QUERY), matchMedia(SHORT_QUERY)]
+    const on = () => setLayoutTick((t) => t + 1)
+    for (const q of qs) q.addEventListener('change', on)
+    return () => { for (const q of qs) q.removeEventListener('change', on) }
+  }, [])
+  const sheet = isSheet()
+  // The split view docks the card along the bottom so both halves keep the
+  // width, unless the screen is too short for a sheet under two graphs.
+  const dockBottom = tourStep !== null && story.beat?.view === 5 && !sheet && !isShort()
+  useEffect(() => {
+    const dock = tourStep === null ? '' : sheet ? 'sheet' : dockBottom ? 'bottom' : 'right'
     document.documentElement.dataset.storyDock = dock
     return () => { delete document.documentElement.dataset.storyDock }
-  }, [tourStep, story.beat])
+  }, [tourStep, story.beat, sheet, dockBottom, layoutTick])
   const classes = ['app']
   if (onLanding) classes.push('landing-mode')
   // During the story every control the screens own is hidden: the rail, the
@@ -124,7 +138,8 @@ export function App() {
   if (tourStep !== null) classes.push('intro-open', 'story-open')
   // The split view needs the whole width for its two halves, so there the
   // card docks along the bottom instead of the right.
-  if (tourStep !== null && story.beat?.view === 5) classes.push('dock-bottom')
+  if (dockBottom) classes.push('dock-bottom')
+  if (tourStep !== null && sheet) classes.push('sheet')
 
   return (
     <div className={classes.join(' ')}>

@@ -1756,6 +1756,34 @@ the systems that serve them. None of the three has a key that reaches a
 single use case. This relaxes the rule that the tool names no outside
 method, for frameworks only. No product and no vendor is named.
 
+### 79. The frameworks on the stage, and the card on small screens
+
+The silos stage now shows where the three named frameworks sit. FinOps
+and TBM stand under the cost tile, each with what it is for and where it
+stops; the risk and exit tiles say that no framework here prices risk per
+use case or records the cost of leaving; IFRS 17 stands under no tile,
+because it prices the contracts and not the systems. On a phone the
+chips stack in one column.
+
+The story card now scales with the screen instead of sitting at one
+width. Its width follows the viewport between 300 and 400 pixels and its
+type follows the viewport's shorter side. A phone or a tablet in portrait
+carries it as a sheet along the bottom with a handle that pulls it down to
+a peek, heading and buttons only, so the picture gets the screen; the next
+beat opens it again. A short landscape screen docks it right and narrow
+with tighter type, and the two shapes keep their halves side by side to
+its left rather than under a sheet. The layout is decided in one place,
+`src/app/layout.ts`, and read by the shell and the canvas alike.
+
+Three faults found on the way. On a phone the two shapes' halves sat side
+by side in a grid whose second row was empty, because a later rule for
+the draggable divider won over the phone's stacking rule; they stack now.
+A canvas too narrow to give up the card's column kept the card's width in
+its framing arithmetic and fitted the picture to a negative width, so the
+halves on a landscape phone showed a dot; the inset is zero when it is not
+applied. And under a sheet the wordmark was centred as if the card sat to
+its right, so it ran off the left edge on a tablet.
+
 ## Open items, no action
 
 - Displayed P99 figures vary by up to 13 percent across seeds at 10,000

@@ -44,6 +44,11 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
   const c = copy as unknown as CopyMap
   const [more, setMore] = useState(false)
   useEffect(() => { setMore(false) }, [n])
+  // On a phone the card is a sheet. Tapping its handle pulls it down to a
+  // peek, heading and buttons only, so the picture gets the screen; the
+  // next beat opens it again.
+  const [peek, setPeek] = useState(false)
+  useEffect(() => { setPeek(false) }, [n])
 
   // ---- drag and resize ----
   const cardRef = useRef<HTMLElement | null>(null)
@@ -119,7 +124,8 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
 
   const style = pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined
   return (
-    <aside className="story" aria-label="The story" ref={cardRef} style={style}>
+    <aside className={peek ? 'story peek' : 'story'} aria-label="The story" ref={cardRef} style={style}>
+      <button type="button" className="story-handle" aria-label={peek ? 'Open the card' : 'Lower the card'} aria-expanded={!peek} onClick={() => setPeek((v) => !v)}><span /></button>
       <header className="story-head" onPointerDown={onHeaderDown} title={copy.story_drag}>
         {partKey && <div className="intro-part">{copy[partKey]}</div>}
         <h1 key={`h${n}`}>{heading}</h1>

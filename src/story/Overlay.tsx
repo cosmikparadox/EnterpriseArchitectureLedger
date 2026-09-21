@@ -139,6 +139,21 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
               <div className="ov-silo ov-in d3 ov-missing"><strong>{copy.silo_exit}</strong><span>{copy.silo_exit_sub}</span></div>
             </div>
           </div>
+          {/* Where the frameworks sit. Two under the cost tile, each with
+              what it is for and where it stops; one that sits under no
+              tile, because it prices the contracts and not the systems. */}
+          <div className="ov-frames ov-in d4" aria-label={copy.frames_head}>
+            <div className="ov-frames-head">{copy.frames_head}</div>
+            <div className="ov-frames-row">
+              <div className="ov-frame-col">
+                <div className="ov-frame"><strong>{copy.frame_finops}</strong><span>{copy.frame_finops_for}</span><em>{copy.frame_finops_stop}</em></div>
+                <div className="ov-frame"><strong>{copy.frame_tbm}</strong><span>{copy.frame_tbm_for}</span><em>{copy.frame_tbm_stop}</em></div>
+              </div>
+              <div className="ov-frame-col ov-frame-none"><span>{copy.frames_none_risk}</span></div>
+              <div className="ov-frame-col ov-frame-none"><span>{copy.frames_none_exit}</span></div>
+            </div>
+            <div className="ov-frame ov-frame-loose"><strong>{copy.frame_ifrs}</strong><span>{copy.frame_ifrs_for}</span><em>{copy.frame_ifrs_stop}</em></div>
+          </div>
           <div className="ov-note ov-in d6">{copy.silo_fail}</div>
         </div>
       )}

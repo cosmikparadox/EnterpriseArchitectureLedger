@@ -372,7 +372,7 @@ export function Graph3D(props: Graph3DProps) {
     // which side it docks on.
     const inset = () => {
       const root = document.documentElement
-      if (root.dataset.storyDock !== 'right' || window.innerWidth <= 720) return 0
+      if (root.dataset.storyDock !== 'right') return 0
       const w = parseFloat(getComputedStyle(root).getPropertyValue('--tour-card-actual-w')) || 0
       return w > 0 ? w + 24 : 0
     }
@@ -381,8 +381,12 @@ export function Graph3D(props: Graph3DProps) {
       const cam = g.camera() as THREE.PerspectiveCamera
       const W = el.clientWidth, H = el.clientHeight
       insetNow = inset()
+      // A canvas too narrow to give up the card's column keeps its whole
+      // width, and the fit below must not subtract an inset that was never
+      // applied, or the picture is framed for a negative width and shrinks
+      // to a dot.
       if (insetNow > 0 && W > insetNow + 80) cam.setViewOffset(W + insetNow, H, insetNow, 0, W, H)
-      else cam.clearViewOffset()
+      else { insetNow = 0; cam.clearViewOffset() }
       cam.updateProjectionMatrix()
     }
     // Framing. The library fits the box around every object, labels and
