@@ -1745,6 +1745,17 @@ figures on the failure raised by the beat before now raise it themselves
 when it is missing, so they are whole on arrival by Back too, and the
 risk view clears its sampled failure when the request is cleared.
 
+### 78. Three frameworks named on the silos beat
+
+The silos beat said only that tools exist that meter cost and methods
+exist that price risk. On the owner's instruction it now names three
+frameworks and what each stops short of: FinOps meters cloud cost but
+stops at the cloud bill; TBM allocates every IT cost but by rule, not by
+use case; IFRS 17 prices insurance liabilities by contract group, not by
+the systems that serve them. None of the three has a key that reaches a
+single use case. This relaxes the rule that the tool names no outside
+method, for frameworks only. No product and no vendor is named.
+
 ## Open items, no action
 
 - Displayed P99 figures vary by up to 13 percent across seeds at 10,000

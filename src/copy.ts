@@ -266,10 +266,13 @@ export const copy = {
     'What it costs is in a finance spreadsheet, by cost centre. What it risks ' +
     'is in a register, high, medium or low. What leaving would cost is ' +
     'rarely written down at all.',
+  // Frameworks are named here by the owner's instruction; products and
+  // vendors still are not.
   b_silos_see:
-    'Tools exist that meter cost per unit of work, and methods exist that ' +
-    'price risk in money. They are rarely joined to each other, or to a use ' +
-    'case.',
+    'FinOps meters cloud cost, but stops at the cloud bill. TBM allocates ' +
+    'every IT cost, but by rule, not by use case. IFRS 17 prices insurance ' +
+    'liabilities by contract group, not by the systems that serve them. None ' +
+    'of the three has a key that reaches a single use case.',
   b_graph_today_h: 'The graph already exists',
   b_graph_today:
     'The system half of that picture is not imaginary. Operations tools ' +
