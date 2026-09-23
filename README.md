@@ -452,7 +452,7 @@ date here.
 | Finance | GBP 2.374 | GBP 2.150 |
 | Customer Service | GBP 0.898 | GBP 0.874 |
 | People | GBP 1.210 | GBP 1.770 |
-| Data and Analytics | GBP 8.392 | GBP 0.998 |
+| Pricing and reporting | GBP 8.392 | GBP 0.998 |
 
 **Does not hold: "left fatter tail" on joint P99 loss.** The best of breed side
 has the HIGHER joint P99 in all six subdomains, at rho = 0.5.
@@ -468,7 +468,7 @@ values at the midpoint, not fixed properties of the two estates.
 | Finance | GBP 150,511 | GBP 191,690 |
 | Customer Service | GBP 217,837 | GBP 232,620 |
 | People | GBP 4,831 | GBP 6,489 |
-| Data and Analytics | GBP 11,859 | GBP 11,873 |
+| Pricing and reporting | GBP 11,859 | GBP 11,873 |
 
 Both columns are on seed 20260905 since deviation 74; the right column
 used to run on its own seed. On screen these show to two significant
@@ -1852,7 +1852,7 @@ per-use-case P99s minus the joint P99, divided by the joint P99.
 | Finance | 23.7% | 20.7% | 19.4% | 14.1% | 7.4% |
 | Customer Service | 21.9% | 17.8% | 15.9% | 11.2% | 2.0% |
 | People | 21.9% | 19.4% | 17.8% | 12.3% | 6.3% |
-| Data and Analytics | 14.1% | 13.1% | 10.6% | 7.8% | 2.8% |
+| Pricing and reporting | 14.1% | 13.1% | 10.6% | 7.8% | 2.8% |
 
 And in GBP at rho = 0.5:
 
@@ -1863,7 +1863,7 @@ And in GBP at rho = 0.5:
 | Finance | 179,889 | 150,607 | 19.4% |
 | Customer Service | 247,809 | 213,805 | 15.9% |
 | People | 5,677 | 4,821 | 17.8% |
-| Data and Analytics | 12,027 | 10,870 | 10.6% |
+| Pricing and reporting | 12,027 | 10,870 | 10.6% |
 
 **(a) holds.** The sum exceeds the joint in all six subdomains.
 
@@ -1909,7 +1909,7 @@ Beta):
 | Finance | 111,343 | 111,343 | 0.00% |
 | Customer Service | 137,248 | 137,248 | 0.00% |
 | People | 3,671 | 3,671 | 0.00% |
-| Data and Analytics | 6,921 | 6,921 | 0.00% |
+| Pricing and reporting | 6,921 | 6,921 | 0.00% |
 
 Not approximately zero. Zero. Once the losses being summed are genuinely
 comonotonic, the quantile of the sum equals the sum of the quantiles to the last
@@ -2117,3 +2117,24 @@ exchange rate between a monthly cost, a monthly loss distribution and a
 horizon-dependent option value, and none is constructed here.
 
 For sources, see the Ledger paper.
+
+### 80. The domain named for its work, and the rule for a domain stated
+
+"Data and Analytics" was a technology label on a business domain: its
+five use cases are pricing model refresh, regulatory reporting and the
+analytics for claims, customers and management, an actuarial and
+reporting function. It is renamed "Pricing and reporting"; a name only,
+every number and id unchanged. The rule the estate already followed is
+now stated on the domains beat and in the glossary: a domain is the
+smallest part of the business that can own a use case's numbers. It has
+one owner, every use case sits in exactly one, it has its own margin and
+headcount, and no platform defines it.
+
+Two test expectations followed, neither a check made to pass. A tap on a
+domain's coloured shape now also lands when the ray between the hull's
+faces misses, because the shape the viewer sees is the hull's projection;
+the hit test falls back to the projected outline, and the acceptance
+seam reports a point inside that outline rather than the box centre,
+which for a thin hull can sit outside the shape. And the opening check
+samples the domains' fade every 100 ms until it catches them mid-fade,
+rather than once at 450 ms, which a stalled page could miss.

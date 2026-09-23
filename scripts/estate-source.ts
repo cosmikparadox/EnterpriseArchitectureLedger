@@ -180,7 +180,7 @@ export const SUBDOMAINS: SubdomainSpec[] = [
   { id: 'finance', name: 'Finance', scope: 'GL close, reinsurance settlement, IFRS 17', headcount: 340, margin_per_unit_gbp: 140 },
   { id: 'service', name: 'Customer Service', scope: 'contact centre, self-service, complaints', headcount: 900, margin_per_unit_gbp: 6 },
   { id: 'people', name: 'People', scope: 'onboarding, payroll, learning', headcount: 210, margin_per_unit_gbp: 4 },
-  { id: 'data', name: 'Data and Analytics', scope: 'pricing model refresh, regulatory reports', headcount: 220, margin_per_unit_gbp: 95 },
+  { id: 'data', name: 'Pricing and reporting', scope: 'pricing model refresh, regulatory reports', headcount: 220, margin_per_unit_gbp: 95 },
 ]
 
 export interface UseCaseSpec {

@@ -176,7 +176,10 @@ export const copy = {
   b_domains_see: 'Tap a domain to name it. Each one you name joins the list below.',
   b_domains_more:
     'A domain is a part of the business and the work it owns: {sub_list}. ' +
-    'The shapes are drawn around that work; nothing else is inside them yet.',
+    'The shapes are drawn around that work; nothing else is inside them yet. ' +
+    'The rule: a domain is the smallest part of the business that can own a ' +
+    'use case\'s numbers. It has one owner. Every use case sits in exactly ' +
+    'one. It has its own margin and headcount. No platform defines it.',
   b_usecases_h: 'Use cases',
   b_usecases:
     'Between them the domains do {n_uc} things every month, from selling a ' +
@@ -885,7 +888,7 @@ export const glossary = {
   },
   subdomain: {
     label: 'Subdomain',
-    tip: 'A group of use cases belonging to one part of the business.',
+    tip: 'The smallest part of the business that can own a use case\u2019s numbers. One owner, its own margin and headcount, and no platform defines it.',
   },
   conditional_failure: {
     label: 'Conditional failure probability',

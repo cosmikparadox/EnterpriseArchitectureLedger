@@ -331,8 +331,14 @@ export function Graph3D(props: Graph3DProps) {
         return group.children
           .filter((c): c is THREE.Mesh => (c as THREE.Mesh).isMesh)
           .map((m) => {
-            m.geometry.computeBoundingBox()
-            const c = m.geometry.boundingBox!.getCenter(new THREE.Vector3()).project(cam)
+            // The mean of the projected vertices is a convex combination of
+            // them, so it lies inside the shape the viewer sees, where the
+            // box centre of a thin hull need not.
+            const pos = m.geometry.getAttribute('position')
+            const c = new THREE.Vector3()
+            const v = new THREE.Vector3()
+            for (let i = 0; i < pos.count; i++) c.add(v.fromBufferAttribute(pos, i).project(cam))
+            c.divideScalar(Math.max(1, pos.count))
             return { subdomain: m.userData.subdomain as string, x: box.left + ((c.x + 1) / 2) * box.width, y: box.top + ((1 - c.y) / 2) * box.height }
           })
       }
@@ -512,7 +518,54 @@ export function Graph3D(props: Graph3DProps) {
     let best: string | null = null
     let bestLen = -1
     for (const [sub, c] of chord) if (c.far - c.near > bestLen) { bestLen = c.far - c.near; best = sub }
+    if (best) return best
+    // A thin hull seen edge-on can let the ray through between its faces.
+    // The coloured shape the viewer sees is the hull's projection, so a
+    // pointer inside that projection is on the hull: the smallest projected
+    // shape containing the point wins, so an overlap resolves to the tighter
+    // one.
+    const cam = g.camera()
+    const px = ((ev.clientX - box.left) / box.width) * 2 - 1
+    const py = -((ev.clientY - box.top) / box.height) * 2 + 1
+    let bestArea = Infinity
+    for (const m of meshes) {
+      const sub = m.userData.subdomain as string | undefined
+      if (!sub || m.userData.edge) continue
+      const poly = projectedHull(m, cam)
+      if (poly.length < 3 || !pointInConvex(px, py, poly)) continue
+      const area = polygonArea(poly)
+      if (area < bestArea) { bestArea = area; best = sub }
+    }
     return best
+  }
+  /** The 2D convex outline of a mesh's vertices in normalised device space. */
+  function projectedHull(m: THREE.Mesh, cam: THREE.Camera): [number, number][] {
+    const pos = m.geometry.getAttribute('position')
+    const pts: [number, number][] = []
+    const v = new THREE.Vector3()
+    for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i).project(cam); if (Number.isFinite(v.x) && Number.isFinite(v.y)) pts.push([v.x, v.y]) }
+    pts.sort((a, b) => a[0] - b[0] || a[1] - b[1])
+    const cross = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    const lower: [number, number][] = []
+    for (const p of pts) { while (lower.length >= 2 && cross(lower[lower.length - 2]!, lower[lower.length - 1]!, p) <= 0) lower.pop(); lower.push(p) }
+    const upper: [number, number][] = []
+    for (let i = pts.length - 1; i >= 0; i--) { const p = pts[i]!; while (upper.length >= 2 && cross(upper[upper.length - 2]!, upper[upper.length - 1]!, p) <= 0) upper.pop(); upper.push(p) }
+    return lower.slice(0, -1).concat(upper.slice(0, -1))
+  }
+  function pointInConvex(x: number, y: number, poly: [number, number][]): boolean {
+    let sign = 0
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i]!, b = poly[(i + 1) % poly.length]!
+      const c = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])
+      if (c === 0) continue
+      if (sign === 0) sign = Math.sign(c); else if (Math.sign(c) !== sign) return false
+    }
+    return true
+  }
+  function polygonArea(poly: [number, number][]): number {
+    let a = 0
+    for (let i = 0; i < poly.length; i++) { const p = poly[i]!, q = poly[(i + 1) % poly.length]!; a += p[0] * q[1] - q[0] * p[1] }
+    return Math.abs(a) / 2
   }
 
   /** Put each hull's current alpha on its materials, without rebuilding. */

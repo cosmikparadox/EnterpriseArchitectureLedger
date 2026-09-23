@@ -423,10 +423,18 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.waitForTimeout(1200)
   const partTitle = (await page.locator('.overlay-part').innerText().catch(() => '')).includes('The architecture')
   await page.keyboard.press('ArrowRight')
-  await page.waitForTimeout(450)
-  const midFade = await page.evaluate(() => Object.values(((window as unknown as { __hullAlpha?: () => Record<string, number> }).__hullAlpha?.() ?? {})))
-  const fading = midFade.length === 6 && midFade.every((a) => a > 0 && a < 1)
-  await page.waitForTimeout(2400)
+  // The hulls fade in over about two seconds. Sample every 100 ms until all
+  // six are caught between 0 and 1; a single sample at a fixed time misses
+  // the fade on a machine that stalls the page for a moment after the key.
+  const t0 = Date.now()
+  let midFade: number[] = []
+  let fading = false
+  while (Date.now() - t0 < 2600) {
+    await page.waitForTimeout(100)
+    midFade = await page.evaluate(() => Object.values(((window as unknown as { __hullAlpha?: () => Record<string, number> }).__hullAlpha?.() ?? {})))
+    if (midFade.length === 6 && midFade.every((a) => a > 0 && a < 1)) { fading = true; break }
+  }
+  await page.waitForTimeout(Math.max(0, 2850 - (Date.now() - t0)))
   const nameAtTop = (await page.locator('.wordmark.wordmark-top').count()) === 1
   const heading = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Domains'
   const calloutAtOne = (await page.locator('.canvas-callout:not([hidden])').innerText().catch(() => '')).trim()
