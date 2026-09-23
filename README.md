@@ -2138,3 +2138,14 @@ seam reports a point inside that outline rather than the box centre,
 which for a thin hull can sit outside the shape. And the opening check
 samples the domains' fade every 100 ms until it catches them mid-fade,
 rather than once at 450 ms, which a stalled page could miss.
+
+### 81. No flash at launch, no scrollbar beside the title
+
+On launch the canvas was drawn whole for a frame and then faded to
+nothing, because the first render happened before the first beat's scene
+was set and the blank class arrived a frame later with a transition on it.
+The store now marks the scene not ready from the moment a beat is asked
+for until its scene is set, and the explorer hides the canvas while it is
+not ready, so the first frame is already blank. The overlay's centre no
+longer scrolls on screens that have room for it, which on some systems
+drew scrollbar arrows beside the title; short screens still scroll.

@@ -53,6 +53,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // is. Outside it, everything is up and the scene is ignored.
   const tourStep = useLedger((s) => s.tourStep)
   const scene = useLedger((s) => s.scene)
+  const sceneReady = useLedger((s) => s.sceneReady)
   const named = useLedger((s) => s.namedDomains)
   const setFocus = useLedger((s) => s.setFocus)
   const nameDomain = useLedger((s) => s.nameDomain)
@@ -204,7 +205,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
         </select>
       </div>
 
-      <div className={`graphwrap${panelOpen ? ' panel-open' : ''}${inStory && scene.blank ? ' canvas-hidden' : ''}`}>
+      <div className={`graphwrap${panelOpen ? ' panel-open' : ''}${inStory && (scene.blank || !sceneReady) ? ' canvas-hidden' : ''}`}>
         <Graph3D
           data={data}
           dark={dark}

@@ -129,6 +129,8 @@ export interface LedgerState {
   setRatified: (m: number) => void
   setFanInAdded: (n: number) => void
   setTourStep: (n: number | null) => void
+  /** False from the moment a beat is asked for until its scene has been set, so the canvas is not drawn whole for one frame first. */
+  sceneReady: boolean
   setScene: (patch: Partial<Scene>) => void
   nameDomain: (id: string) => void
   setFocus: (f: LedgerState['focus']) => void
@@ -161,6 +163,7 @@ export const useLedger = create<LedgerState>((set) => ({
   fanInAdded: 0,
   tourStep: null,
   scene: SCENE_ALL,
+  sceneReady: true,
   namedDomains: [],
   focus: null,
   moves: {},
@@ -182,8 +185,8 @@ export const useLedger = create<LedgerState>((set) => ({
   setCursor: (cursor) => set({ cursor }),
   setRatified: (ratified) => set({ ratified }),
   setFanInAdded: (fanInAdded) => set({ fanInAdded }),
-  setTourStep: (tourStep) => set({ tourStep }),
-  setScene: (patch) => set((s) => ({ scene: { ...s.scene, ...patch } })),
+  setTourStep: (tourStep) => set((s) => ({ tourStep, sceneReady: tourStep === null ? true : s.tourStep !== null })),
+  setScene: (patch) => set((s) => ({ scene: { ...s.scene, ...patch }, sceneReady: true })),
   nameDomain: (id) => set((s) => ({ namedDomains: s.namedDomains.includes(id) ? s.namedDomains : [...s.namedDomains, id] })),
   setFocus: (focus) => set({ focus }),
   setMoves: (moves) => set({ moves }),

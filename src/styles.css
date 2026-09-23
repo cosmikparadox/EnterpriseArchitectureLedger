@@ -943,7 +943,9 @@ button, input, select { font: inherit; color: inherit; }
   /* Under a sheet, a picture with a card keeps to the canvas above it. */
   .app.story-open .overlay-docs, .app.story-open .overlay-matrix, .app.story-open .overlay-silos { bottom: var(--tour-card-actual-h, 52vh); padding: 12px; padding-right: 12px; }
 }
-.ov-centre { max-height: 100%; overflow: auto; }
+/* The overlay never scrolls on a screen that has room for it: a scrollbar
+   beside the title reads as a stray control. Short screens scroll. */
+@media (max-height: 520px) { .ov-centre { max-height: 100%; overflow: auto; } }
 @media (prefers-reduced-motion: reduce) { .ov-in { animation: none; opacity: 1; } .ov-hint { animation: none; } .graphwrap .graph-holder { transition: none; } }
 
 
