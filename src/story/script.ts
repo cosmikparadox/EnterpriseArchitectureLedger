@@ -20,7 +20,7 @@ export const MOVER_TO = 'service'
 export const OPENER_UC = 'uc_claim_settle'
 
 export type Part = 0 | 1 | 2 | 3
-export type Overlay = 'welcome' | 'title' | 'why' | 'map' | 'flat' | 'pain' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
+export type Overlay = 'welcome' | 'title' | 'why' | 'map' | 'flat' | 'pain' | 'reflect' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
 export type Control = 'fanin' | 'fail' | 'rho' | 'month' | 'basis' | 'move' | 'shapes' | null
 export type Row = 'metered' | 'pool' | 'rule_first' | 'sum' | 'joint' | 'range' | 'exec' | 'left' | 'right' | 'moved'
 
@@ -62,6 +62,8 @@ export const BEATS: Beat[] = [
   { part: 0, stem: 'how_work', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true },
   // The same path, with the three entries pinned where each one lives.
   { part: 0, stem: 'how_graph', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true },
+  // A pause: the whole idea has been said. Continue, or leave for the tool.
+  { part: 0, stem: '', view: 1, overlay: 'reflect', scene: { ...SCENE_NONE, blank: true }, card: false },
   { part: 1, stem: '', view: 1, overlay: 'part', scene: { ...SCENE_NONE, blank: true }, card: false },
 
   // ---- part 1: the architecture ----

@@ -50,17 +50,30 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
   const endLine = beat.part === 1 ? [copy.story_end1, copy.story_end1_sub] : [copy.story_end2, copy.story_end2_sub]
 
   const tappable = beat.overlay === 'welcome' || beat.overlay === 'part' || beat.overlay === 'end'
-  const picture = !tappable && beat.overlay !== 'title'
+  const picture = !tappable && beat.overlay !== 'title' && beat.overlay !== 'reflect'
   return (
     <div className={`overlay overlay-${beat.overlay}${tappable ? ' overlay-tap' : ''}${picture ? ' overlay-picture' : ''}`} key={beat.overlay === 'flat' ? 'flat' : n} onClick={tappable ? onTap : undefined} role={tappable ? 'button' : undefined}>
       {beat.overlay === 'welcome' && (
         <div className="ov-centre">
           <div className="ov-big ov-in">{copy.story_welcome}</div>
-          <div className="ov-sub ov-in d1">{copy.story_welcome_sub}</div>
-          <div className="ov-hint ov-in d2">{copy.story_welcome_tap}</div>
+          <div className="ov-sub ov-hook ov-in d1">{copy.story_welcome_sub}</div>
+          <div className="ov-note ov-in d2">{copy.story_welcome_note}</div>
+          <div className="ov-hint ov-in d3">{copy.story_welcome_tap}</div>
         </div>
       )}
       {beat.overlay === 'title' && null}
+      {beat.overlay === 'reflect' && (
+        <div className="ov-centre ov-reflect">
+          <div className="ov-big ov-in">{copy.reflect_big}</div>
+          <div className="ov-sub ov-in d1">{copy.reflect_sub}</div>
+          <div className="ov-ask-line ov-in d2">{copy.reflect_ask}</div>
+          <div className="ov-reflect-actions ov-in d3">
+            <button type="button" className="cta" autoFocus onClick={onTap}>{copy.reflect_go}</button>
+            <button type="button" className="ctl" onClick={() => { useLedger.getState().setTourStep(null); useLedger.getState().setView(1) }}>{copy.reflect_leave}</button>
+          </div>
+          <div className="ov-note ov-in d4">{copy.reflect_note}</div>
+        </div>
+      )}
       {beat.overlay === 'why' && (
         <Fit><div className="ov-centre ov-why">
           {/* The three places, and under each what that costs the business.
@@ -347,7 +360,8 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
           {estate.use_cases.flatMap((u) => u.edges.map((e) => {
             const [x1, y1] = layout.ux.get(u.id)!, x2 = layout.px.get(e.platform_id) ?? W / 2
             const on = u.id === OPENER_UC
-            return <line key={`${u.id}-${e.platform_id}`} x1={x1} y1={y1} x2={x2} y2={MID} className={on ? 'on' : ''} pathLength={on ? 100 : undefined} />
+            const cut = phase === 2 && e.platform_id === exitAt
+            return <line key={`${u.id}-${e.platform_id}`} x1={x1} y1={y1} x2={x2} y2={MID} className={`${on ? 'on' : ''}${cut ? ' cut' : ''}`} pathLength={on ? 100 : undefined} />
           }))}
         </g>
         {/* The playing entry: lines from the platform in question out to
@@ -369,8 +383,12 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
           return (
             <g key={p.id} className={`ov-flat-p${on ? ' on' : ''}${conn ? ' conn' : ''}${focus ? ` focus ${kind}` : ''}`}>
               {focus && <circle className="ov-flat-halo" cx={x} cy={MID} r={r + 9} />}
-              {conn ? <rect x={x - r * 0.8} y={MID - r * 0.8} width={r * 1.6} height={r * 1.6} transform={`rotate(45 ${x} ${MID})`} /> : <circle cx={x} cy={MID} r={r} />}
-              {on && <text x={clampX(x)} y={ly} textAnchor={anchor(x)}>{p.name}</text>}
+              {/* Leaving: the platform lifts off the map and slides away,
+                  its lines let go, and the gap it leaves stays marked. */}
+              <g key={focus && kind === 'exit' ? `lift${phase}` : 'still'} className={focus && kind === 'exit' ? 'lift' : undefined}>
+                {conn ? <rect x={x - r * 0.8} y={MID - r * 0.8} width={r * 1.6} height={r * 1.6} transform={`rotate(45 ${x} ${MID})`} /> : <circle cx={x} cy={MID} r={r} />}
+                {on && <text x={clampX(x)} y={ly} textAnchor={anchor(x)}>{p.name}</text>}
+              </g>
             </g>
           )
         })}

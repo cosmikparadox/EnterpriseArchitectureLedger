@@ -140,7 +140,8 @@ export const copy = {
   // it helps, a second sentence. Anything longer goes under More detail. Every
   // figure is live through fill().
   story_welcome: 'Welcome.',
-  story_welcome_sub: 'A short walk through one company\'s architecture, and what it costs.',
+  story_welcome_sub: 'The costliest decisions in your architecture are often the ones nobody made.',
+  story_welcome_note: 'One invented company, priced in money instead of colours.',
   story_welcome_tap: 'Tap anywhere to begin',
   story_welcome_skip: 'Skip to the tool',
   story_continue: 'Tap anywhere, or press the right arrow, to continue',
@@ -243,6 +244,15 @@ export const copy = {
   flat_entry_1: 'What it costs',
   flat_entry_2: 'What it risks',
   flat_entry_3: 'What leaving would cost',
+
+  // A pause after the opening: the whole idea has been said. Go on into the
+  // full tour, or leave for the tool.
+  reflect_big: 'That is the whole idea.',
+  reflect_sub: 'Three entries for each thing the business does, read off the map, and never added up.',
+  reflect_ask: 'If that sounds like a problem you know, the full tour builds it step by step, in three parts.',
+  reflect_go: 'Continue the tour',
+  reflect_leave: 'Leave the tour',
+  reflect_note: 'The tour stays one tap away, on the rail.',
 
   // Part one.
   b_domains_h: 'Domains',

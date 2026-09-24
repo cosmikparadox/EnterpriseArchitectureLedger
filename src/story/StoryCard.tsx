@@ -74,12 +74,27 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
     const el = cardRef.current
     if (!el) return
     const root = document.documentElement
-    const publish = () => { const r = el.getBoundingClientRect(); root.style.setProperty('--tour-card-actual-h', `${Math.ceil(r.height)}px`); root.style.setProperty('--tour-card-actual-w', `${Math.ceil(r.width)}px`); root.dataset.storyCard = `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}` }
+    // Once the reader has resized or moved the card, it floats over the
+    // canvas: the layout keeps the column it had, and nothing under the
+    // card shrinks or shifts to follow it.
+    const publish = () => {
+      const r = el.getBoundingClientRect()
+      const free = pos === null
+      if (free && !el.style.height) root.style.setProperty('--tour-card-actual-h', `${Math.ceil(r.height)}px`)
+      if (free && !el.style.width) root.style.setProperty('--tour-card-actual-w', `${Math.ceil(r.width)}px`)
+      root.dataset.storyCard = `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`
+    }
     publish()
     const ro = new ResizeObserver(publish)
     ro.observe(el)
-    return () => { ro.disconnect(); root.style.removeProperty('--tour-card-actual-h'); root.style.removeProperty('--tour-card-actual-w'); delete root.dataset.storyCard }
+    return () => ro.disconnect()
   }, [n, pos])
+  // The published box outlives a beat, so a resized card keeps its column;
+  // it goes only when the card does.
+  useEffect(() => () => {
+    const root = document.documentElement
+    root.style.removeProperty('--tour-card-actual-h'); root.style.removeProperty('--tour-card-actual-w'); delete root.dataset.storyCard
+  }, [])
 
   const go = (k: number) => { if (k < 0) return; if (k > LAST_BEAT) { setTourStep(null); return } setTourStep(k) }
   const leave = () => { setTourStep(null); setView(1) }

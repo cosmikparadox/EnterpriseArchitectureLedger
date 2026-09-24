@@ -1174,7 +1174,7 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---- the theme switch, on the canvas ---- */
 .theme-toggle {
-  position: absolute; z-index: 45; top: 46px; right: 12px;
+  position: absolute; z-index: 38; top: 46px; right: 12px;
   display: inline-flex; align-items: center; gap: 7px; padding: 4px 6px 4px 9px;
   border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-2);
   font-size: 11px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -1382,14 +1382,24 @@ button, input, select { font: inherit; color: inherit; }
 .ov-flat-fx path { fill: none; stroke-width: 1.6; stroke-linecap: round; }
 .ov-flat-fx.pool path { stroke: #d9a21b; stroke-dasharray: 100; stroke-dashoffset: 100; animation: ov-map-draw 1100ms ease forwards; }
 .ov-flat-fx.risk path { stroke: #d05a6a; stroke-dasharray: 3 3; animation: ov-flat-flow 900ms linear infinite; }
-.ov-flat-fx.exit path { stroke: var(--ink-3); stroke-dasharray: 1.5 2.5; opacity: 0.9; }
+.ov-flat-fx.exit path { stroke: var(--ink-2); stroke-width: 1.4; stroke-dasharray: 100 100; stroke-dashoffset: 0; opacity: 0.9; animation: ov-flat-cut 1100ms cubic-bezier(.5,0,.2,1) 900ms forwards; }
+@keyframes ov-flat-cut { to { stroke-dashoffset: -84; } }
+.ov-flat-lines line { transition: opacity 400ms ease 300ms; }
+.ov-flat-lines line.cut { opacity: 0 !important; }
+.ov-flat-p .lift { transform-box: fill-box; transform-origin: center; animation: ov-flat-lift 1700ms cubic-bezier(.5,0,.2,1) 250ms forwards; }
+@keyframes ov-flat-lift {
+  0% { transform: none; opacity: 1; filter: none; }
+  28% { transform: translateY(-10px) scale(1.2); opacity: 1; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.28)); }
+  100% { transform: translate(110px, -80px) scale(0.85); opacity: 0; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.1)); }
+}
 @keyframes ov-flat-flow { to { stroke-dashoffset: -6; } }
+.ov-flat-p .ov-flat-halo { fill: none !important; opacity: 1; }
 .ov-flat-halo { fill: none; stroke-width: 2.5; animation: ov-pulse 1.6s ease-in-out infinite; }
 .ov-flat-p.focus.pool .ov-flat-halo { stroke: #d9a21b; }
 .ov-flat-p.focus.risk .ov-flat-halo { stroke: #d05a6a; }
 .ov-flat-p.focus.risk circle:not(.ov-flat-halo), .ov-flat-p.focus.risk rect { fill: #d05a6a !important; }
 .ov-flat-p.focus.exit .ov-flat-halo { stroke: var(--ink-3); stroke-dasharray: 4 4; animation: none; }
-.ov-flat-p.focus.exit circle:not(.ov-flat-halo), .ov-flat-p.focus.exit rect { fill: transparent !important; stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.ov-flat-p.focus.exit .lift circle, .ov-flat-p.focus.exit .lift rect { opacity: 1; }
 .ov-flat-u.hit circle { opacity: 1; }
 .ov-flat-u.hit.pool circle { stroke: #d9a21b; stroke-width: 2; }
 .ov-flat-u.hit.risk circle { fill: #d05a6a !important; }
@@ -1397,5 +1407,17 @@ button, input, select { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .ov-flat-fx.pool path { animation: none; stroke-dashoffset: 0; }
   .ov-flat-fx.risk path, .ov-flat-halo { animation: none; }
+  .ov-flat-p .lift { animation: none; opacity: 0; }
+  .ov-flat-fx.exit path { animation: none; stroke-dashoffset: -84; }
 }
 @media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) { .ov-flat-note { font-size: 11.5px; } }
+
+/* The welcome's hook, and the pause after the opening. */
+.ov-hook { font-size: clamp(16px, 1.35vw, 24px); color: var(--ink); max-width: 30ch; margin-left: auto; margin-right: auto; line-height: 1.35; }
+.overlay-welcome .ov-note { margin-top: 14px; font-size: clamp(12px, 0.85vw, 14px); }
+.overlay-welcome .ov-hint { margin-top: 28px; }
+.overlay-reflect { pointer-events: auto; }
+.ov-reflect .ov-sub { max-width: 34ch; margin-left: auto; margin-right: auto; line-height: 1.4; }
+.ov-ask-line { margin-top: 18px; font-size: clamp(13px, 0.95vw, 16px); color: var(--ink-2); max-width: 44ch; margin-left: auto; margin-right: auto; line-height: 1.45; }
+.ov-reflect-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+.ov-reflect .ov-note { margin-top: 14px; }

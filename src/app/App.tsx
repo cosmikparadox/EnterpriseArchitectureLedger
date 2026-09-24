@@ -199,7 +199,7 @@ export function App() {
                 beat, then small at the top with the part beneath it. Hidden
                 while a part title or an end line has the canvas. */}
             {story.n > 0 && (
-              <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${arriving ? ' wordmark-start' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
+              <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${arriving ? ' wordmark-start' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' || story.beat.overlay === 'reflect' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
                 <div className="wordmark-name">{copy.wordmark_name}</div>
                 <div className="wordmark-tag">{story.n === 1 ? copy.tagline : story.beat.part === 0 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
                 {/* The title's picture: one thing the business does, and the
