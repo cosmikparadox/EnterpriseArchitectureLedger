@@ -108,13 +108,6 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [walkFocus, setWalkFocus] = useState<Focus | null>(null)
   const reveal = walk ? revealFor(ix.platformById.has(walk), walkStep) : undefined
   const onWalkFocus = useCallback((f: Focus | null) => setWalkFocus(f), [])
-  // The opening lights one use case's path: the use case and the platforms
-  // it runs on stay, everything else fades to a trace.
-  const pathFocus = useMemo(() => {
-    if (!inStory || scene.focus !== 'path' || !selectedId) return null
-    const u = estate.use_cases.find((x) => x.id === selectedId)
-    return u ? { nodes: new Set([u.id, ...u.edges.map((e) => e.platform_id)]) } : null
-  }, [inStory, scene.focus, selectedId, estate])
   const gestureHint = inStory && scene.hint && !dragged ? copy.canvas_gesture : null
   // The book's rows are read off the graph for whatever node is tapped: a
   // platform's meter, pool, riders and execution work; a use case's bill,
@@ -229,7 +222,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           gestureHint={gestureHint}
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
-          focus={inStory ? pathFocus : walk ? walkFocus : null}
+          focus={!inStory && walk ? walkFocus : null}
           flow={flow}
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}

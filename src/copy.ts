@@ -234,8 +234,12 @@ export const copy = {
     'All three live in the shape of the map. So read them there, one use ' +
     'case at a time, and never add them up.',
   b_how_graph_more:
-    'The book in the corner holds the three entries for {opener_uc}. Next ' +
-    'opens part one, which builds this picture one layer at a time.',
+    'The numbers mark where each entry lives on the path of {opener_uc}. ' +
+    'Next opens part one, which builds this map in three dimensions, one ' +
+    'layer at a time.',
+  flat_entry_1: 'What it costs',
+  flat_entry_2: 'What it risks',
+  flat_entry_3: 'What leaving would cost',
 
   // Part one.
   b_domains_h: 'Domains',
@@ -360,6 +364,30 @@ export const copy = {
     'That is the gap the Ledger paper names. The graph is mined, the numbers ' +
     'are elsewhere, and the decision is often made on a colour. See the ' +
     'Ledger paper.',
+
+  // The end of part two: what deciding this way costs, and who it lands on.
+  // Each tile is a consequence the mathematics shows and part three prices.
+  b_pain_h: 'Four blind spots',
+  b_pain:
+    'Deciding on a colour is not careless. But it leaves four blind spots, ' +
+    'and each one lands on someone.',
+  b_pain_see: 'Part three puts a figure on each, on one shared platform.',
+  b_pain_more:
+    'These follow from the mathematics, not from a survey of organisations. ' +
+    'In the Ledger paper: the saving at 9.2.4, the risk at 9.8.3, leaving at ' +
+    '9.5, the boundary at 9.2.8.',
+  pain_1_h: 'A saving that never arrives',
+  pain_1: 'Retire a use case and its share of a shared platform stays, spread over the rest.',
+  pain_1_who: 'Lands on the CFO',
+  pain_2_h: 'Risk that does not add up',
+  pain_2: 'Add each team\'s worst month and the total comes out too high. A colour cannot say by how much.',
+  pain_2_who: 'Lands on the risk owner',
+  pain_3_h: 'Lock-in nobody chose',
+  pain_3: 'By the time the board sees a platform as a decision, much of the business already depends on it.',
+  pain_3_who: 'Lands on the board',
+  pain_4_h: 'The bill follows the boundary',
+  pain_4: 'Under some rules, redrawing who owns what moves the bill. The difference goes to whoever draws the line.',
+  pain_4_who: 'Lands on the domain leads',
 
   // Part three: the ledger, on the busiest node.
   b_why_h: 'Why a ledger',

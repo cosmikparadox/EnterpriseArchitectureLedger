@@ -47,7 +47,7 @@ npm run build        # static build into dist/
 ## The story
 
 Launching the app is a grey canvas and a welcome. From there the story runs in
-38 beats at `#/tour/1` to `#/tour/37`, one thing per Next, on one card. The
+39 beats at `#/tour/1` to `#/tour/38`, one thing per Next, on one card. The
 card floats: drag it by its header, resize it by its corner; its header and
 footer stay put and only its body scrolls, so Back and Next are always where
 they were. The screens' own rails, top bars and panels are never shown during
@@ -1940,14 +1940,14 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
 | 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 47.5 KB. |
-| T1 | the story walks all 38 beats on Next alone | PASS | 38 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
+| T1 | the story walks all 39 beats on Next alone | PASS | 39 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
 | T2 | on 390 by 844, the card never covers the node the beat is about | PASS | The ledger beats with a selected node on screen; none under the card. |
 | T3 | each waitFor fires on the action it describes | PASS | 7 of 7 fired, each through the control on the card. |
-| T4 | deep link to one beat cold-loads into it | PASS | #/tour/32 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
+| T4 | deep link to one beat cold-loads into it | PASS | #/tour/33 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
-| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 27 and 33 among them: all sized, none under the panel. |
+| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 28 and 34 among them: all sized, none under the panel. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `fecf52bb`. |
-| T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next ran why and the three how beats, then the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/22. |
+| T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next ran why and the three how beats, then the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/23. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | N1 | the copy deck: no dashes, no sentence over twenty words, no retired phrase | PASS | Every string in `src/copy.ts` scanned; two named exemptions, deviation 63. |
 | N2 | the closing card carries the caveat, the DOI, and no placeholder link | PASS | The caveat on screen character for character; the DOI line shown; the Medium line not rendered while the address is the placeholder; blocks in order. |
@@ -2182,3 +2182,34 @@ view: an architecture diagram is reviewed and agreed before it is
 published. What it is instead is a slice, drawn for one purpose, as of one
 date. The map is not claimed to be complete either: More detail says that
 work done by hand, or on systems nobody traces, does not appear on it.
+
+### 83. The how beats flat, pictures that fit, and four blind spots
+
+The second and third how beats drew the 3D graph before part one had
+introduced it. They now draw the estate flat: platforms along the middle,
+use cases above and below, each placed over the platforms it runs on,
+with claim settlement and its path lit and everything else a trace. On
+the third, the three entries sit under the map and are numbered where
+each lives on the path: the most shared platform for cost, a line for
+risk, the platform that would strand it for leaving. The 3D graph now
+first appears in part one, where the drag hint waits for it; the hint
+arrives sooner and its words pulse.
+
+Every picture over the canvas, from the why tiles to the silos, now
+keeps clear of the wordmark and of a right-docked card at any width, and
+scales down, never up, to the height it is given. On a window 815 pixels
+tall the silos stage and its frameworks ran off the foot of the page and
+under the wordmark; they now fit. A pan and zoom canvas was considered
+and not taken: the pictures are read, not explored, and fitting them
+costs nothing at run time.
+
+Part two now ends on a new beat, Four blind spots, before its end line.
+The owner asked what deciding on a colour costs an organisation. The
+canon has no section on that; it is mathematics. It does show four
+consequences, and part three puts a figure on each: a saving that never
+arrives, because retiring a use case does not release the fixed pool
+(9.2.4); risk that does not add up, because the sum of worst months
+overstates the joint one (9.8.3); lock-in nobody chose, because the
+footprint grows before the board sees a decision; and the bill following
+the boundary under a two-stage basis (9.2.8). Each tile names who it
+lands on. Every later beat moves up by one.

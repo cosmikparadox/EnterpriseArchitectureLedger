@@ -480,7 +480,7 @@ button, input, select { font: inherit; color: inherit; }
   .app.intro-open { --wm-right: calc(var(--tour-card-w) + var(--tour-gap) * 2); --wm-bottom: 0px; }
   /* A picture with a card keeps to the canvas left of the card's column, so
      nothing on it, least of all a close button, sits under the card. */
-  .app.story-open .overlay-docs, .app.story-open .overlay-matrix, .app.story-open .overlay-silos, .app.story-open .overlay-why, .app.story-open .overlay-map { padding-right: calc(var(--tour-card-w) + var(--tour-gap) * 3); }
+  .app.story-open .overlay-picture { padding-right: calc(var(--tour-card-w) + var(--tour-gap) * 3); }
   .app.story-open .overlay-docs .ov-lightbox { padding-right: calc(var(--tour-card-w) + var(--tour-gap) * 3); }
   /* The top bar ends where the column begins, so its last controls are not
      under the card. */
@@ -941,11 +941,11 @@ button, input, select { font: inherit; color: inherit; }
 @media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) {
   .ov-docs { grid-template-columns: 1fr 1fr; gap: 8px; }
   /* Under a sheet, a picture with a card keeps to the canvas above it. */
-  .app.story-open .overlay-docs, .app.story-open .overlay-matrix, .app.story-open .overlay-silos, .app.story-open .overlay-why, .app.story-open .overlay-map { bottom: var(--tour-card-actual-h, 52vh); padding: 12px; padding-right: 12px; }
+  .app.story-open .overlay-picture { bottom: var(--tour-card-actual-h, 52vh); padding: 12px; padding-right: 12px; }
 }
 /* The overlay never scrolls on a screen that has room for it: a scrollbar
    beside the title reads as a stray control. Short screens scroll. */
-@media (max-height: 520px) { .ov-centre { max-height: 100%; overflow: auto; } }
+@media (max-height: 520px) { .overlay:not(.overlay-picture) .ov-centre { max-height: 100%; overflow: auto; } }
 @media (prefers-reduced-motion: reduce) { .ov-in { animation: none; opacity: 1; } .ov-hint { animation: none; } .graphwrap .graph-holder { transition: none; } }
 
 
@@ -957,9 +957,11 @@ button, input, select { font: inherit; color: inherit; }
   font-size: 12.5px; color: var(--ink-2); white-space: nowrap;
   background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px 6px 8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  opacity: 0; animation: gesture-in 900ms ease 2600ms forwards;
+  opacity: 0; animation: gesture-in 900ms ease 1400ms forwards;
   transition: opacity 500ms ease, transform 500ms ease;
 }
+/* Once in, the words breathe, so the eye finds them. */
+.canvas-gesture span { animation: ov-pulse 2.4s ease-in-out 2300ms infinite; }
 .canvas-gesture.gone { opacity: 0 !important; transform: translate(-50%, 6px); animation: none; }
 .gesture-orbit { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(31, 78, 121, 0.55)); animation: gesture-turn 4s linear infinite; }
 .gesture-orbit circle { stroke-width: 1.6; opacity: 0.8; }
@@ -1236,7 +1238,7 @@ button, input, select { font: inherit; color: inherit; }
    the wordmark and scrolls if it must. */
 @media (max-height: 520px) {
   .overlay { align-items: flex-start; padding: 44px 12px 8px; }
-  .ov-centre { max-height: 100%; }
+  .overlay:not(.overlay-picture) .ov-centre { max-height: 100%; }
   .ov-stage { width: min(520px, 100%); aspect-ratio: 760 / 400; }
   .ov-ask { padding: 6px 10px; }
   .ov-ask strong { font-size: 12px; }
@@ -1312,4 +1314,60 @@ button, input, select { font: inherit; color: inherit; }
   .ov-map-drawing { animation: none; opacity: 0.35; }
   .ov-map-mined path { animation: none; stroke-dashoffset: 0; }
   .ov-map-mined circle { animation: none; opacity: 1; }
+}
+
+/* A picture keeps clear of the wordmark at the top and scales to fit what
+   is left; see Fit in Overlay.tsx. */
+.app.story-open .overlay-picture { padding-top: 92px; padding-bottom: 16px; }
+.ov-fit { width: 100%; display: flex; justify-content: center; align-items: flex-start; }
+.ov-fit-inner { width: 100%; flex: none; display: flex; justify-content: center; transform-origin: top center; }
+@media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) {
+  .app.story-open .overlay-picture { padding-top: 64px; padding-bottom: 10px; }
+}
+@media (max-height: 520px) { .app.story-open .overlay-picture { padding-top: 62px; padding-bottom: 6px; } }
+/* Whenever the card is docked right, a picture keeps left of it, at the
+   card's real width, not only on wide screens. */
+@media (min-width: 721px) {
+  .app.story-open:not(.sheet):not(.dock-bottom) .overlay-picture { padding-right: calc(var(--tour-card-actual-w, 330px) + var(--tour-gap, 12px) * 2); }
+}
+/* How, two and three: the estate, flat, one path lit. */
+.ov-flat { width: min(760px, 100%); }
+.ov-flat-svg { width: 100%; height: auto; display: block; }
+.ov-flat-lines line { stroke: var(--ink-3); stroke-width: 0.8; opacity: 0.18; }
+.ov-flat-lines line.on { stroke: var(--accent); stroke-width: 2.4; opacity: 1; stroke-dasharray: 100; stroke-dashoffset: 100; animation: ov-map-draw 1200ms ease 600ms forwards; }
+.ov-flat-p circle, .ov-flat-p rect { fill: var(--ink-3); opacity: 0.28; }
+.ov-flat-p.conn rect { fill: #2a8a96; }
+.ov-flat-p.on circle, .ov-flat-p.on rect { opacity: 1; fill: var(--ink-2); }
+.ov-flat-p.on.conn rect { fill: #2a8a96; }
+.ov-flat-p text, .ov-flat-u text { font-size: 12px; fill: var(--ink); font-weight: 600; }
+.ov-flat-u circle { opacity: 0.35; }
+.ov-flat-u.on circle { opacity: 1; stroke: var(--ink); stroke-width: 1.5; }
+.ov-flat-mark circle { fill: var(--accent); }
+.ov-flat-p text.tagged { fill: var(--accent); }
+.ov-flat-mark text { fill: #fff; font-size: 12px; font-weight: 700; }
+.ov-flat-entries { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; text-align: left; }
+.ov-flat-entry { display: flex; gap: 8px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.ov-flat-entry strong { display: block; font-size: 12.5px; }
+.ov-flat-entry em { display: block; font-style: normal; font-size: 12px; color: var(--ink-2); }
+.ov-flat-entry .book-n { flex: none; margin-top: 1px; }
+/* The end of part two: four blind spots, each with who it lands on. */
+.ov-pain { width: min(720px, 100%); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; text-align: left; }
+.ov-pain-tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.ov-pain-tile strong { display: block; font-size: 15px; margin-bottom: 6px; color: var(--ink); }
+.ov-pain-tile span { display: block; font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+.ov-pain-tile em { display: block; font-style: normal; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #c0505f; margin-top: 10px; }
+@media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) {
+  .ov-pain { gap: 8px; }
+  .ov-pain-tile { padding: 8px 10px; }
+  .ov-pain-tile strong { font-size: 12.5px; margin-bottom: 3px; }
+  .ov-pain-tile span { font-size: 11px; }
+  .ov-pain-tile em { font-size: 9.5px; margin-top: 5px; }
+  .ov-flat-entries { grid-template-columns: 1fr; gap: 4px; }
+  .ov-flat-entry strong::after { content: ' '; }
+  .ov-flat-entry { padding: 4px 8px; }
+  .ov-flat-p text, .ov-flat-u text { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-flat-lines line.on { animation: none; stroke-dashoffset: 0; }
+  .canvas-gesture span { animation: none; }
 }

@@ -20,7 +20,7 @@ export const MOVER_TO = 'service'
 export const OPENER_UC = 'uc_claim_settle'
 
 export type Part = 0 | 1 | 2 | 3
-export type Overlay = 'welcome' | 'title' | 'why' | 'map' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
+export type Overlay = 'welcome' | 'title' | 'why' | 'map' | 'flat' | 'pain' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
 export type Control = 'fanin' | 'fail' | 'rho' | 'month' | 'basis' | 'move' | 'shapes' | null
 export type Row = 'metered' | 'pool' | 'rule_first' | 'sum' | 'joint' | 'range' | 'exec' | 'left' | 'right' | 'moved'
 
@@ -57,12 +57,11 @@ export const BEATS: Beat[] = [
   { part: 0, stem: 'title', view: 1, overlay: 'title', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 0, stem: 'opener_why', view: 1, overlay: 'why', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 0, stem: 'how_map', view: 1, overlay: 'map', scene: { ...SCENE_NONE, blank: true }, card: true },
-  // The real map comes up with one use case lit: its path is the unit.
-  { part: 0, stem: 'how_work', view: 1, overlay: null, scene: { ...PICTURE, hulls: false, focus: 'path' }, card: true,
-    enter: ({ store }) => { store.setSelectedId(OPENER_UC); store.setFlyToId('*') } },
-  // The same path, and the book opens on it with the three entries.
-  { part: 0, stem: 'how_graph', view: 1, overlay: null, scene: { ...PICTURE, hulls: false, focus: 'path', book: true }, card: true,
-    enter: ({ store }) => { store.setSelectedId(OPENER_UC) }, settleMs: 2400 },
+  // The map, flat, with one use case lit: its path is the unit. The 3D
+  // picture waits for part one.
+  { part: 0, stem: 'how_work', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true },
+  // The same path, with the three entries pinned where each one lives.
+  { part: 0, stem: 'how_graph', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 1, stem: '', view: 1, overlay: 'part', scene: { ...SCENE_NONE, blank: true }, card: false },
 
   // ---- part 1: the architecture ----
@@ -90,6 +89,9 @@ export const BEATS: Beat[] = [
   // The graph comes back wide and slowly: the whole picture, not a corner.
   { part: 2, stem: 'graph_today', view: 1, overlay: null, scene: { ...PICTURE, stagger: false }, card: true,
     enter: ({ store }) => { store.setSelectedId(null); store.setFlyToId('*') } },
+  // What deciding on a colour costs, and who it lands on.
+  { part: 2, stem: 'pain', view: 1, overlay: 'pain', scene: { ...SCENE_NONE, blank: true }, card: true,
+    enter: ({ store }) => { store.setSelectedId(null) } },
   { part: 2, stem: '', view: 1, overlay: 'end', scene: { ...SCENE_NONE, blank: true }, card: false },
 
   // ---- part 3: the ledger ----

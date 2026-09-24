@@ -5,12 +5,16 @@
 // the three silos. All of it is DOM, all of it fades on CSS transitions, and
 // none of it is drawn over the graph: the canvas is faded out underneath.
 
-import { useEffect, useMemo, useState } from 'react'
-import { copy } from '../copy'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { copy, fill } from '../copy'
 import type { Estate } from '../model/types'
 import { c1, type Index } from '../model/ledger'
 import type { Beat, Part } from './script'
 import { DocPicture } from './DocPictures'
+import { SUBDOMAIN_COLOUR, useCaseView } from '../app/graph'
+import { describeUseCase } from '../model/describe'
+import { useLedger } from '../app/store'
+import { OPENER_UC } from './script'
 
 const PART_TITLE: Record<Part, [string, string]> = {
   0: ['', ''],
@@ -46,8 +50,9 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
   const endLine = beat.part === 1 ? [copy.story_end1, copy.story_end1_sub] : [copy.story_end2, copy.story_end2_sub]
 
   const tappable = beat.overlay === 'welcome' || beat.overlay === 'part' || beat.overlay === 'end'
+  const picture = !tappable && beat.overlay !== 'title'
   return (
-    <div className={`overlay overlay-${beat.overlay}${tappable ? ' overlay-tap' : ''}`} key={n} onClick={tappable ? onTap : undefined} role={tappable ? 'button' : undefined}>
+    <div className={`overlay overlay-${beat.overlay}${tappable ? ' overlay-tap' : ''}${picture ? ' overlay-picture' : ''}`} key={n} onClick={tappable ? onTap : undefined} role={tappable ? 'button' : undefined}>
       {beat.overlay === 'welcome' && (
         <div className="ov-centre">
           <div className="ov-big ov-in">{copy.story_welcome}</div>
@@ -57,7 +62,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
       )}
       {beat.overlay === 'title' && null}
       {beat.overlay === 'why' && (
-        <div className="ov-centre ov-why">
+        <Fit><div className="ov-centre ov-why">
           {/* The three places, and under each what that costs the business.
               Then the colour the decision is made on. */}
           <div className="ov-why-row">
@@ -72,9 +77,21 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
             <span className="sw" style={{ background: '#7bc47f' }} /><span className="sw" style={{ background: '#f2c14e' }} /><span className="sw" style={{ background: '#e06c75' }} />
             <span>{copy.why_colour}</span>
           </div>
-        </div>
+        </div></Fit>
       )}
-      {beat.overlay === 'map' && <MapPicture />}
+      {beat.overlay === 'map' && <Fit><MapPicture /></Fit>}
+      {beat.overlay === 'flat' && <Fit><FlatMap estate={estate} ix={ix} entries={beat.stem === 'how_graph'} /></Fit>}
+      {beat.overlay === 'pain' && (
+        <Fit><div className="ov-centre ov-pain">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className={`ov-pain-tile ov-in d${i}`}>
+              <strong>{(copy as Record<string, string>)[`pain_${i}_h`]}</strong>
+              <span>{(copy as Record<string, string>)[`pain_${i}`]}</span>
+              <em>{(copy as Record<string, string>)[`pain_${i}_who`]}</em>
+            </div>
+          ))}
+        </div></Fit>
+      )}
       {beat.overlay === 'part' && (
         <div className="ov-centre">
           <div className="ov-eyebrow ov-in">{t}</div>
@@ -91,7 +108,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
       )}
       {beat.overlay === 'docs' && (
         <>
-          <div className="ov-centre ov-docs">
+          <Fit><div className="ov-centre ov-docs">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <button key={i} type="button" className={`ov-doc ov-in d${i}${openDoc === i ? ' ov-doc-open' : ''}`} onClick={() => setOpenDoc(i)} aria-expanded={openDoc === i}>
                 <strong>{(copy as Record<string, string>)[`doc_${i}`]}</strong>
@@ -100,7 +117,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
               </button>
             ))}
             <div className="ov-note ov-in d6">{copy.docs_note} {copy.docs_tap}</div>
-          </div>
+          </div></Fit>
           {openDoc !== null && (
             <div className="ov-lightbox" onClick={() => setOpenDoc(null)} role="dialog" aria-label="Document">
               <div className="ov-sheet" onClick={(e) => e.stopPropagation()}>
@@ -112,7 +129,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
         </>
       )}
       {beat.overlay === 'matrix' && (
-        <div className="ov-centre">
+        <Fit><div className="ov-centre">
           <div className="drawing-sheet ov-in" data-tour="drawing">
             <div className="drawing-head"><strong>{copy.drawing_title}</strong><span>{copy.drawing_sub}</span></div>
             <table>
@@ -127,10 +144,10 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
               <span><span className="sw" style={{ background: 'var(--panel-2)', border: '1px solid var(--line)' }} />{copy.drawing_none}</span>
             </div>
           </div>
-        </div>
+        </div></Fit>
       )}
       {beat.overlay === 'silos' && (
-        <div className="ov-centre">
+        <Fit><div className="ov-centre">
           {/* The question at the top, the three sources at the bottom, and a
               curve from each that draws upward and stops short. Nothing
               reaches the question: that is the picture. */}
@@ -174,7 +191,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
             <div className="ov-frame ov-frame-loose"><strong>{copy.frame_ifrs}</strong><span>{copy.frame_ifrs_for}</span><em>{copy.frame_ifrs_stop}</em></div>
           </div>
           <div className="ov-note ov-in d6">{copy.silo_fail}</div>
-        </div>
+        </div></Fit>
       )}
     </div>
   )
@@ -226,6 +243,133 @@ function MapPicture() {
         <div className="ov-in d1"><strong>{copy.map_drawing}</strong><span>{copy.map_drawing_sub}</span></div>
         <div className="ov-in d4"><strong>{copy.map_mined}</strong><span>{copy.map_mined_sub}</span></div>
       </div>
+    </div>
+  )
+}
+
+// A picture scales down, never up, to the height the overlay gives it, so
+// nothing runs under the wordmark or off the foot of the window. Width is
+// left to the picture's own layout; only an overflowing height shrinks it.
+function Fit({ children }: { children: ReactNode }) {
+  const outer = useRef<HTMLDivElement | null>(null)
+  const inner = useRef<HTMLDivElement | null>(null)
+  const [fit, setFit] = useState<{ k: number; h: number } | null>(null)
+  useLayoutEffect(() => {
+    const o = outer.current, i = inner.current, box = o?.parentElement
+    if (!o || !i || !box) return
+    const measure = () => {
+      const cs = getComputedStyle(box)
+      const room = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
+      const h = i.offsetHeight
+      const k = h > 0 && room > 0 ? Math.min(1, room / h) : 1
+      setFit((f) => (f && Math.abs(f.k - k) < 0.005 && Math.abs(f.h - h * k) < 1 ? f : { k, h: h * k }))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(box); ro.observe(i)
+    return () => ro.disconnect()
+  }, [])
+  return (
+    <div ref={outer} className="ov-fit" style={fit ? { height: fit.h } : undefined}>
+      <div ref={inner} className="ov-fit-inner" style={fit && fit.k < 1 ? { transform: `scale(${fit.k})` } : undefined}>{children}</div>
+    </div>
+  )
+}
+
+// The estate, flat: platforms along the middle, use cases above and below,
+// each placed over the platforms it runs on. One use case is lit with its
+// path; the rest stays as a trace. With entries, the three ledger entries
+// are pinned where each one lives on that path.
+function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: boolean }) {
+  const rule = useLedger((s) => s.rule)
+  const W = 760, H = 380, MID = 190
+  const layout = useMemo(() => {
+    const riders = (id: string) => ix.ridersOf.get(id)?.length ?? 0
+    const sorted = [...estate.platforms].sort((a, b) => riders(b.id) - riders(a.id) || a.id.localeCompare(b.id))
+    // Busiest in the middle, the rest alternating outwards.
+    const order: typeof sorted = []
+    sorted.forEach((p, i) => { if (i % 2 === 0) order.push(p); else order.unshift(p) })
+    const px = new Map<string, number>(), below = new Set<string>()
+    order.forEach((p, i) => { px.set(p.id, 40 + (i * (W - 80)) / Math.max(1, order.length - 1)); if (i % 2) below.add(p.id) })
+    const ideal = estate.use_cases.map((u) => ({ u, x: u.edges.reduce((a, e) => a + (px.get(e.platform_id) ?? W / 2), 0) / Math.max(1, u.edges.length) }))
+      .sort((a, b) => a.x - b.x || a.u.id.localeCompare(b.u.id))
+    const top = ideal.filter((_, i) => i % 2 === 0), bottom = ideal.filter((_, i) => i % 2 === 1)
+    const ux = new Map<string, [number, number]>()
+    const place = (row: typeof ideal, y: number) => row.forEach((o, i) => ux.set(o.u.id, [30 + (i * (W - 60)) / Math.max(1, row.length - 1), y]))
+    place(top, 42); place(bottom, H - 42)
+    return { px, ux, riders, below }
+  }, [estate, ix])
+  const lit = estate.use_cases.find((u) => u.id === OPENER_UC)
+  const litP = new Set(lit?.edges.map((e) => e.platform_id) ?? [])
+  const uv = lit ? useCaseView(ix, lit.id, rule) : null
+  const d = lit ? describeUseCase(ix, lit.id, rule) : null
+  // Where each entry lives on the path: cost pools at the most shared
+  // platform, risk runs along a line, leaving strands at the platform that
+  // would strand it.
+  const pathPlatforms = [...litP].sort((a, b) => layout.riders(b) - layout.riders(a))
+  const poolAt = pathPlatforms[0]
+  const strandAt = uv?.strandedBy.length ? estate.platforms.find((p) => p.name === uv.strandedBy[0])?.id ?? pathPlatforms[pathPlatforms.length - 1] : pathPlatforms[pathPlatforms.length - 1]
+  const riskOn = pathPlatforms.find((p) => p !== poolAt && p !== strandAt) ?? poolAt
+  const at = (id: string | undefined): [number, number] => (id ? [layout.px.get(id) ?? W / 2, MID] : [W / 2, MID])
+  const ul = lit ? layout.ux.get(lit.id)! : [W / 2, 42] as [number, number]
+  const riskMid: [number, number] = [(at(riskOn)[0] + ul[0]) / 2, (MID + ul[1]) / 2]
+  // Lit labels take four heights in turn, so neighbours do not collide, and
+  // near an edge they hang inwards rather than off the picture.
+  const litOrder = [...litP].sort((a, b) => (layout.px.get(a) ?? 0) - (layout.px.get(b) ?? 0))
+  const anchor = (x: number) => (x < 110 ? 'start' : x > W - 110 ? 'end' : 'middle')
+  const clampX = (x: number) => (x < 110 ? Math.max(4, x - 12) : x > W - 110 ? Math.min(W - 4, x + 12) : x)
+  return (
+    <div className="ov-centre ov-flat">
+      <svg className="ov-flat-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+        <g className="ov-flat-lines">
+          {estate.use_cases.flatMap((u) => u.edges.map((e) => {
+            const [x1, y1] = layout.ux.get(u.id)!, x2 = layout.px.get(e.platform_id) ?? W / 2
+            const on = u.id === OPENER_UC
+            return <line key={`${u.id}-${e.platform_id}`} x1={x1} y1={y1} x2={x2} y2={MID} className={on ? 'on' : ''} pathLength={on ? 100 : undefined} />
+          }))}
+        </g>
+        {estate.platforms.map((p) => {
+          const x = layout.px.get(p.id)!, r = 5 + Math.sqrt(layout.riders(p.id)) * 1.6, on = litP.has(p.id)
+          const conn = p.type === 'integration'
+          return (
+            <g key={p.id} className={`ov-flat-p${on ? ' on' : ''}${conn ? ' conn' : ''}`}>
+              {conn ? <rect x={x - r * 0.8} y={MID - r * 0.8} width={r * 1.6} height={r * 1.6} transform={`rotate(45 ${x} ${MID})`} /> : <circle cx={x} cy={MID} r={r} />}
+              {on && (() => {
+                const lvl = litOrder.indexOf(p.id) % 4
+                const y = lvl === 0 ? MID - r - 7 : lvl === 1 ? MID + r + 15 : lvl === 2 ? MID - r - 25 : MID + r + 33
+                const tag = entries ? (p.id === poolAt ? '\u2460 ' : p.id === strandAt ? '\u2462 ' : '') : ''
+                return <text x={clampX(x)} y={y} textAnchor={anchor(x)} className={tag ? 'tagged' : ''}>{tag}{p.name}</text>
+              })()}
+            </g>
+          )
+        })}
+        {estate.use_cases.map((u) => {
+          const [x, y] = layout.ux.get(u.id)!, on = u.id === OPENER_UC
+          return (
+            <g key={u.id} className={`ov-flat-u${on ? ' on' : ''}`}>
+              <circle cx={x} cy={y} r={on ? 7 : 4} style={{ fill: SUBDOMAIN_COLOUR[u.subdomain] }} />
+              {on && <text x={clampX(x)} y={y < MID ? y - 13 : y + 22} textAnchor={anchor(x)}>{u.name}</text>}
+            </g>
+          )
+        })}
+        {entries && (
+          <g className="ov-flat-mark ov-in d3">
+            <circle cx={riskMid[0]} cy={riskMid[1]} r={10} />
+            <text x={riskMid[0]} y={riskMid[1] + 4} textAnchor="middle">2</text>
+          </g>
+        )}
+      </svg>
+      {entries && d && uv && (
+        <div className="ov-flat-entries">
+          {[
+            [copy.flat_entry_1, fill(copy.book_v_cost_u, { reported: String(d.reported) })],
+            [copy.flat_entry_2, fill(copy.book_v_risk_u, { worst: String(d.worst) })],
+            [copy.flat_entry_3, fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none })],
+          ].map(([h, v], i) => (
+            <div key={i} className={`ov-flat-entry ov-in d${i + 2}`}><span className="book-n">{i + 1}</span><span><strong>{h}</strong><em>{v}</em></span></div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
