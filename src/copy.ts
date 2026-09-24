@@ -231,12 +231,15 @@ export const copy = {
     'Cost pools where systems are shared. Risk travels along the lines. ' +
     'Leaving strands whatever depends on a system.',
   b_how_graph_see:
-    'All three live in the shape of the map. So read them there, one use ' +
-    'case at a time, and never add them up.',
+    'Watch each one on the map in turn. Part three prices all three properly, ' +
+    'and never adds them up.',
   b_how_graph_more:
-    'The numbers mark where each entry lives on the path of {opener_uc}. ' +
-    'Next opens part one, which builds this map in three dimensions, one ' +
-    'layer at a time.',
+    'The map plays each entry on the path of {opener_uc}. Tap an entry under ' +
+    'the map to play it again. Next opens part one, which builds this map ' +
+    'in three dimensions, one layer at a time.',
+  flat_cost_note: 'Cost pools at {name}: {n} use cases share its fixed costs, split by a rule.',
+  flat_risk_note: 'Risk travels from {name}: if it stops, the {n} use cases on it can stop too.',
+  flat_exit_note: 'Leaving {name} strands work: all {n} use cases on it must move first.',
   flat_entry_1: 'What it costs',
   flat_entry_2: 'What it risks',
   flat_entry_3: 'What leaving would cost',

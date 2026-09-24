@@ -52,7 +52,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
   const tappable = beat.overlay === 'welcome' || beat.overlay === 'part' || beat.overlay === 'end'
   const picture = !tappable && beat.overlay !== 'title'
   return (
-    <div className={`overlay overlay-${beat.overlay}${tappable ? ' overlay-tap' : ''}${picture ? ' overlay-picture' : ''}`} key={n} onClick={tappable ? onTap : undefined} role={tappable ? 'button' : undefined}>
+    <div className={`overlay overlay-${beat.overlay}${tappable ? ' overlay-tap' : ''}${picture ? ' overlay-picture' : ''}`} key={beat.overlay === 'flat' ? 'flat' : n} onClick={tappable ? onTap : undefined} role={tappable ? 'button' : undefined}>
       {beat.overlay === 'welcome' && (
         <div className="ov-centre">
           <div className="ov-big ov-in">{copy.story_welcome}</div>
@@ -278,8 +278,12 @@ function Fit({ children }: { children: ReactNode }) {
 
 // The estate, flat: platforms along the middle, use cases above and below,
 // each placed over the platforms it runs on. One use case is lit with its
-// path; the rest stays as a trace. With entries, the three ledger entries
-// are pinned where each one lives on that path.
+// path; the rest stays as a trace. The two how beats share one instance
+// (the overlay keeps its key), so the map does not reset between them. On
+// the second, the map plays the three entries in turn: cost pooling at the
+// most shared platform, risk running out along the lines from the platform
+// that can stop the use case, and what leaving that platform has to move.
+type Phase = -1 | 0 | 1 | 2
 function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: boolean }) {
   const rule = useLedger((s) => s.rule)
   const W = 760, H = 380, MID = 190
@@ -289,37 +293,55 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
     // Busiest in the middle, the rest alternating outwards.
     const order: typeof sorted = []
     sorted.forEach((p, i) => { if (i % 2 === 0) order.push(p); else order.unshift(p) })
-    const px = new Map<string, number>(), below = new Set<string>()
-    order.forEach((p, i) => { px.set(p.id, 40 + (i * (W - 80)) / Math.max(1, order.length - 1)); if (i % 2) below.add(p.id) })
+    const px = new Map<string, number>()
+    order.forEach((p, i) => px.set(p.id, 40 + (i * (W - 80)) / Math.max(1, order.length - 1)))
     const ideal = estate.use_cases.map((u) => ({ u, x: u.edges.reduce((a, e) => a + (px.get(e.platform_id) ?? W / 2), 0) / Math.max(1, u.edges.length) }))
       .sort((a, b) => a.x - b.x || a.u.id.localeCompare(b.u.id))
     const top = ideal.filter((_, i) => i % 2 === 0), bottom = ideal.filter((_, i) => i % 2 === 1)
     const ux = new Map<string, [number, number]>()
     const place = (row: typeof ideal, y: number) => row.forEach((o, i) => ux.set(o.u.id, [30 + (i * (W - 60)) / Math.max(1, row.length - 1), y]))
     place(top, 42); place(bottom, H - 42)
-    return { px, ux, riders, below }
+    return { px, ux, riders }
   }, [estate, ix])
+
+  // The entries play once on arrival, a few seconds each; a tap on an
+  // entry below the map plays it again.
+  const [phase, setPhase] = useState<Phase>(-1)
+  const [shown, setShown] = useState(0)
+  useEffect(() => {
+    if (!entries) { setPhase(-1); setShown(0); return }
+    const t = [
+      setTimeout(() => { setPhase(0); setShown(1) }, 700),
+      setTimeout(() => { setPhase(1); setShown(2) }, 4700),
+      setTimeout(() => { setPhase(2); setShown(3) }, 8700),
+    ]
+    return () => t.forEach(clearTimeout)
+  }, [entries])
+
   const lit = estate.use_cases.find((u) => u.id === OPENER_UC)
   const litP = new Set(lit?.edges.map((e) => e.platform_id) ?? [])
   const uv = lit ? useCaseView(ix, lit.id, rule) : null
   const d = lit ? describeUseCase(ix, lit.id, rule) : null
-  // Where each entry lives on the path: cost pools at the most shared
-  // platform, risk runs along a line, leaving strands at the platform that
-  // would strand it.
+  const byName = (name: string | undefined) => estate.platforms.find((p) => p.name === name)?.id
   const pathPlatforms = [...litP].sort((a, b) => layout.riders(b) - layout.riders(a))
   const poolAt = pathPlatforms[0]
-  const strandAt = uv?.strandedBy.length ? estate.platforms.find((p) => p.name === uv.strandedBy[0])?.id ?? pathPlatforms[pathPlatforms.length - 1] : pathPlatforms[pathPlatforms.length - 1]
-  const riskOn = pathPlatforms.find((p) => p !== poolAt && p !== strandAt) ?? poolAt
-  const at = (id: string | undefined): [number, number] => (id ? [layout.px.get(id) ?? W / 2, MID] : [W / 2, MID])
-  const ul = lit ? layout.ux.get(lit.id)! : [W / 2, 42] as [number, number]
-  const riskMid: [number, number] = [(at(riskOn)[0] + ul[0]) / 2, (MID + ul[1]) / 2]
-  // Lit labels take four heights in turn, so neighbours do not collide, and
-  // near an edge they hang inwards rather than off the picture.
+  const riskAt = byName(d ? String(d.worst) : undefined) ?? pathPlatforms[pathPlatforms.length - 1]
+  const exitAt = byName(uv?.strandedBy[0]) ?? riskAt
+  const focusAt = phase === 0 ? poolAt : phase === 1 ? riskAt : phase === 2 ? exitAt : undefined
+  const ridersOfFocus = new Set((focusAt ? ix.ridersOf.get(focusAt) ?? [] : []).map((r) => r.uc.id))
+  const NOTES = ['flat_cost_note', 'flat_risk_note', 'flat_exit_note'] as const
+  const note = phase < 0 || !focusAt ? '' : fill(copy[NOTES[phase as 0 | 1 | 2]], { n: ridersOfFocus.size, name: estate.platforms.find((p) => p.id === focusAt)?.name ?? '' })
+
+  // Labels on the lit path take four heights in turn, so neighbours do not
+  // collide, and near an edge they hang inwards rather than off the picture.
   const litOrder = [...litP].sort((a, b) => (layout.px.get(a) ?? 0) - (layout.px.get(b) ?? 0))
   const anchor = (x: number) => (x < 110 ? 'start' : x > W - 110 ? 'end' : 'middle')
   const clampX = (x: number) => (x < 110 ? Math.max(4, x - 12) : x > W - 110 ? Math.min(W - 4, x + 12) : x)
+  const fx = focusAt ? layout.px.get(focusAt) ?? W / 2 : W / 2
+  const kind = phase < 0 ? '' : (['pool', 'risk', 'exit'] as const)[phase as 0 | 1 | 2]
+
   return (
-    <div className="ov-centre ov-flat">
+    <div className={`ov-centre ov-flat${phase >= 0 ? ` phase-${kind}` : ''}`}>
       <svg className="ov-flat-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         <g className="ov-flat-lines">
           {estate.use_cases.flatMap((u) => u.edges.map((e) => {
@@ -328,37 +350,44 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
             return <line key={`${u.id}-${e.platform_id}`} x1={x1} y1={y1} x2={x2} y2={MID} className={on ? 'on' : ''} pathLength={on ? 100 : undefined} />
           }))}
         </g>
+        {/* The playing entry: lines from the platform in question out to
+            every use case riding it, drawn from the platform outwards. */}
+        {focusAt && (
+          <g key={`fx${phase}`} className={`ov-flat-fx ${kind}`}>
+            {[...ridersOfFocus].map((id) => {
+              const [x, y] = layout.ux.get(id)!
+              return <path key={id} d={`M${fx},${MID} L${x},${y}`} pathLength={100} />
+            })}
+          </g>
+        )}
         {estate.platforms.map((p) => {
           const x = layout.px.get(p.id)!, r = 5 + Math.sqrt(layout.riders(p.id)) * 1.6, on = litP.has(p.id)
           const conn = p.type === 'integration'
+          const focus = p.id === focusAt
+          const lvl = litOrder.indexOf(p.id) % 4
+          const ly = lvl === 0 ? MID - r - 7 : lvl === 1 ? MID + r + 15 : lvl === 2 ? MID - r - 25 : MID + r + 33
           return (
-            <g key={p.id} className={`ov-flat-p${on ? ' on' : ''}${conn ? ' conn' : ''}`}>
+            <g key={p.id} className={`ov-flat-p${on ? ' on' : ''}${conn ? ' conn' : ''}${focus ? ` focus ${kind}` : ''}`}>
+              {focus && <circle className="ov-flat-halo" cx={x} cy={MID} r={r + 9} />}
               {conn ? <rect x={x - r * 0.8} y={MID - r * 0.8} width={r * 1.6} height={r * 1.6} transform={`rotate(45 ${x} ${MID})`} /> : <circle cx={x} cy={MID} r={r} />}
-              {on && (() => {
-                const lvl = litOrder.indexOf(p.id) % 4
-                const y = lvl === 0 ? MID - r - 7 : lvl === 1 ? MID + r + 15 : lvl === 2 ? MID - r - 25 : MID + r + 33
-                const tag = entries ? (p.id === poolAt ? '\u2460 ' : p.id === strandAt ? '\u2462 ' : '') : ''
-                return <text x={clampX(x)} y={y} textAnchor={anchor(x)} className={tag ? 'tagged' : ''}>{tag}{p.name}</text>
-              })()}
+              {on && <text x={clampX(x)} y={ly} textAnchor={anchor(x)}>{p.name}</text>}
             </g>
           )
         })}
         {estate.use_cases.map((u) => {
           const [x, y] = layout.ux.get(u.id)!, on = u.id === OPENER_UC
+          const hit = ridersOfFocus.has(u.id)
           return (
-            <g key={u.id} className={`ov-flat-u${on ? ' on' : ''}`}>
-              <circle cx={x} cy={y} r={on ? 7 : 4} style={{ fill: SUBDOMAIN_COLOUR[u.subdomain] }} />
+            <g key={u.id} className={`ov-flat-u${on ? ' on' : ''}${hit ? ` hit ${kind}` : ''}`}>
+              <circle cx={x} cy={y} r={on ? 7 : hit ? 5 : 4} style={{ fill: SUBDOMAIN_COLOUR[u.subdomain] }} />
               {on && <text x={clampX(x)} y={y < MID ? y - 13 : y + 22} textAnchor={anchor(x)}>{u.name}</text>}
             </g>
           )
         })}
-        {entries && (
-          <g className="ov-flat-mark ov-in d3">
-            <circle cx={riskMid[0]} cy={riskMid[1]} r={10} />
-            <text x={riskMid[0]} y={riskMid[1] + 4} textAnchor="middle">2</text>
-          </g>
-        )}
       </svg>
+      {entries && (
+        <div className="ov-flat-note" key={`n${phase}`} aria-live="polite">{note}</div>
+      )}
       {entries && d && uv && (
         <div className="ov-flat-entries">
           {[
@@ -366,7 +395,9 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
             [copy.flat_entry_2, fill(copy.book_v_risk_u, { worst: String(d.worst) })],
             [copy.flat_entry_3, fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none })],
           ].map(([h, v], i) => (
-            <div key={i} className={`ov-flat-entry ov-in d${i + 2}`}><span className="book-n">{i + 1}</span><span><strong>{h}</strong><em>{v}</em></span></div>
+            <button type="button" key={i} className={`ov-flat-entry${i < shown ? ' shown' : ''}${i === phase ? ' active' : ''}`} onClick={() => { setPhase(i as Phase); setShown((k) => Math.max(k, i + 1)) }}>
+              <span className="book-n">{i + 1}</span><span><strong>{h}</strong><em>{v}</em></span>
+            </button>
           ))}
         </div>
       )}

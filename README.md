@@ -2213,3 +2213,17 @@ overstates the joint one (9.8.3); lock-in nobody chose, because the
 footprint grows before the board sees a decision; and the bill following
 the boundary under a two-stage basis (9.2.8). Each tile names who it
 lands on. Every later beat moves up by one.
+
+### 84. The third how beat plays the three entries
+
+The owner noted that the second and third how beats looked the same. The
+two beats now share one map that does not reset between them, and the
+third plays each entry on it in turn. Cost: lines run out from the most
+shared platform on the path to every use case sharing its fixed costs.
+Risk: the platform that can stop claim settlement turns red, and the
+failure runs out along its lines to every use case riding it. Leaving:
+the same platform goes hollow, and every use case that would have to move
+first is marked. A line under the map names the platform and the count,
+the entry cards arrive one at a time as each plays, and a tap on a card
+plays it again. Part three still prices each entry properly; this beat
+only shows where each one lives.
