@@ -2253,3 +2253,10 @@ the pictures and the camera kept clear of whatever width the card had,
 so widening it shrank the picture under it. The layout now keeps the
 column the card had before it was touched, and the theme switch sits
 under a moved card rather than over it.
+
+The owner then chose a different hook, in their own framing: architecture
+decisions cost money and carry risk, and we still price them in colours.
+The welcome now reads "Architecture decisions cost money and carry risk.
+We still price them in colours." with "Here is one invented company,
+priced in money." beneath it. "We" keeps it an observation shared with
+the reader rather than an accusation.

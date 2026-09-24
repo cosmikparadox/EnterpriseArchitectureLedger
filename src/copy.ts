@@ -140,8 +140,8 @@ export const copy = {
   // it helps, a second sentence. Anything longer goes under More detail. Every
   // figure is live through fill().
   story_welcome: 'Welcome.',
-  story_welcome_sub: 'The costliest decisions in your architecture are often the ones nobody made.',
-  story_welcome_note: 'One invented company, priced in money instead of colours.',
+  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still price them in colours.',
+  story_welcome_note: 'Here is one invented company, priced in money.',
   story_welcome_tap: 'Tap anywhere to begin',
   story_welcome_skip: 'Skip to the tool',
   story_continue: 'Tap anywhere, or press the right arrow, to continue',
