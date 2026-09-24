@@ -198,15 +198,19 @@ export const copy = {
 
   b_how_map_h: 'How: a map, not a drawing',
   b_how_map:
-    'A diagram is someone\'s opinion of the systems. The systems\' own ' +
-    'traces say which calls which, every day.',
-  b_how_map_see: 'That is a map, not a drawing. It is mined, so it stays current.',
+    'An architecture diagram is reviewed and agreed. But it shows a slice, ' +
+    'drawn for one purpose, as of one date.',
+  b_how_map_see:
+    'The systems\' own traces say which calls which, every day. That is a ' +
+    'map, and it stays current.',
   b_how_map_more:
     'Operations teams already collect these traces to find outages. The same ' +
-    'traces give the map, with no vendor in between. See the Ledger paper, ' +
-    '9.1.1.',
+    'traces give the map, with no vendor in between. The map has gaps too: ' +
+    'work done by hand, or on systems nobody traces, does not appear. The ' +
+    'diagram says what was intended. The map says what runs. See the Ledger ' +
+    'paper, 9.1.1.',
   map_drawing: 'A drawing',
-  map_drawing_sub: 'Tidy, dated, one person\'s view',
+  map_drawing_sub: 'Agreed, but a slice, as of one date',
   map_mined: 'A map',
   map_mined_sub: 'Read from the traces, every day',
 

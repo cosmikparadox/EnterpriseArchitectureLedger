@@ -2176,3 +2176,9 @@ One line from the approved draft changed. The cost tile's consequence
 read "the bill is split by a rule nobody chose", but the rule beat says
 the rule is one "somebody chose", so the tile now reads "The bill is
 split by a rule, not by use."
+
+On the owner's correction, the drawing is no longer called one person's
+view: an architecture diagram is reviewed and agreed before it is
+published. What it is instead is a slice, drawn for one purpose, as of one
+date. The map is not claimed to be complete either: More detail says that
+work done by hand, or on systems nobody traces, does not appear on it.
