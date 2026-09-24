@@ -329,13 +329,13 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   // control the card puts up for it, or the store where the action is a tap
   // on the 3D canvas.
   const actions: { step: number; what: string; run: () => Promise<void> }[] = [
-    { step: 36, what: 'select a different platform', run: async () => {
+    { step: 24, what: 'select a different platform', run: async () => {
       await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
     } },
     { step: 27, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
-    { step: 36, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
+    { step: 28, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
     { step: 30, what: 'move the dependence slider on the card', run: async () => { await page.locator('.story').getByLabel('Dependence between platform failures, rho').fill('0.35') } },
-    { step: 36, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
+    { step: 32, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
     { step: 35, what: 'move the use case to another domain', run: async () => { await page.locator('.story select').selectOption('finance') } },
     { step: 36, what: 'change the allocation basis on the card', run: async () => { await page.locator('.story').getByLabel('Allocation basis for the fixed pool').selectOption('by_head') } },
   ]
