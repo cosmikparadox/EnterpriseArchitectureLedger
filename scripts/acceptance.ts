@@ -240,22 +240,23 @@ add('3 non-additivity, as restated', 'PASS',
 // the card never covers the node the step is about. T3 performs each step's
 // asked-for action by script and waits for the tick. T4 cold-loads one step.
 
-// The story: 34 beats on one card. Beat 0 is the welcome; part one builds the
+// The story: 38 beats on one card. Beat 0 is the welcome; part one builds the
 // picture, part two shows how it is decided today, part three builds the
 // ledger. Each beat shows one thing.
 const BEAT_HEADING: Record<number, string> = {
-  1: 'The Architecture Ledger', 3: 'Domains', 4: 'Use cases', 5: 'Platforms', 6: 'Lines', 7: 'Connectors', 8: 'What flows through it', 9: 'The busiest node',
-  12: 'Where the architecture lives', 13: 'What decisions are made on', 14: 'Three questions, three places', 15: 'The graph already exists',
-  18: 'Why a ledger', 19: 'The blueprint fills the book', 20: 'Entry one: cost. The meter', 21: 'The fixed pool', 22: 'The rule', 23: 'The crowd changes',
-  24: 'Entry two: risk. When it stops', 25: 'A bad month, two ways', 26: 'How much they fail together',
-  27: 'Entry three: leaving. How the footprint grew', 28: 'What leaving would cost', 29: 'Does spreading it out help?',
-  30: 'Whose lines decided all of it', 31: 'Move one use case', 32: 'Change the rule', 33: 'The ledger, closed',
+  1: 'The Architecture Ledger', 2: 'Why it matters', 3: 'How: a map, not a drawing', 4: 'How: from systems to work', 5: 'How: why a graph',
+  7: 'Domains', 8: 'Use cases', 9: 'Platforms', 10: 'Lines', 11: 'Connectors', 12: 'What flows through it', 13: 'The busiest node',
+  16: 'Where the architecture lives', 17: 'What decisions are made on', 18: 'Three questions, three places', 19: 'The graph already exists',
+  22: 'Why a ledger', 23: 'The blueprint fills the book', 24: 'Entry one: cost. The meter', 25: 'The fixed pool', 26: 'The rule', 27: 'The crowd changes',
+  28: 'Entry two: risk. When it stops', 29: 'A bad month, two ways', 30: 'How much they fail together',
+  31: 'Entry three: leaving. How the footprint grew', 32: 'What leaving would cost', 33: 'Does spreading it out help?',
+  34: 'Whose lines decided all of it', 35: 'Move one use case', 36: 'Change the rule', 37: 'The ledger, closed',
 }
-const NO_CARD = new Set([0, 2, 10, 11, 16, 17])
+const NO_CARD = new Set([0, 6, 14, 15, 20, 21])
 // Long enough for each beat's own animations to finish before the card is
-// read: 18 wires the book, 19 counts the meter, 22 adds riders for 3s, 23 fails after 0.9s, 25 sweeps for about 4s, 26 runs the months for 3.2s.
-const BEAT_SETTLE: Record<number, number> = { 19: 3000, 20: 3000, 23: 3600, 24: 2800, 26: 5000, 27: 4200, 29: 11000, 31: 8600 }
-const LAST = 33
+// read: 3 draws the map, 5 and 23 wire the book, 24 counts the meter, 27 adds riders for 3s, 28 fails after 0.9s, 30 sweeps for about 4s, 31 runs the months for 3.2s.
+const BEAT_SETTLE: Record<number, number> = { 3: 3200, 5: 3000, 23: 3000, 24: 3000, 27: 3600, 28: 2800, 30: 5000, 31: 4200, 33: 11000, 35: 8600 }
+const LAST = 37
 const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   if (i === 0) await page.locator('.overlay-welcome').click()
   else if (NO_CARD.has(i)) await page.keyboard.press('ArrowRight')
@@ -287,8 +288,8 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
     if (n < LAST) await nextBeat(page, n)
   }
   const t1ok = errors.length === 0 && unresolved.length === 0 && missing.length === 0
-  add('T1 the story walks all 34 beats on Next alone', t1ok ? 'PASS' : 'FAIL',
-    t1ok ? `34 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors`
+  add('T1 the story walks all 38 beats on Next alone', t1ok ? 'PASS' : 'FAIL',
+    t1ok ? `38 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors`
          : `errors ${errors.length}; unresolved ${unresolved.join(' | ')}; missing ${missing.join(', ')}`)
   await ctx.close()
 }
@@ -298,11 +299,11 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/18', { waitUntil: 'load' })
+  await page.goto('http://localhost:5190/#/tour/22', { waitUntil: 'load' })
   await page.waitForSelector('.story')
   const overlaps: string[] = []
   let measured = 0
-  for (let n = 18; n <= LAST; n++) {
+  for (let n = 22; n <= LAST; n++) {
     await page.waitForTimeout(BEAT_SETTLE[n] ?? 1300)
     const card = await page.locator('.story').boundingBox()
     const pos = await page.evaluate(() => document.documentElement.dataset.selectedScreen ?? null)
@@ -328,15 +329,15 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   // control the card puts up for it, or the store where the action is a tap
   // on the 3D canvas.
   const actions: { step: number; what: string; run: () => Promise<void> }[] = [
-    { step: 20, what: 'select a different platform', run: async () => {
+    { step: 36, what: 'select a different platform', run: async () => {
       await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
     } },
-    { step: 23, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
-    { step: 24, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
-    { step: 26, what: 'move the dependence slider on the card', run: async () => { await page.locator('.story').getByLabel('Dependence between platform failures, rho').fill('0.35') } },
-    { step: 28, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
-    { step: 31, what: 'move the use case to another domain', run: async () => { await page.locator('.story select').selectOption('finance') } },
-    { step: 32, what: 'change the allocation basis on the card', run: async () => { await page.locator('.story').getByLabel('Allocation basis for the fixed pool').selectOption('by_head') } },
+    { step: 27, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
+    { step: 36, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
+    { step: 30, what: 'move the dependence slider on the card', run: async () => { await page.locator('.story').getByLabel('Dependence between platform failures, rho').fill('0.35') } },
+    { step: 36, what: 'move the month cursor on the card', run: async () => { await page.locator('.story').getByLabel('Month cursor').fill('40') } },
+    { step: 35, what: 'move the use case to another domain', run: async () => { await page.locator('.story select').selectOption('finance') } },
+    { step: 36, what: 'change the allocation basis on the card', run: async () => { await page.locator('.story').getByLabel('Allocation basis for the fixed pool').selectOption('by_head') } },
   ]
   const fired: string[] = []
   const silent: string[] = []
@@ -364,15 +365,15 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/28', { waitUntil: 'load' })
+  await page.goto('http://localhost:5190/#/tour/32', { waitUntil: 'load' })
   await page.waitForSelector('.story')
   await page.waitForTimeout(3000)
   const heading = (await page.locator('.story h1').innerText()).trim()
   const view = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { view: unknown; selectedId: string | null } } }).__ledger?.getState().view)
   const selected = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { selectedId: string | null } } }).__ledger?.getState().selectedId)
-  const ok = heading === BEAT_HEADING[28] && view === 4 && selected === 'meridian' && errors.length === 0
+  const ok = heading === BEAT_HEADING[32] && view === 4 && selected === 'meridian' && errors.length === 0
   add('T4 deep link to one beat cold-loads into it', ok ? 'PASS' : 'FAIL',
-    `#/tour/28: heading "${heading}", view ${String(view)}, selected "${selected}", page errors ${errors.length}`)
+    `#/tour/32: heading "${heading}", view ${String(view)}, selected "${selected}", page errors ${errors.length}`)
   await ctx.close()
 }
 
@@ -419,6 +420,10 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.waitForTimeout(1400)
   const nameCentred = (await page.locator('.wordmark:not(.wordmark-top)').count()) === 1
   const cardOnTitle = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'The Architecture Ledger'
+  // What, then why, then how in three steps, then part one.
+  const opener: string[] = []
+  for (let i = 0; i < 4; i++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1200); opener.push((await page.locator('.story h1').innerText().catch(() => '')).trim()) }
+  const openerOk = opener.join('|') === 'Why it matters|How: a map, not a drawing|How: from systems to work|How: why a graph'
   await page.locator('.story button:has-text("Next")').click()
   await page.waitForTimeout(1200)
   const partTitle = (await page.locator('.overlay-part').innerText().catch(() => '')).includes('The architecture')
@@ -467,10 +472,10 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1400)
   const why = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Why a ledger'
   const hashAtWhy = await page.evaluate(() => location.hash)
-  const ok = welcome && blankAtStart && noCardAtStart && railHidden && nameCentred && cardOnTitle && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/18' && errors.length === 0
+  const ok = welcome && blankAtStart && noCardAtStart && railHidden && nameCentred && cardOnTitle && openerOk && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/22' && errors.length === 0
   add('T7 the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card', ok ? 'PASS' : 'FAIL',
-    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/18'
-       : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, name centred ${nameCentred}, card on title ${cardOnTitle}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
+    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next ran why and the three how beats, then the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/22'
+       : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, name centred ${nameCentred}, card on title ${cardOnTitle}, opener ${opener.join('/')}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
   await ctx.close()
 }
 
@@ -539,7 +544,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 {
   const bad: string[] = []
   let measured = 0
-  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/23', '#/tour/29']
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/27', '#/tour/33']
   for (const [w, h] of [[1850, 1000], [1233, 1325], [1280, 800]] as const) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } })
     const page = await ctx.newPage()
@@ -582,7 +587,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const offsiteLinks: string[] = []
-  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/33']) {
+  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/37']) {
     await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
     await page.waitForTimeout(hash === '#/' ? 400 : 2000)
     const hrefs = await page.evaluate(() =>
@@ -611,7 +616,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 // title sentence is the owner's, reproduced unchanged; and "overstates" in
 // option_upper_bound is canon 9.8.3 result three on option components.
 {
-  const EXEMPT_LENGTH = new Set(['copy.b_title'])
+  const EXEMPT_LENGTH = new Set(['copy.b_title_more'])
   const EXEMPT_PHRASE = new Set(['copy.option_upper_bound'])
   const FORBIDDEN = ['bad year', 'a year worse', 'overstates', 'counts the same', 'never together', 'always together', 'balance sheet', 'nothing new is collected', 'written down nowhere']
   const faults: string[] = []
@@ -631,7 +636,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   }
   for (const [name, v] of Object.entries(copyModule)) if (typeof v !== 'function') walk(name, v)
   add('N1 the copy deck: no dashes, no sentence over twenty words, no retired phrase', faults.length === 0 ? 'PASS' : 'FAIL',
-    faults.length === 0 ? `${strings} strings scanned; exempt: b_title (owner's sentence), option_upper_bound (canon 9.8.3 result three)` : faults.slice(0, 8).join(' | '))
+    faults.length === 0 ? `${strings} strings scanned; exempt: b_title_more (owner's sentence), option_upper_bound (canon 9.8.3 result three)` : faults.slice(0, 8).join(' | '))
 }
 
 // ---- N2. The closing card ---------------------------------------------------
@@ -644,7 +649,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const page = await ctx.newPage()
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(String(e)))
-  await page.goto('http://localhost:5190/#/tour/33', { waitUntil: 'load' })
+  await page.goto('http://localhost:5190/#/tour/37', { waitUntil: 'load' })
   await page.waitForSelector('.story-close')
   await page.waitForTimeout(1500)
   const text = await page.locator('.story').innerText()
@@ -670,7 +675,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const hits: string[] = []
-  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/20', '#/tour/22', '#/tour/29', '#/tour/33']
+  const routes = ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/24', '#/tour/26', '#/tour/33', '#/tour/37']
   for (const r of routes) {
     await page.goto(`http://localhost:5190/${r}`, { waitUntil: 'load' })
     await page.waitForTimeout(r.startsWith('#/tour') ? 2500 : 1500)
@@ -702,7 +707,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const onScreen: string[] = []
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
-  for (const r of ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/9', '#/tour/19', '#/tour/29', '#/tour/33']) {
+  for (const r of ['#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/13', '#/tour/23', '#/tour/33', '#/tour/37']) {
     await page.goto(`http://localhost:5190/${r}`, { waitUntil: 'load' })
     await page.waitForTimeout(r.startsWith('#/tour') ? 2500 : 1500)
     const text = await page.evaluate(() => document.body.innerText)
@@ -727,7 +732,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const check = (where: string, label: string, value: string) => { for (const m of value.match(/\d[\d,]*/g) ?? []) { counted++; if (sig(m) > 2) bad.push(`${where} ${label}: ${m}`) } }
-  await page.goto('http://localhost:5190/#/tour/33', { waitUntil: 'load' })
+  await page.goto('http://localhost:5190/#/tour/37', { waitUntil: 'load' })
   await page.waitForSelector('.ledger-row'); await page.waitForTimeout(2500)
   for (const row of await page.locator('.ledger-row').all()) {
     const l = (await row.locator('.l').innerText()).trim(); const v = (await row.locator('.v').innerText()).trim()

@@ -24,15 +24,14 @@ import type { AllocationRule } from '../model/types'
 export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6
 
 /**
- * Chapters. 0 is the title card. 1 to 6 build the picture: domains, use cases,
- * platforms, lines, connectors, the busiest node. 7 to 15 build the ledger on
- * that node: why a ledger, what it meters, what it hands out by rule, what
- * happens when it stops, how much things fail together, how the footprint
- * grew, what diversifying does, where the lines are drawn, and a close.
+ * Beats. 0 is the welcome. 1 to 5 open the story: what the ledger is, why it
+ * matters, and how it works in three steps. Part one builds the picture,
+ * part two shows how it is decided today, part three builds the ledger on
+ * the busiest node and closes. The last beat is 37; script.ts holds them.
  */
-export const TOUR_STEPS = 33
+export const TOUR_STEPS = 37
 /** The first beat of the third part, where the numbers start. Kept for the router. */
-export const FIRST_LEDGER_CHAPTER = 18
+export const FIRST_LEDGER_CHAPTER = 22
 
 /** What the canvas shows during the story. Every field is a layer or a mode. */
 export interface Scene {
@@ -55,7 +54,7 @@ export interface Scene {
   /** The ledger book in the corner, wired to the selected node. */
   book: boolean
   /** What the beat's control is about; everything else on the canvas ghosts. */
-  focus: 'riders' | 'blast' | 'footprint' | 'lines' | 'move' | null
+  focus: 'riders' | 'blast' | 'footprint' | 'lines' | 'move' | 'path' | null
   /** The value flow picture: lines tinted by where their work's value lands. */
   flow: boolean
 }

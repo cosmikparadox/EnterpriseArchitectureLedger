@@ -9,7 +9,7 @@ import { gbpAbout, workOfLeaving } from '../model/ledger'
 import { describeEstate } from '../model/describe'
 import { shapeEntry, SHAPES_SEED } from '../model/shapes'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
-import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, TOUR_SUBDOMAIN } from './script'
+import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN } from './script'
 
 const PLACEHOLDER = '...'
 /** The month handle sits before the platform was adopted: nothing to leave yet. */
@@ -113,6 +113,7 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     left_aff: shapes.l.affected, right_aff: shapes.r.affected,
     left_exit: shapes.l.exitName, right_exit: shapes.r.exitName,
     left_exec: gbpAbout(shapes.l.exec), right_exec: gbpAbout(shapes.r.exec),
+    opener_uc: (ix.useCaseById.get(OPENER_UC)?.name ?? '').toLowerCase(),
     mover: mover?.name ?? '',
     mover_from: concentrated.subdomains.find((s) => s.id === mover?.subdomain)?.name ?? '',
     moved_equal: drift.equal.changed,

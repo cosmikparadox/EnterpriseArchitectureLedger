@@ -89,6 +89,8 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
   const line = stem ? fill(c[`b_${stem}`] ?? '', figures) : ''
   const see = stem ? fill(c[`b_${stem}_see`] ?? '', figures) : ''
   const moreText = stem ? c[`b_${stem}_more`] : undefined
+  // A term's one-line definition, the first time the story uses it.
+  const defs = stem ? [c[`b_${stem}_def`], c[`b_${stem}_def2`]].filter((d): d is string => !!d) : []
   const partKey = PART_LABEL_KEY[beat.part]
 
   // What the reader tapped, described from the data.
@@ -134,6 +136,10 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
         {done && <div className="tour-tick" role="status">{copy.ctl_did}</div>}
         <p key={`l${n}`} className="intro-line">{line}</p>
         {see && <p key={`s${n}`} className="intro-see">{see}</p>}
+        {defs.map((d, i) => {
+          const at = d.indexOf(':')
+          return <p key={`d${n}.${i}`} className="story-def"><strong>{d.slice(0, at)}</strong>{d.slice(at)}</p>
+        })}
         {beat.control && <Controls control={beat.control} estate={estate} />}
         {beat.control === 'shapes' && (
           <p key={`p${shapesPhase}`} className="intro-see story-phase-line">{fill(c[`shapes_${(['cost', 'risk', 'exit'] as const)[shapesPhase]}`] ?? '', figures)}</p>
@@ -175,6 +181,7 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
         {rows}
         {beat.closing && (
           <div className="story-close" data-tour="close">
+            <p className="close-pitch">{copy.close_pitch}</p>
             <h3>{copy.close_h_what}</h3>
             <p>{copy.close_what}</p>
             <h3>{copy.close_h_not}</h3>

@@ -201,7 +201,17 @@ export function App() {
             {story.n > 0 && (
               <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${arriving ? ' wordmark-start' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
                 <div className="wordmark-name">{copy.wordmark_name}</div>
-                <div className="wordmark-tag">{story.n === 1 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
+                <div className="wordmark-tag">{story.n === 1 ? copy.tagline : story.beat.part === 0 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
+                {/* The title's picture: one thing the business does, and the
+                    three entries the ledger keeps for it. */}
+                {story.n === 1 && (
+                  <div className="wm-entries">
+                    <span className="wm-dot ov-in" />
+                    <span className="wm-rows">
+                      {[copy.what_cost, copy.what_risk, copy.what_exit].map((t, i) => <span key={i} className={`wm-row ov-in d${i + 2}`}><span className="book-n">{i + 1}</span>{t}</span>)}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             <Overlay beat={story.beat} n={story.n} estate={estate} ix={ix} onTap={() => setTourStep(Math.min(LAST_BEAT, (story.n ?? 0) + 1))} />

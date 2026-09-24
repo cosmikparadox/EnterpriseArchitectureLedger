@@ -56,6 +56,25 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
         </div>
       )}
       {beat.overlay === 'title' && null}
+      {beat.overlay === 'why' && (
+        <div className="ov-centre ov-why">
+          {/* The three places, and under each what that costs the business.
+              Then the colour the decision is made on. */}
+          <div className="ov-why-row">
+            {(['cost', 'risk', 'exit'] as const).map((k, i) => (
+              <div key={k} className={`ov-why-col ov-in d${i + 1}`}>
+                <div className={`ov-silo${k === 'exit' ? ' ov-missing' : ''}`}><strong>{copy[`why_${k}`]}</strong><span>{copy[`why_${k}_sub`]}</span></div>
+                <em className={`ov-why-so ov-in d${i + 4}`}>{copy[`why_${k}_so`]}</em>
+              </div>
+            ))}
+          </div>
+          <div className="ov-why-colour ov-in d6">
+            <span className="sw" style={{ background: '#7bc47f' }} /><span className="sw" style={{ background: '#f2c14e' }} /><span className="sw" style={{ background: '#e06c75' }} />
+            <span>{copy.why_colour}</span>
+          </div>
+        </div>
+      )}
+      {beat.overlay === 'map' && <MapPicture />}
       {beat.overlay === 'part' && (
         <div className="ov-centre">
           <div className="ov-eyebrow ov-in">{t}</div>
@@ -157,6 +176,56 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
           <div className="ov-note ov-in d6">{copy.silo_fail}</div>
         </div>
       )}
+    </div>
+  )
+}
+
+// A drawing and a map, side by side. The drawing is tidy: four boxes, four
+// arrows. The map is what traces give: many nodes, lines drawn in one at a
+// time. Fixed positions, so the picture is the same on every visit.
+const MAP_NODES: [number, number][] = Array.from({ length: 18 }, (_, i) => {
+  const a = i * 2.39996, r = 22 + 118 * Math.sqrt((i + 0.5) / 18)
+  return [575 + r * Math.cos(a), 160 + r * 0.82 * Math.sin(a)]
+})
+const MAP_EDGES: [number, number][] = (() => {
+  // Each node to its nearest few, hubs to more: the local, uneven wiring
+  // that traces show, rather than a tidy tree.
+  const seen = new Set<string>(); const out: [number, number][] = []
+  MAP_NODES.forEach(([x, y], i) => {
+    const near = MAP_NODES.map(([u, v], j) => ({ j, d: (u - x) ** 2 + (v - y) ** 2 })).filter((o) => o.j !== i).sort((a, b) => a.d - b.d)
+    for (const { j } of near.slice(0, i % 3 === 0 ? 4 : 2)) {
+      const k = i < j ? `${i}-${j}` : `${j}-${i}`
+      if (!seen.has(k)) { seen.add(k); out.push([i, j]) }
+    }
+  })
+  return out
+})()
+
+function MapPicture() {
+  const boxes: [number, number][] = [[50, 70], [210, 70], [50, 200], [210, 200]]
+  const arrows: [number, number, number, number][] = [[150, 98, 208, 98], [100, 128, 100, 198], [260, 128, 260, 198], [150, 228, 208, 228]]
+  return (
+    <div className="ov-centre ov-map">
+      <svg className="ov-map-svg" viewBox="0 0 760 320" aria-hidden="true">
+        <defs>
+          <marker id="ov-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" /></marker>
+        </defs>
+        <g className="ov-map-drawing">
+          {boxes.map(([x, y], i) => <g key={i}><rect x={x} y={y} width={100} height={56} rx={6} /><line x1={x + 18} y1={y + 24} x2={x + 82} y2={y + 24} /><line x1={x + 18} y1={y + 34} x2={x + 62} y2={y + 34} /></g>)}
+          {arrows.map(([a, b, c2, d], i) => <line key={i} className="ov-map-arrow" x1={a} y1={b} x2={c2} y2={d} markerEnd="url(#ov-arrow)" />)}
+        </g>
+        <g className="ov-map-mined">
+          {MAP_EDGES.map(([a, b], i) => {
+            const p = MAP_NODES[a]!, q = MAP_NODES[b]!
+            return <path key={i} d={`M${p[0].toFixed(1)},${p[1].toFixed(1)} L${q[0].toFixed(1)},${q[1].toFixed(1)}`} pathLength={100} style={{ animationDelay: `${1400 + i * 45}ms` }} />
+          })}
+          {MAP_NODES.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 7 : 4.5} className={i % 3 === 0 ? 'hub' : ''} style={{ animationDelay: `${1200 + i * 40}ms` }} />)}
+        </g>
+      </svg>
+      <div className="ov-map-labels">
+        <div className="ov-in d1"><strong>{copy.map_drawing}</strong><span>{copy.map_drawing_sub}</span></div>
+        <div className="ov-in d4"><strong>{copy.map_mined}</strong><span>{copy.map_mined_sub}</span></div>
+      </div>
     </div>
   )
 }

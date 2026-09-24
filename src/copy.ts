@@ -158,21 +158,87 @@ export const copy = {
   part_label_2: 'Part two: how it is decided today',
   part_label_3: 'Part three: the ledger',
 
-  // 1. The title beat, after the welcome.
+  // The opening, after the welcome: what it is, why it matters, and how it
+  // works in three steps. Each is one line and one picture.
+  tagline: 'What the architecture costs, one decision at a time.',
   b_title_h: 'The Architecture Ledger',
-  // The owner's sentence, reproduced unchanged by instruction, and exempt
-  // from the twenty-word rule.
   b_title:
+    'An architecture ledger: three numbers for each thing the business does.',
+  b_title_see: 'What it costs. What it risks. What leaving would cost.',
+  // The owner's sentence, reproduced unchanged by instruction, and exempt
+  // from the twenty-word rule. It sits under More detail on the title beat.
+  b_title_more:
     'An interactive model of one invented insurer, built to show what ' +
     'architecture decisions cost when you price them in money instead of ' +
-    'colours.',
-  b_title_see: 'Everything here is synthetic and says so. Next takes you through it.',
+    'colours. Everything here is synthetic and says so.',
+  what_cost: 'What it costs',
+  what_risk: 'What it risks',
+  what_exit: 'What leaving would cost',
+
+  b_opener_why_h: 'Why it matters',
+  b_opener_why:
+    'Today those three live in three places that never meet: a spreadsheet, ' +
+    'a risk register, and nowhere. So the decision is made on a colour.',
+  b_opener_why_see:
+    'Nothing is broken. But a colour cannot say who pays for a shared ' +
+    'system, what stops when it does, or what leaving costs.',
+  b_opener_why_more:
+    'Part two shows each of the three places and where each one stops. Part ' +
+    'three prices all three on one shared system.',
+  why_cost: 'A spreadsheet',
+  why_cost_sub: 'What it costs, by cost centre',
+  why_cost_so: 'The bill is split by a rule, not by use.',
+  why_risk: 'A risk register',
+  why_risk_sub: 'What it risks: high, medium or low',
+  why_risk_so: 'One outage reaches work nobody priced.',
+  why_exit: 'Nowhere',
+  why_exit_sub: 'What leaving would cost',
+  why_exit_so: 'The business depends on it before anyone decides.',
+  why_colour: 'So the decision is made on a colour.',
+
+  b_how_map_h: 'How: a map, not a drawing',
+  b_how_map:
+    'A diagram is someone\'s opinion of the systems. The systems\' own ' +
+    'traces say which calls which, every day.',
+  b_how_map_see: 'That is a map, not a drawing. It is mined, so it stays current.',
+  b_how_map_more:
+    'Operations teams already collect these traces to find outages. The same ' +
+    'traces give the map, with no vendor in between. See the Ledger paper, ' +
+    '9.1.1.',
+  map_drawing: 'A drawing',
+  map_drawing_sub: 'Tidy, dated, one person\'s view',
+  map_mined: 'A map',
+  map_mined_sub: 'Read from the traces, every day',
+
+  b_how_work_h: 'How: from systems to work',
+  b_how_work:
+    'Nobody buys a system for its own sake. Each thing the business does ' +
+    'lights up part of the map.',
+  b_how_work_see: 'The lit path here is {opener_uc}. That lit part is what the ledger reads.',
+  b_how_work_def: 'Use case: one thing the business does, such as settling a claim.',
+  b_how_work_def2: 'Unit of work: one run of a use case, one claim settled.',
+  b_how_work_more:
+    'This is why the ledger reads use cases, not systems. A system on its ' +
+    'own has no owner and no margin. A use case has both. See the Ledger ' +
+    'paper, 9.1.2.',
+
+  b_how_graph_h: 'How: why a graph',
+  b_how_graph:
+    'Cost pools where systems are shared. Risk travels along the lines. ' +
+    'Leaving strands whatever depends on a system.',
+  b_how_graph_see:
+    'All three live in the shape of the map. So read them there, one use ' +
+    'case at a time, and never add them up.',
+  b_how_graph_more:
+    'The book in the corner holds the three entries for {opener_uc}. Next ' +
+    'opens part one, which builds this picture one layer at a time.',
 
   // Part one.
   b_domains_h: 'Domains',
   b_domains:
     '{org} has {n_sub} parts to its business. Each coloured shape is one of ' +
     'them, a domain.',
+  b_domains_def: 'Domain: the smallest part of the business that can own its own numbers.',
   b_domains_see: 'Tap a domain to name it. Each one you name joins the list below.',
   b_domains_more:
     'A domain is a part of the business and the work it owns: {sub_list}. ' +
@@ -193,6 +259,7 @@ export const copy = {
   b_platforms:
     'None of that work happens by hand. It runs on {n_platforms} systems ' +
     'the company bought or built. Each grey circle is one: a platform.',
+  b_platforms_def: 'Platform: a system the business bought or built, that use cases run on.',
   b_platforms_see:
     'The bigger the circle, the more use cases depend on it. Notice that ' +
     'almost every platform is shared across domains.',
@@ -214,6 +281,7 @@ export const copy = {
   b_connectors:
     'The platforms do not reach each other on their own. {n_int} more nodes ' +
     'exist only to carry logins, calls and messages between them.',
+  b_connectors_def: 'Connector: a node that only carries logins, calls and messages between platforms.',
   b_connectors_see:
     'The teal diamonds are those connectors: {int_list}. Every use case ' +
     'passes through them.',
@@ -313,6 +381,7 @@ export const copy = {
   b_meter:
     'Start with what can be measured. {top} has a meter that ticks with use: ' +
     'every login is counted and billed.',
+  b_meter_def: 'Metered: counted as it is used, and billed by the count.',
   b_meter_see:
     'Watch the reading beside the node: the meter is the only part of the ' +
     'bill anyone actually measures.',
@@ -324,6 +393,7 @@ export const copy = {
   b_pool:
     'The rest of the bill is a fixed pool. Licences and the team who run it, ' +
     'paid whether anyone logs in or not.',
+  b_pool_def: 'Fixed pool: the cost that stays the same however much the platform is used.',
   b_pool_see:
     'The block beside the node is the pool. Nobody meters a pool. It has to ' +
     'be shared out.',
@@ -332,6 +402,7 @@ export const copy = {
     'The pool is shared among the {riders} use cases riding the platform by ' +
     'a rule somebody chose. The rings show it: solid is metered, hatched is ' +
     'rule.',
+  b_rule_def: 'Rule share: the part of a pool a use case is given by a rule, not a meter.',
   b_rule_see:
     '{first} is told GBP {before} a month for this platform alone. Part of ' +
     'that is the rule.',
@@ -359,6 +430,7 @@ export const copy = {
   b_together:
     'Price a bad month for {sub} one use case at a time and add them up: ' +
     'about GBP {sum}. Price the domain together: about GBP {joint}.',
+  b_together_def: 'Bad month: one so bad that a worse one comes about once in a hundred months.',
   b_together_see:
     'Adding assumes every use case has its worst month in the same month. ' +
     'They rarely do. Together is the figure to read.',
@@ -371,6 +443,7 @@ export const copy = {
     'Those figures depend on one input this tool does not measure: how ' +
     'strongly platform failures are linked. Move the slider from one end to ' +
     'the other.',
+  b_rho_def: 'Dependence: how strongly platforms tend to fail in the same month.',
   b_rho_see: 'Across the range the {sub} figure ran from about GBP {lo} to about GBP {hi}. The honest reading is the range.',
   b_rho_more:
     'The slider is a dependence parameter, rho, from 0 to 1. It runs under a ' +
@@ -391,6 +464,7 @@ export const copy = {
   b_exit:
     'At that month the work of leaving had already reached about GBP {exec}, ' +
     'unsplit. Migration, rewiring, running two systems for a while.',
+  b_exit_def: 'Work of leaving: the engineering work to move every use case off a platform.',
   b_exit_see:
     'Month {cursor}: {attached_now} use cases attached, and the work of ' +
     'leaving stands at {exit_now}. Drag the handle either way. No single ' +
@@ -450,6 +524,7 @@ export const copy = {
     'The domain figures so far, such as a bad month for {sub}, depend on ' +
     'where the domain lines sit. The graph was mined from the systems. The ' +
     'lines were drawn by people.',
+  b_lines_drawn_def: 'Boundary: the line that says which domain owns which use case.',
   b_lines_drawn_see:
     'The faint dashed lines cross a boundary. A redraw touches every figure ' +
     'that reads one, and none of the systems.',
@@ -492,6 +567,7 @@ export const copy = {
   // The closing card's blocks. Text salvaged unchanged from the old tour's
   // last chapter where it existed; the caveat is the owner's sentence, word
   // for word, and is reused elsewhere, so it must stay character-identical.
+  close_pitch: 'What the architecture costs, one decision at a time.',
   close_h_what: 'What this is',
   close_what:
     'An invented insurer and a way of pricing its architecture: three ' +
