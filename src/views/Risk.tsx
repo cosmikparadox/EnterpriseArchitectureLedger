@@ -162,7 +162,9 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           tabHint={platform ? platform.name : 'Risk'}
         >
           <h2>{platform ? platform.name : 'Select a platform'}</h2>
-          {!inStory && platform && <button className="ctl play" onClick={() => w.start(platform.id)}>{copy.walk_play}</button>}
+          {!inStory && platform && (w.walk && (ix.platformById.has(w.walk) || ix.useCaseById.has(w.walk))
+            ? <Walkthrough ix={ix} rule={walkRule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+            : <button className="ctl play" onClick={() => w.start(platform.id)}>{copy.walk_play}</button>)}
           <div className="kind">{platform?.category ?? ''}</div>
           {platform && (
             <Summary
@@ -264,9 +266,6 @@ export function Risk({ estate, ix, dark }: RiskProps) {
             </section>
           )}
         </PanelShell>
-        {!inStory && w.walk && (ix.platformById.has(w.walk) || ix.useCaseById.has(w.walk)) && (
-          <Walkthrough ix={ix} rule={walkRule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
-        )}
       </div>
     </>
   )

@@ -184,7 +184,9 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           tabHint="Boundaries"
         >
           <h2>Redraw the lines</h2>
-          {!inStory && picked && (ixAfter.platformById.has(picked) || ixAfter.useCaseById.has(picked)) && <button className="ctl play" onClick={() => w.start(picked)}>{copy.walk_play}</button>}
+          {!inStory && w.walk && (ixAfter.platformById.has(w.walk) || ixAfter.useCaseById.has(w.walk))
+            ? <Walkthrough ix={ixAfter} rule={rule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+            : !inStory && picked && (ixAfter.platformById.has(picked) || ixAfter.useCaseById.has(picked)) && <button className="ctl play" onClick={() => w.start(picked)}>{copy.walk_play}</button>}
           {(() => {
             const movedN = Object.keys(moved).length
             const d = drift.find((x) => x.rule === rule)
@@ -289,9 +291,6 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
             <div className="note">{copy.boundaries_unchanged}</div>
           </section>
         </PanelShell>
-        {!inStory && w.walk && (ixAfter.platformById.has(w.walk) || ixAfter.useCaseById.has(w.walk)) && (
-          <Walkthrough ix={ixAfter} rule={rule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
-        )}
       </div>
     </>
   )

@@ -54,7 +54,7 @@ export function FootprintChart({ months, series, cursor, ratified, onCursor, hei
   }
 
   return (
-    <figure style={{ margin: '4px 0 0' }}>
+    <figure className="fp-chart" style={{ margin: '4px 0 0' }}>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} role="img"
         aria-label={copy.footprint_chart_aria}>
         {[0, 0.5, 1].map((f) => (

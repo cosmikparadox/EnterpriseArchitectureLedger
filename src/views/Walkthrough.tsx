@@ -1,4 +1,4 @@
-// The explorer's walkthrough: one node, a few steps, the story's rhythm.
+// The walkthrough: one node, a few steps, the story's rhythm, inside the panel.
 //
 // Outside the story a tapped node shows everything at once on the panel.
 // This is the other way in: a play button, and the same figures arrive one
@@ -81,46 +81,28 @@ export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: Wa
     return () => onFocus(null)
   }, [ix, id, key, isPlatform, onFocus])
 
-  // Dragged by its header, like the story's card, so it can be moved off
-  // whatever it covers.
-  const cardRef = useRef<HTMLElement | null>(null)
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
-  const onHeaderDown = (e: React.PointerEvent) => {
-    const el = cardRef.current
-    if (!el || (e.target as HTMLElement).closest('button')) return
-    const start = el.getBoundingClientRect()
-    const dx = e.clientX - start.left, dy = e.clientY - start.top
-    const pb = (el.offsetParent as HTMLElement | null)?.getBoundingClientRect() ?? { left: 0, top: 0, width: innerWidth, height: innerHeight }
-    const move = (ev: PointerEvent) => setPos({
-      x: Math.min(Math.max(0, ev.clientX - dx - pb.left), pb.width - 120),
-      y: Math.min(Math.max(0, ev.clientY - dy - pb.top), pb.height - 60),
-    })
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', up)
-  }
-
+  // The walk sits in the panel, where the play button was, so the panel is
+  // one explainer: the step says it, the sections below disclose as it goes.
+  // It never floats over the map.
+  const boxRef = useRef<HTMLElement | null>(null)
+  useEffect(() => { boxRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [step])
   const stem = isPlatform ? `walk_p_${key}` : `walk_u_${key}`
   return (
-    <aside ref={cardRef} className="story walk" aria-label="Walkthrough" style={pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined}>
-      <header className="story-head walk-head" onPointerDown={onHeaderDown} title={copy.story_drag}>
-        <div className="intro-part">{String(values.name ?? '')}</div>
-        <h1 key={key}>{c[`${stem}_h`]}</h1>
-      </header>
-      <div className="story-body">
-        <p key={`${key}-l`} className="intro-line">{fill(c[stem] ?? '', values)}</p>
+    <section ref={boxRef} className="walk-inline" aria-label={copy.walk_label} aria-live="polite">
+      <div className="walk-top">
+        <span className="walk-step">{fill(copy.walk_step, { k: step + 1, n: steps.length })}</span>
+        <button type="button" className="tour-skip" onClick={onClose}>{copy.walk_close}</button>
       </div>
-      <footer className="story-foot">
-        <div className="intro-actions">
-          <button className="ctl" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>{copy.story_back}</button>
-          {step < steps.length - 1
-            ? <button className="cta" onClick={() => setStep((s) => s + 1)}>{copy.story_next}</button>
-            : <button className="cta" onClick={onClose}>{copy.walk_close}</button>}
-          <button className="tour-skip" onClick={onClose}>{copy.walk_close}</button>
-        </div>
-        <div className="walk-dots" aria-hidden="true">{steps.map((s, i) => <span key={s} className={i <= step ? 'on' : ''} />)}</div>
-      </footer>
-    </aside>
+      <h3 key={key}>{c[`${stem}_h`]}</h3>
+      <p key={`${key}-l`}>{fill(c[stem] ?? '', values)}</p>
+      <div className="walk-actions">
+        <button className="ctl" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>{copy.story_back}</button>
+        {step < steps.length - 1
+          ? <button className="cta" onClick={() => setStep((s) => s + 1)}>{copy.story_next}</button>
+          : <button className="cta" onClick={onClose}>{copy.walk_close}</button>}
+        <div className="walk-dots" aria-hidden="true">{steps.map((st, i) => <span key={st} className={i <= step ? 'on' : ''} />)}</div>
+      </div>
+    </section>
   )
 }
 

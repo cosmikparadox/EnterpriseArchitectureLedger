@@ -149,7 +149,9 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           {platform ? (
             <>
               <h2>{platform.name}</h2>
-              {!inStory && <button className="ctl play" onClick={() => { setWatched(null); w.start(platform.id) }}>{copy.walk_play}</button>}
+              {!inStory && (w.walk && ix.platformById.has(w.walk)
+                ? <Walkthrough ix={ix} rule={rule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+                : <button className="ctl play" onClick={() => { setWatched(null); w.start(platform.id) }}>{copy.walk_play}</button>)}
               <div className="kind">{platform.category}</div>
               {(() => {
                 const first = ixBase.ridersOf.get(platform.id)?.[0]?.uc
@@ -257,9 +259,6 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
             <div className="note">{copy.fx_select}</div>
           )}
         </PanelShell>
-        {!inStory && w.walk && ix.platformById.has(w.walk) && (
-          <Walkthrough ix={ix} rule={rule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
-        )}
       </div>
     </>
   )

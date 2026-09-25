@@ -208,7 +208,7 @@ button, input, select { font: inherit; color: inherit; }
    a bottom sheet that can be dragged and collapsed, and resizing a WebGL canvas
    on every frame of a drag is not worth the pixels it would return. */
 @media (min-width: 721px) {
-  .graphwrap.panel-open { --chrome-right: 330px; }
+  .graphwrap.panel-open { --chrome-right: var(--panel-w, 360px); }
 }
 
 .legend {
@@ -235,10 +235,14 @@ button, input, select { font: inherit; color: inherit; }
      bottom anchored tour card does not cut the panel off mid sentence. The
      phone rules below replace all four of these. */
   position: absolute; z-index: 20; top: 0; right: 0; bottom: var(--chrome-bottom);
-  height: auto; width: 330px;
+  height: auto; width: var(--panel-w, 360px);
+  container: panel / inline-size;
   background: var(--panel); border-left: 1px solid var(--line);
-  overflow: auto; padding: 12px 14px 20px;
+  /* The body scrolls, not the panel, so the grip, the close button and the
+     sheet handle stay where they are. */
+  overflow: hidden; padding: 0; display: flex; flex-direction: column;
 }
+.panel-body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 12px 14px 20px; }
 .panel h2 { font-size: 14px; margin: 0 0 1px; }
 .panel .kind { color: var(--ink-3); font-size: 11px; margin-bottom: 10px; }
 .panel .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; cursor: pointer; color: var(--ink-3); font-size: 16px; line-height: 1; }
@@ -351,18 +355,22 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--ink);
   text-wrap: balance;
 }
+.summary-lenses { display: grid; gap: 6px; }
+/* Two readings, in the two colours the company page gave its two readers:
+   gold for the CFO's, blue for the architects'. */
 .summary-lens {
-  display: grid; grid-template-columns: 78px 1fr; gap: 8px;
-  padding: 5px 0 5px 8px;
-  border-left: 2px solid var(--line);
-  margin-bottom: 3px;
+  padding: 6px 8px 6px 10px;
+  border-left: 3px solid var(--who);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--who) 7%, transparent);
 }
-.summary-lens:last-of-type { border-left-color: var(--accent); }
 .summary-lens p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .summary-eyebrow {
-  font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--ink-3); padding-top: 3px;
+  display: inline-flex; align-items: center; gap: 5px; margin-bottom: 2px;
+  font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  color: var(--who);
 }
+.summary-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--who); }
 
 /* ---- the tour spotlight ----
    Sits under the card and above everything else. The mask cuts the holes; the
@@ -1122,13 +1130,11 @@ button, input, select { font: inherit; color: inherit; }
 .decision-line { font-size: 11.5px; color: var(--ink-2); line-height: 1.45; }
 
 /* ---- the explorer's walkthrough card ---- */
-.story.walk { top: var(--tour-gap); left: var(--tour-gap); right: auto; }
 .walk-dots { display: flex; gap: 5px; margin-top: 8px; }
 .walk-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
 .walk-dots span.on { background: var(--accent); }
 .play { display: inline-flex; align-items: center; gap: 6px; margin: 2px 0 10px; }
 .play::before { content: ''; width: 0; height: 0; border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
-@media (max-width: 720px) { .story.walk { top: auto; left: 0; right: 0; } }
 .decision-arrow.pending::after { animation: none; transform: translateX(-100%); }
 @media (prefers-reduced-motion: reduce) { .flash, .decision-arrow::after { animation: none; } .decision-arrow:not(.pending)::after { transform: none; } }
 
@@ -1169,8 +1175,6 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 /* ---- the walkthrough card keeps its height, so Back and Next never move ---- */
-.story.walk { height: min(300px, 40vh); }
-.story.walk .story-body { flex: 1 1 auto; }
 .panel section.reveal { animation: intro-in 520ms cubic-bezier(.2,.7,.2,1); }
 .book-v { display: block; font-size: 11.5px; color: var(--ink-2); margin-top: 1px; }
 @media (prefers-reduced-motion: reduce) { .ov-curve path { animation: none; stroke-dashoffset: 34; } .ov-curve circle { animation: none; opacity: 1; } .panel section.reveal { animation: none; } }
@@ -1224,7 +1228,7 @@ button, input, select { font: inherit; color: inherit; }
 .dim-toggle button[aria-pressed="true"] { background: var(--accent); color: var(--panel); }
 .dim-toggle button:focus-visible, .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Beside the panel when one is open, beside the card in the story: always on the canvas. */
-@media (min-width: 721px) { .app:not(.story-open) .main:has(.graphwrap.panel-open) .canvas-switches { right: calc(330px + 12px); } }
+@media (min-width: 721px) { .app:not(.story-open) .main:has(.graphwrap.panel-open) .canvas-switches { right: calc(var(--panel-w, 360px) + 12px); } }
 .app.story-open .main .canvas-switches { top: 12px; right: calc(var(--wm-right, 0px) + 12px); }
 /* On a phone the two stack in the corner, clear of the wordmark and the menu. */
 @media (max-width: 720px) {
@@ -1669,4 +1673,53 @@ button, input, select { font: inherit; color: inherit; }
 *::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
-.walk-head { cursor: move; }
+
+/* ---- the panel: one explainer, as wide as the reader wants ----
+   A grip on its left edge sets the width. Once wide enough, the sections
+   flow into two columns and anything with a chart or a comparison runs
+   across both; the two readings sit side by side. */
+.panel-grip {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 9px; z-index: 3;
+  cursor: col-resize; touch-action: none; display: flex; align-items: center; justify-content: center;
+}
+.panel-grip span { width: 4px; height: 38px; border-radius: 2px; background: var(--line); transition: background 150ms, height 150ms; }
+.panel-grip:hover span, .panel-grip:focus-visible span, .panel.resizing .panel-grip span { background: var(--accent); height: 64px; }
+.panel-grip:focus-visible { outline: none; }
+.panel.resizing { user-select: none; }
+.panel.resizing .panel-body { pointer-events: none; }
+@media (max-width: 720px) { .panel-grip { display: none; } }
+@container panel (min-width: 560px) {
+  .panel-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; align-items: start; align-content: start; }
+  .panel-body > * { grid-column: 1 / -1; }
+  .panel-body > section { grid-column: auto; }
+  .panel-body > section:has(svg), .panel-body > section:has(.cmp), .panel-body > section:has(.refusal), .panel-body > section.walk-inline, .panel-body > section[data-tour="riders"] { grid-column: 1 / -1; }
+  .summary-lenses { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-head { font-size: 15px; }
+  /* The footprint's two charts share one time axis: side by side when there
+     is room, each at the size it was drawn for. Other charts keep their
+     drawn size rather than scale their type up with the panel. */
+  .panel-body > section:has(> figure.fp-chart) { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; }
+  .panel-body > section:has(> figure.fp-chart) > :not(figure) { grid-column: 1 / -1; }
+  .panel-body section svg { max-width: 540px; }
+}
+@container panel (min-width: 820px) {
+  .panel-body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---- the walkthrough, inside the panel ---- */
+.walk-inline {
+  margin: 8px 0 6px; padding: 10px 12px 10px !important; border-top: 0 !important;
+  border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  animation: intro-in 360ms ease;
+}
+.walk-inline .walk-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.walk-inline .walk-step { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.walk-inline h3 { font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--ink) !important; margin: 4px 0 4px !important; }
+.walk-inline p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+.walk-inline .walk-actions { display: flex; align-items: center; gap: 8px; }
+.walk-inline .walk-dots { margin: 0 0 0 auto; }
+@media (prefers-reduced-motion: reduce) { .walk-inline { animation: none; } }
+/* On a phone the sheet owns the bottom of the screen; the work in progress
+   tab waits until the sheet is closed rather than sit on its buttons. */
+@media (max-width: 720px) { .main:has(.panel) .wip-tab, .main:has(.panel) .wip-note { display: none; } }

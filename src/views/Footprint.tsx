@@ -176,7 +176,9 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           tabHint={platform?.name ?? 'Footprint'}
         >
           <h2>{platform?.name ?? 'Select a platform'}</h2>
-          {!inStory && platform && <button className="ctl play" onClick={() => w.start(platform.id)}>{copy.walk_play}</button>}
+          {!inStory && platform && (w.walk && (ix.platformById.has(w.walk) || ix.useCaseById.has(w.walk))
+            ? <Walkthrough ix={ix} rule={walkRule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+            : <button className="ctl play" onClick={() => w.start(platform.id)}>{copy.walk_play}</button>)}
           <div className="kind">{platform?.category ?? ''}</div>
           {platform && (
             <Summary
@@ -254,9 +256,6 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
             </>
           )}
         </PanelShell>
-        {!inStory && w.walk && (ix.platformById.has(w.walk) || ix.useCaseById.has(w.walk)) && (
-          <Walkthrough ix={ix} rule={walkRule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
-        )}
       </div>
     </>
   )

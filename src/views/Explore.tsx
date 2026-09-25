@@ -339,10 +339,10 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           onSelectNode={pick}
           onPlay={selectedId ? () => { setWalk(selectedId); setWalkStep(0); setFlyTo(selectedId) } : undefined}
           reveal={!inStory && walk === selectedId ? reveal : undefined}
+          walk={!inStory && walk && walk === selectedId && (ix.platformById.has(walk) || ix.useCaseById.has(walk))
+            ? <Walkthrough ix={ix} rule={rule} id={walk} step={walkStep} onStep={setWalkStep} onFocus={onWalkFocus} onClose={() => setWalk(null)} />
+            : undefined}
         />
-        {!inStory && walk && (ix.platformById.has(walk) || ix.useCaseById.has(walk)) && (
-          <Walkthrough ix={ix} rule={rule} id={walk} step={walkStep} onStep={setWalkStep} onFocus={onWalkFocus} onClose={() => setWalk(null)} />
-        )}
       </div>
     </>
   )

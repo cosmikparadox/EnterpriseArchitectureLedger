@@ -2675,3 +2675,36 @@ at 0, 25, 50, 75 and 100 percent, desktop and 390 px.
 `v05-switch-story-phone.png` shows the switch beside the card, and
 `v05-part1-*` shows part one's six beats flat. `recordings/` holds webm
 recordings of 3D to 2D to 3D, desktop and 390 px.
+
+### 97. The explorer panel: one explainer, as wide as the reader wants
+
+The walkthrough used to float over the map in its own card, a second
+explainer beside the panel, often covering the node it described. It now
+runs inside the panel, where "Walk me through it" was. Each step shows its
+heading, its sentence and Back, Next and Done, and the sections below
+disclose as the walk goes. The same holds on the fixed pool, risk,
+footprint and boundaries screens. Nothing floats over the map.
+
+The panel's left edge is a grip. Drag it, or focus it and use the arrow
+keys (Shift for bigger steps, Home to reset), to widen or narrow the panel
+between 300 px and 60 percent of the window. Double-click resets it to
+360 px. The width is kept in this browser's storage only, as a
+convenience. The canvas ends where the panel begins, so the map re-frames
+to the room it has.
+
+The panel's content follows its width through a container query. Past 560 px
+the sections flow into two columns and the two readings sit side by side.
+Charts, comparisons, refusals and the walkthrough run across the width. The
+footprint's two charts sit side by side at their drawn size, and no chart
+scales its type up with the panel. Past 820 px the sections flow into three
+columns. The panel's body scrolls, not the panel, so the grip and the close
+button stay put. On a phone the panel stays a bottom sheet. The folded work
+in progress tab waits until the sheet is closed rather than sit on its
+buttons.
+
+The two readings under each headline were "The number" and "The
+mechanism", in grey. They are now "On the books", in the CFO's gold, and
+"In the wiring", in the architects' blue, the two colours the company page
+gave its two readers. The labels name the lens, not the job title. The
+footprint's note on the bill now says the work of leaving was not shown,
+not the execution component, in line with deviation 95.

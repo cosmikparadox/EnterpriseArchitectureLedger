@@ -4,6 +4,12 @@
 //
 // Every view uses this, so the panel behaves the same way everywhere.
 //
+// On a wide screen the panel's left edge is a grip: drag it, or use the
+// arrow keys on it, to make the panel wider or narrower. The canvas ends
+// where the panel begins, so the map re-frames to the room it has, and the
+// panel's content reflows: two columns of sections once it is wide enough,
+// charts across both. The width is remembered in this browser only.
+//
 // The sheet opens at 40 percent of the screen rather than 62. At 62 the graph
 // was a strip above a wall of text, which inverts what the tool is for. The
 // handle drags it to 62 when the reading matters more than the picture, and
@@ -11,6 +17,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNarrow } from '../app/useNarrow'
+import { copy } from '../copy'
 
 export interface PanelShellProps {
   label: string
@@ -23,6 +30,20 @@ export interface PanelShellProps {
 
 const SHORT = 40
 const TALL = 62
+/** Desktop panel widths, in pixels. */
+export const PANEL_DEFAULT = 360
+const PANEL_MIN = 300
+const WIDTH_KEY = 'ledger.panelWidth'
+const panelMax = () => Math.max(PANEL_MIN, Math.min(820, Math.round(window.innerWidth * 0.6)))
+const clampWidth = (w: number) => Math.round(Math.min(panelMax(), Math.max(PANEL_MIN, w)))
+function readWidth(): number {
+  try { const v = Number(localStorage.getItem(WIDTH_KEY)); return Number.isFinite(v) && v > 0 ? clampWidth(v) : PANEL_DEFAULT } catch { return PANEL_DEFAULT }
+}
+/** The panel's width, on the root, for everything that sits beside it: the canvas, the switches. */
+function publishWidth(w: number | null): void {
+  const root = document.documentElement
+  if (w === null) root.style.removeProperty('--panel-w'); else root.style.setProperty('--panel-w', `${w}px`)
+}
 
 /**
  * Publish the sheet's height as a custom property on the root, so anything that
@@ -39,6 +60,44 @@ export function PanelShell({ label, collapsed, onToggle, tabHint, children }: Pa
   const narrow = useNarrow()
   const [pct, setPct] = useState(SHORT)
   const dragging = useRef(false)
+  const [width, setWidth] = useState(readWidth)
+  const [resizing, setResizing] = useState(false)
+  useEffect(() => {
+    publishWidth(narrow || collapsed ? null : width)
+    return () => publishWidth(null)
+  }, [narrow, collapsed, width])
+  // A window made narrower must not leave the panel wider than it allows.
+  useEffect(() => {
+    const onResize = () => setWidth((w) => clampWidth(w))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  const keep = (w: number) => { try { localStorage.setItem(WIDTH_KEY, String(w)) } catch { /* not remembered; the width still holds for this visit */ } }
+  const onGripDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const el = e.currentTarget
+    el.setPointerCapture(e.pointerId)
+    const right = (el.parentElement?.getBoundingClientRect().right ?? window.innerWidth)
+    setResizing(true)
+    let last = width
+    const move = (ev: PointerEvent) => { last = clampWidth(right - ev.clientX); setWidth(last) }
+    const up = () => {
+      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up)
+      setResizing(false); keep(last)
+    }
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up)
+  }
+  const onGripKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = e.shiftKey ? 80 : 24
+    let next: number | null = null
+    if (e.key === 'ArrowLeft') next = width + step
+    else if (e.key === 'ArrowRight') next = width - step
+    else if (e.key === 'Home') next = PANEL_DEFAULT
+    if (next === null) return
+    e.preventDefault()
+    const w = clampWidth(next)
+    setWidth(w); keep(w)
+  }
 
   useEffect(() => {
     publishSheetHeight(narrow, collapsed, pct)
@@ -77,7 +136,16 @@ export function PanelShell({ label, collapsed, onToggle, tabHint, children }: Pa
     )
   }
   return (
-    <aside className="panel" aria-label={label} style={narrow ? { height: `${pct}%` } : undefined}>
+    <aside className={resizing ? 'panel resizing' : 'panel'} aria-label={label} style={narrow ? { height: `${pct}%` } : { width }}>
+      {!narrow && (
+        <div
+          className="panel-grip" role="separator" aria-orientation="vertical" tabIndex={0}
+          aria-label={copy.panel_resize} title={copy.panel_resize_hint}
+          aria-valuemin={PANEL_MIN} aria-valuemax={panelMax()} aria-valuenow={width}
+          onPointerDown={onGripDown} onKeyDown={onGripKey}
+          onDoubleClick={() => { setWidth(PANEL_DEFAULT); keep(PANEL_DEFAULT) }}
+        ><span /></div>
+      )}
       <button
         className="sheet-handle"
         aria-label={`Resize ${label}`}
@@ -92,7 +160,7 @@ export function PanelShell({ label, collapsed, onToggle, tabHint, children }: Pa
       <button className="close" onClick={onToggle} aria-expanded={true} aria-label={`Collapse ${label}`}>
         x
       </button>
-      {children}
+      <div className="panel-body">{children}</div>
     </aside>
   )
 }

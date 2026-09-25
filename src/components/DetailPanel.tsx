@@ -1,7 +1,7 @@
 // The detail panel. Spec section 5. One component for every node type, with
 // sections shown or hidden by type.
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { copy, fill, glossary, summary, type GlossaryKey } from '../copy'
 import { Summary } from './Summary'
 import { Term } from './Hint'
@@ -47,6 +47,8 @@ export interface DetailPanelProps {
   onSelectNode: (id: string) => void
   /** Start the walkthrough of the selected node, when there is one. */
   onPlay?: () => void
+  /** The walkthrough, shown in the play button's place while it runs. */
+  walk?: ReactNode
   /** During a walkthrough, which sections have been reached. Absent: all. */
   reveal?: string[]
 }
@@ -113,7 +115,7 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.category}, {v.kind === 'integration' ? 'integration node' : 'platform'}</div>
-        {props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>}
+        {props.walk ?? (props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>)}
         {/* Chapter 7 shows the name alone; chapter 8 adds the headline once
             "meters" has been taught; the two readings follow the chapters
             that teach their words. */}
@@ -202,7 +204,7 @@ export function DetailPanel(props: DetailPanelProps) {
       <PanelShell label="Node detail" collapsed={props.collapsed} onToggle={props.onToggleCollapsed} tabHint={v.name}>
         <h2>{v.name}</h2>
         <div className="kind">{v.subdomainName}, use case</div>
-        {props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>}
+        {props.walk ?? (props.onPlay && <button className="ctl play" onClick={props.onPlay}>{copy.walk_play}</button>)}
         {show('summary') && (
         <Summary
           head={summary.s1u_head} number={summary.s1u_number} mechanism={summary.s1u_mechanism}

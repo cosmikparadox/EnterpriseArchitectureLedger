@@ -136,8 +136,8 @@ export const copy = {
   // View 4, cursor dragged to a month before the node was adopted. The panel
   // keeps its shape; only the figures have nothing to say yet.
   footprint_bill_visible:
-    'The bill was visible throughout. The execution component was not shown ' +
-    'to anyone.',
+    'The bill was visible throughout. The work of leaving was not shown to ' +
+    'anyone.',
   footprint_not_yet:
     'Not adopted yet at this month. Nothing rides on it and there is nothing ' +
     'to leave.',
@@ -936,6 +936,10 @@ export const copy = {
   risk_band_value: 'about USD {lo} to USD {hi}',
   // The explorer's walkthrough: one node, six steps, the same rhythm as the story.
   walk_play: 'Walk me through it',
+  walk_label: 'Walkthrough',
+  panel_resize: 'Resize the panel',
+  panel_resize_hint: 'Drag to widen or narrow the panel. Double-click to reset.',
+  walk_step: 'Step {k} of {n}',
   walk_close: 'Done',
   walk_p_what_h: 'What it is',
   walk_p_what:
@@ -1181,8 +1185,10 @@ export const viewPurpose: Record<number, string> = {
  * named only in the same sentence as the refusal to state it.
  */
 export const summary = {
-  eyebrow_number: 'The number',
-  eyebrow_mechanism: 'The mechanism',
+  // The two readings under each headline: the books, in the CFO's gold, and
+  // the wiring, in the architects' blue.
+  eyebrow_number: 'On the books',
+  eyebrow_mechanism: 'In the wiring',
 
   // View 1, nothing selected.
   s1_head:

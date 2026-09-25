@@ -5,8 +5,10 @@
 // of figures; it is the sentence somebody would say across a table before
 // pointing at any of them.
 //
-// The two readings are marked by lens, not by reader. "The number" and "The
-// mechanism" name what each line looks at. Who reads which is their business.
+// Two readings, in the two colours the company page gave its two readers.
+// The first is what the figure means on the books, in the CFO's gold; the
+// second is how the wiring produces it, in the architects' blue. The labels
+// name the lens, not the job title, so either reader can read both.
 
 import { fill, summary } from '../copy'
 
@@ -25,13 +27,15 @@ export function Summary({ head, number, mechanism, values, headOnly = false }: S
       <p className="summary-head">{fill(head, values)}</p>
       {!headOnly && (
         <>
-          <div className="summary-lens">
-            <span className="summary-eyebrow">{summary.eyebrow_number}</span>
-            <p>{fill(number, values)}</p>
-          </div>
-          <div className="summary-lens">
-            <span className="summary-eyebrow">{summary.eyebrow_mechanism}</span>
-            <p>{fill(mechanism, values)}</p>
+          <div className="summary-lenses">
+            <div className="summary-lens who-cfo">
+              <span className="summary-eyebrow">{summary.eyebrow_number}</span>
+              <p>{fill(number, values)}</p>
+            </div>
+            <div className="summary-lens who-arch">
+              <span className="summary-eyebrow">{summary.eyebrow_mechanism}</span>
+              <p>{fill(mechanism, values)}</p>
+            </div>
           </div>
         </>
       )}
