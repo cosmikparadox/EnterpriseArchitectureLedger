@@ -1,6 +1,6 @@
 // View 1, Explore. Spec section 4.1.
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
@@ -109,6 +109,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const [walkFocus, setWalkFocus] = useState<Focus | null>(null)
   const reveal = walk ? revealFor(ix.platformById.has(walk), walkStep) : undefined
   const onWalkFocus = useCallback((f: Focus | null) => setWalkFocus(f), [])
+  // Any other selection, from anywhere, ends the walk on the old node.
+  useEffect(() => { if (walk && selectedId !== walk) setWalk(null) }, [selectedId, walk])
   const gestureHint = inStory && scene.hint && !dragged ? copy.canvas_gesture : null
   // The first time the reader meets dots or spheres, a few of them pulse
   // and a hint says they can be tapped. One tap on that kind retires it,
@@ -259,8 +261,10 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
             if (inStory) { if (ix.useCaseById.has(id)) setPoked('useCases'); else if (ix.platformById.has(id)) { setPoked('platforms'); if (ix.platformById.get(id)?.type === 'integration') setPoked('connectors') } setFocus({ kind: 'node', id }); setSelectedId(id); return }
             setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false); if (walk && walk !== id) setWalk(null)
           }}
-          onSelectLink={(l) => { if (inStory) { setPoked('lines'); setPoked('flow'); setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
-          onBackground={() => { if (inStory) { setFocus(null); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
+          onSelectLink={(l) => { if (inStory) { setPoked('lines'); setPoked('flow'); setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setWalk(null); setSelectedLink(l); setCollapsed(false) }}
+          // Leaving the node ends its walkthrough too, so the panel and the
+          // card never describe two different things.
+          onBackground={() => { if (inStory) { setFocus(null); return } setHullPop(null); setSelectedId(null); setSelectedLink(null); setWalk(null) }}
           // A coloured shape is a domain. In the story it names itself on the
           // card; afterwards it explains itself in a pop-up where it was tapped.
           onSelectHull={(sub) => {

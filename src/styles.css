@@ -218,8 +218,16 @@ button, input, select { font: inherit; color: inherit; }
 }
 .legend .legend-body > div { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
 .legend .glyph { width: 14px; text-align: center; color: var(--ink-3); }
-/* The open/close control is only needed where the legend can be closed. */
-.legend .legend-toggle { display: none; }
+/* The legend opens and closes at every width. */
+.legend { padding: 0; }
+.legend .legend-toggle {
+  display: block; width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+  padding: 6px 10px; font: inherit; font-weight: 600; color: var(--ink-2); letter-spacing: 0.04em;
+}
+.legend .legend-toggle::after { content: ' +'; color: var(--ink-3); }
+.legend.open .legend-toggle::after { content: ' -'; }
+.legend .legend-body { padding: 0 10px 8px; }
+.legend:not(.open) { max-width: max-content; }
 
 /* ---- detail panel ---- */
 .panel {
@@ -1625,3 +1633,11 @@ button, input, select { font: inherit; color: inherit; }
 .story-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
 .story-body::-webkit-scrollbar-track { background: transparent; }
 .story-body::-webkit-scrollbar-button { display: none; height: 0; }
+
+/* Scrollbars everywhere: thin, light, no arrows. */
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+.walk-head { cursor: move; }

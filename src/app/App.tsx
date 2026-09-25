@@ -108,10 +108,13 @@ export function App() {
   // A deep link into the story arrives with the view still on the front
   // page; the beat's own view is set by the engine, but until it has, view 1
   // is the canvas everything is drawn on.
+  // It reads the store as it is now, not as this render saw it: on first
+  // load the address bar may already have asked for another screen, and a
+  // stale 'landing' here would send a link to #/pool back to Explore.
   useEffect(() => {
-    if (tourStep !== null && view === 'landing') setView(1)
-    if (tourStep === null && view === 'landing') setView(1)
-  }, [tourStep, view, setView])
+    const s = useLedger.getState()
+    if (s.view === 'landing') s.setView(1)
+  }, [tourStep, view])
   // Where the card docks, for the canvas: it keeps its full width and
   // offsets its camera to centre the picture in the space the card leaves.
   // The layout class of the screen, re-read when the viewport changes.

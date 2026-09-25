@@ -7,15 +7,12 @@
 // canvas is the point and a legend covering a third of it is worse than a
 // legend you have to ask for.
 
-import { useEffect, useState, type ReactNode } from 'react'
-import { useNarrow } from '../app/useNarrow'
+import { useState, type ReactNode } from 'react'
 
+// Closed by default at every width: a small tab in the corner that opens on
+// a tap, so the canvas keeps the space until the key is wanted.
 export function Legend({ children }: { children: ReactNode }) {
-  const narrow = useNarrow()
-  const [open, setOpen] = useState(!narrow)
-  // Rotating a phone should not leave a desktop-width legend collapsed, or a
-  // phone-width one covering the graph.
-  useEffect(() => { setOpen(!narrow) }, [narrow])
+  const [open, setOpen] = useState(false)
 
   return (
     <div className={`legend${open ? ' open' : ''}`}>

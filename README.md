@@ -2453,3 +2453,26 @@ risk and exit are recorded and rated now: documents, a colour matrix,
 three silos. The canon's ledger is an instrument that measures, reading
 principle C1, and part two is the contrast with that. It is now titled
 how it is measured today.
+
+### 93. The explorer answers: walkthroughs everywhere, a legend that folds, taps that show
+
+The walkthrough card now drags by its header like the story's card. The
+legend folds to a small tab at every width and starts folded; it used to
+fold only on phones. The walkthrough, "Walk me through it", is now offered
+on the fixed pool, risk, footprint and boundaries screens as well as the
+explorer, for whichever node is selected there. Leaving the node, by
+choosing another or tapping the background, ends its walkthrough, so the
+panel and the card never describe two different things; before, the card
+could keep walking a node the panel had already let go.
+
+On the fixed pool screen a rider tapped in the panel now shows on the
+canvas: a ring with its name, and its line to the platform lit. Its
+annotation now shows whether or not "Share set by rule" is on; with it
+off, the tap used to do nothing visible. The rider list no longer scrolls
+inside the scrolling panel, and every scrollbar in the app is thin and
+light.
+
+A direct link to any screen but the explorer, such as #/pool, landed on
+the explorer. On first load a check that moves the front page to the
+explorer read the view from before the address bar had been applied. It
+now reads the view as it is.

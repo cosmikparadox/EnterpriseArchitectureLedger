@@ -7,6 +7,7 @@ import { Graph3D } from '../components/Graph3D'
 import { Hint, Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
+import { Walkthrough, useWalk } from './Walkthrough'
 import { ExceedanceCurve } from '../components/ExceedanceCurve'
 import { buildGraph } from '../app/graph'
 import { useMonteCarlo } from '../app/useMonteCarlo'
@@ -43,6 +44,8 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   const sceneFocus = useLedger((s) => s.scene.focus)
   const [focusing, setFocusing] = useState(false)
   const inStory = tourStep !== null
+  const w = useWalk(selected)
+  const walkRule = useLedger((s) => s.rule)
 
   const mc = useMonteCarlo(estate, rho, runs)
   const isPlatform = ix.platformById.has(selected)
@@ -147,7 +150,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           affectedUseCases={phase >= 1 && reach ? new Set([...reach.affected, ...reach.platforms]) : undefined}
           litLinks={phase >= 1 && reach ? reach.litLinks : undefined}
           wave={phase >= 1 ? wave : null}
-          focus={focus}
+          focus={w.focus ?? focus}
           onSelectNode={(id) => { setSelected(id); setFailure(null); setPhase(0); clearFailRequest(); setCollapsed(false); setFocusing(false) }}
           onSelectLink={() => {}}
           onBackground={() => {}}
@@ -166,6 +169,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
           tabHint={platform ? platform.name : 'Risk'}
         >
           <h2>{platform ? platform.name : 'Select a platform'}</h2>
+          {!inStory && platform && <button className="ctl play" onClick={() => w.start(platform.id)}>{copy.walk_play}</button>}
           <div className="kind">{platform?.category ?? ''}</div>
           {platform && (
             <Summary
@@ -263,6 +267,9 @@ export function Risk({ estate, ix, dark }: RiskProps) {
             </section>
           )}
         </PanelShell>
+        {!inStory && w.walk && (ix.platformById.has(w.walk) || ix.useCaseById.has(w.walk)) && (
+          <Walkthrough ix={ix} rule={walkRule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+        )}
       </div>
     </>
   )

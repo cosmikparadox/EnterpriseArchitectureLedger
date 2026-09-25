@@ -9,6 +9,7 @@ import { Graph3D } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
+import { Walkthrough, useWalk } from './Walkthrough'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
 import { buildIndex, ruleShare } from '../model/ledger'
@@ -42,6 +43,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
   const sceneFocus = useLedger((s) => s.scene.focus)
   const flyToId = useLedger((s) => s.flyToId)
   const inStory = tourStep !== null
+  const w = useWalk(picked)
 
   const estate: Estate = useMemo(() => ({
     ...base,
@@ -161,7 +163,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           flyToId={inStory ? flyToId : null}
           dashedLinks={dashed}
           dashedFaint={inStory}
-          focus={focus}
+          focus={w.focus ?? focus}
           callout={callout}
           note={decision}
           noteAt={storyMove && mover ? mover.id : null}
@@ -182,6 +184,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           tabHint="Boundaries"
         >
           <h2>Redraw the lines</h2>
+          {!inStory && picked && (ixAfter.platformById.has(picked) || ixAfter.useCaseById.has(picked)) && <button className="ctl play" onClick={() => w.start(picked)}>{copy.walk_play}</button>}
           {(() => {
             const movedN = Object.keys(moved).length
             const d = drift.find((x) => x.rule === rule)
@@ -295,6 +298,9 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
             </div>
           </section>
         </PanelShell>
+        {!inStory && w.walk && (ixAfter.platformById.has(w.walk) || ixAfter.useCaseById.has(w.walk)) && (
+          <Walkthrough ix={ixAfter} rule={rule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+        )}
       </div>
     </>
   )

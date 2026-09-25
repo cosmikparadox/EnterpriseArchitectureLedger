@@ -17,6 +17,7 @@ import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
 import { RuleSelect } from '../components/RuleSelect'
 import { PanelShell } from '../components/PanelShell'
+import { Walkthrough, useWalk } from './Walkthrough'
 
 export interface FixedPoolProps {
   estate: Estate
@@ -42,6 +43,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
   const sceneFocus = useLedger((s) => s.scene.focus)
   const [focusing, setFocusing] = useState(false)
   const inStory = tourStep !== null
+  const w = useWalk(selected)
 
   const estate = useMemo(() => withSyntheticRiders(base, selected, added), [base, selected, added])
   const ix = useMemo(() => buildIndex(estate), [estate])
@@ -122,7 +124,11 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           isolatedSubdomain={null}
           flyToId={null}
           nodeRing={nodeRing}
-          focus={focus}
+          focus={w.focus ?? focus}
+          // A rider tapped in the panel lights on the canvas: its line to
+          // this platform, and a ring with its name.
+          litLinks={watched && platform ? new Set([`${watched}>${platform.id}`]) : undefined}
+          callout={!inStory && watched ? { kind: 'node', id: watched, text: ix.useCaseById.get(watched)?.name ?? '' } : null}
           onSelectNode={(id) => { setSelected(id); setAdded(0); setWatched(null); setCollapsed(false); setFocusing(false) }}
           onSelectLink={() => {}}
           onBackground={() => {}}
@@ -143,6 +149,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
           {platform ? (
             <>
               <h2>{platform.name}</h2>
+              {!inStory && <button className="ctl play" onClick={() => { setWatched(null); w.start(platform.id) }}>{copy.walk_play}</button>}
               <div className="kind">{platform.category}</div>
               {(() => {
                 const first = ixBase.ridersOf.get(platform.id)?.[0]?.uc
@@ -195,7 +202,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
 
               <section data-tour="riders">
                 <h3>What each rider is told it costs here</h3>
-                <div style={{ maxHeight: 260, overflow: 'auto' }}>
+                <div>
                   {riders.map((r) => {
                     const byRule = ruleShare(ix, platform.id, r.uc.id, rule)
                     const metered = edgeSpend(r.uc, r.edge, platform)
@@ -221,7 +228,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
                 <div className="note">metered + rule. Tap one to read the annotation.</div>
               </section>
 
-              {showC1 && watchedRow && (
+              {watchedRow && (
                 <section>
                   <h3>{copy.c1_annotation}</h3>
                   <div className="callout">
@@ -253,6 +260,9 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
             <div className="note">Select a platform or integration node.</div>
           )}
         </PanelShell>
+        {!inStory && w.walk && ix.platformById.has(w.walk) && (
+          <Walkthrough ix={ix} rule={rule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+        )}
       </div>
     </>
   )

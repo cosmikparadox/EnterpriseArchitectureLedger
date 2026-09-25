@@ -13,6 +13,7 @@ import { Graph3D } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
 import { PanelShell } from '../components/PanelShell'
+import { Walkthrough, useWalk } from './Walkthrough'
 import { FootprintChart, type Series } from '../components/FootprintChart'
 import { WKCurve } from '../components/WKCurve'
 import { gbp } from '../components/DetailPanel'
@@ -41,6 +42,8 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
   const sceneFocus = useLedger((s) => s.scene.focus)
   const [focusing, setFocusing] = useState(false)
   const inStory = tourStep !== null
+  const w = useWalk(selected)
+  const walkRule = useLedger((s) => s.rule)
 
   const platform = ix.platformById.get(selected) ?? null
   const riders = platform ? ix.ridersOf.get(platform.id)! : []
@@ -153,7 +156,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           flyToId={null}
           dimNodes={dimNodes}
           hideLinksOf={dimNodes}
-          focus={focus}
+          focus={w.focus ?? focus}
           onSelectNode={(id) => { if (ix.platformById.has(id)) { setSelected(id); setCollapsed(false); setFocusing(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}
@@ -173,6 +176,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           tabHint={platform?.name ?? 'Footprint'}
         >
           <h2>{platform?.name ?? 'Select a platform'}</h2>
+          {!inStory && platform && <button className="ctl play" onClick={() => w.start(platform.id)}>{copy.walk_play}</button>}
           <div className="kind">{platform?.category ?? ''}</div>
           {platform && (
             <Summary
@@ -255,6 +259,9 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
             </>
           )}
         </PanelShell>
+        {!inStory && w.walk && (ix.platformById.has(w.walk) || ix.useCaseById.has(w.walk)) && (
+          <Walkthrough ix={ix} rule={walkRule} id={w.walk} step={w.step} onStep={w.setStep} onFocus={w.onFocus} onClose={w.stop} />
+        )}
       </div>
     </>
   )

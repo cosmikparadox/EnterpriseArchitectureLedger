@@ -7,7 +7,7 @@
 // was chosen, because the estate has no decision record and the ledger
 // would refuse to invent one.
 
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { copy, fill } from '../copy'
 import { describePlatform, describeUseCase } from '../model/describe'
 import { platformView, useCaseView } from '../app/graph'
@@ -81,10 +81,29 @@ export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: Wa
     return () => onFocus(null)
   }, [ix, id, key, isPlatform, onFocus])
 
+  // Dragged by its header, like the story's card, so it can be moved off
+  // whatever it covers.
+  const cardRef = useRef<HTMLElement | null>(null)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const onHeaderDown = (e: React.PointerEvent) => {
+    const el = cardRef.current
+    if (!el || (e.target as HTMLElement).closest('button')) return
+    const start = el.getBoundingClientRect()
+    const dx = e.clientX - start.left, dy = e.clientY - start.top
+    const pb = (el.offsetParent as HTMLElement | null)?.getBoundingClientRect() ?? { left: 0, top: 0, width: innerWidth, height: innerHeight }
+    const move = (ev: PointerEvent) => setPos({
+      x: Math.min(Math.max(0, ev.clientX - dx - pb.left), pb.width - 120),
+      y: Math.min(Math.max(0, ev.clientY - dy - pb.top), pb.height - 60),
+    })
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
   const stem = isPlatform ? `walk_p_${key}` : `walk_u_${key}`
   return (
-    <aside className="story walk" aria-label="Walkthrough">
-      <header className="story-head">
+    <aside ref={cardRef} className="story walk" aria-label="Walkthrough" style={pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined}>
+      <header className="story-head walk-head" onPointerDown={onHeaderDown} title={copy.story_drag}>
         <div className="intro-part">{String(values.name ?? '')}</div>
         <h1 key={key}>{c[`${stem}_h`]}</h1>
       </header>
@@ -103,4 +122,24 @@ export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: Wa
       </footer>
     </aside>
   )
+}
+
+/**
+ * A walkthrough's state for any screen with a selected node: which node is
+ * being walked, the step, and what the canvas should focus on. The screen
+ * offers the play button and renders the card; this keeps the rest.
+ */
+export function useWalk(selected: string | null) {
+  const [walk, setWalk] = useState<string | null>(null)
+  const [step, setStep] = useState(0)
+  const [focus, setFocus] = useState<Focus | null>(null)
+  const onFocus = useCallback((f: Focus | null) => setFocus(f), [])
+  // Choosing another node ends the walk on the old one.
+  useEffect(() => { if (walk && walk !== selected) { setWalk(null); setFocus(null) } }, [selected, walk])
+  return {
+    walk, step, setStep, onFocus,
+    focus: walk ? focus : null,
+    start: (id: string) => { setWalk(id); setStep(0) },
+    stop: () => { setWalk(null); setFocus(null) },
+  }
 }
