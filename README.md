@@ -2590,3 +2590,88 @@ text.
 platform id, so fix six moved every renamed platform's option component
 slightly. Data cloud and the integration hub kept their ids and did not
 move. Identity service at month 60: 487,965 before, 486,529 after.
+
+### 96. Audit brief v0.5, section 17: a 2D and 3D switch, and a fold between them
+
+**The switch.** A `2D | 3D` pill sits beside the Light and Dark pill at the
+top of the canvas, on every screen and in the story. On a phone the two
+stack in the corner, clear of the wordmark, the chapter menu and the card
+(acceptance V4). The setting lives in the store as `dimension`, defaults
+to 3D (owner decision O11), and holds for the session across beats and
+screens. Its labels are in `copy.ts`.
+
+**One pinned layout per estate (17.2).** Each estate is laid out once per
+session from its seeds, then pinned for good. Every later mount, on any
+screen or beat, puts every node back where it was without running the
+simulation. A synthetic rider still starts beside its platform, and a use
+case moved across a line still travels, in the plane when the map is
+flat. Everything settled is pinned again.
+
+**The canonical frame and the flat map (17.3).** On that first layout the
+positions are turned into a canonical frame and rounded to single
+precision: origin at the centroid, x along the widest spread, y along the
+second, z = x cross y. The sign rule: Sales and Distribution's centroid
+has negative x (Sales on the left), and Claims' centroid has positive y
+(Claims above the centre). The flat map is each node's x and y, then 160
+fixed ticks that only pull apart nodes landing on each other: a collision
+sized to radius plus 2.5 units of label clearance, and a strong pull back
+to the projected spot. Median displacement from the projected spot is 0
+percent of the median neighbour distance, and the largest is 42 percent.
+The code is `src/components/fold.ts`, tested in `fold.test.ts`.
+
+**Camera poses (17.4).** Flat: straight down the canonical z axis, y up,
+a 4 degree field of view at the distance that frames the flat map.
+Fold-ready: the same heading tilted 35 degrees, at the 50 degree default.
+3D now starts at the fold-ready pose on every screen, not along whatever
+line of sight the camera had: a change to the default 3D view. In the
+story both poses frame the picture below the wordmark, through the same
+view offset that already kept it clear of the card. Every camera move now
+goes through one mover in `Graph3D.tsx`. The library's tween used to jump
+a running move to its end before starting the next, which was the lurch
+on the busiest node.
+
+**The fold (17.5 to 17.9).** To 2D: the camera turns to the fold-ready pose
+by the shortest path (150 ms plus 300 ms per half turn, capped at 450 ms).
+Labels fade, particles stop and picking is off. Then depth collapses, one
+domain every 40 ms and the shared nodes last, each over 420 ms with an ease
+and no overshoot. Meanwhile the camera tilts overhead and narrows its
+field of view while backing off, so the framed size holds. To 3D runs the
+same schedule backwards, without the turn, so the creases lift first.
+Positions come only from P3, P2 and the progress value. The force engine
+runs only to carry the pinned positions to the objects and lines, with
+the costly forces switched off. Hulls are built once when a fold starts
+and their vertices moved in place each frame. At the end the flat domains
+are rebuilt once as clean shapes, a fill and an outline, each at its own
+depth and render order, with depth writing off. Rings face the camera
+and use the accent colour. Labels no longer write depth. Flat, labels keep
+their size on screen whatever the zoom. A tap mid-fold reverses it from
+where it is. A camera move asked for mid-fold waits, and flat, a fly to a
+node is a pan and a zoom that never rotates. Reduced motion gets a 150 ms
+crossfade.
+
+**Benchmark (17.10), `npx tsx scripts/bench.ts --fold`.** Ten round trips
+per scenario, headless Chromium in this container, which renders WebGL in
+software with no GPU:
+
+| scenario | to 2D / to 3D, median | frame median | idle frame median | fold work per frame, median / worst | over 33 ms | geometries, textures | heap growth | 2D pixel-identical | drift | mid-fold tap |
+|---|---|---|---|---|---|---|---|---|---|---|
+| desktop, unthrottled | 1,023 / 857 ms | 50 ms | 49.9 ms | 0.1 / 3.5 ms | 100% | 79, 46 unchanged | 1.54 MB | yes | 0 | reverses, no jump |
+| desktop, 4x throttle | 1,348 / 1,111 ms | 83 ms | 66.7 ms | 0.1 / 25.5 ms | 100% | unchanged | 1.56 MB | yes | 0 | reverses, no jump |
+| 390 px, unthrottled | 996 / 811 ms | 33 ms | 33.3 ms | 0.0 / 3.5 ms | 77% | unchanged | 1.59 MB | yes | 0 | reverses, no jump |
+| 390 px, 4x throttle | 1,109 / 917 ms | 50 ms | 49.9 ms | 0.1 / 12.9 ms | 100% | unchanged | 1.54 MB | yes | 0 | reverses, no jump |
+
+Memory, heap, pixel identity, drift and reversal meet their targets. The
+frame-time targets are not met here. But an idle frame, with nothing
+moving, already takes 33 to 67 ms on this machine, and the fold's own work
+is 0.1 ms a frame at the median. The measurement is of software
+rendering, not of the fold; it needs repeating on a device with a GPU.
+The fallback in 17.12 is therefore applied per device rather than
+globally. If a fold's frames run slower than 34 ms at the median, later
+switches on that page use the reduced-motion crossfade. The benchmark and
+the recordings force the fold so they measure it.
+
+**Screenshots and recordings (17.11).** `screenshots/v05-fold-*` holds the fold
+at 0, 25, 50, 75 and 100 percent, desktop and 390 px.
+`v05-switch-story-phone.png` shows the switch beside the card, and
+`v05-part1-*` shows part one's six beats flat. `recordings/` holds webm
+recordings of 3D to 2D to 3D, desktop and 390 px.

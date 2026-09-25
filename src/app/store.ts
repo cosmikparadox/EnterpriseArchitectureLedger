@@ -122,6 +122,8 @@ export interface LedgerState {
   poked: Partial<Record<PokeKind, boolean>>
   /** Dark or light, chosen by the viewer; 'auto' follows the system. */
   theme: 'auto' | 'light' | 'dark'
+  /** The map as a 3D graph or folded flat. One setting for every screen and the story, for the session. */
+  dimension: '2d' | '3d'
 
   setView: (v: View) => void
   setSelectedId: (id: string | null) => void
@@ -150,6 +152,7 @@ export interface LedgerState {
   setShapesSide: (s: 'left' | 'right') => void
   setPoked: (kind: PokeKind) => void
   setTheme: (t: 'auto' | 'light' | 'dark') => void
+  setDimension: (d: '2d' | '3d') => void
   resetStory: () => void
   /** Going back a beat: what later beats set is cleared, so the earlier beat shows what it showed the first time. */
   resetBeat: () => void
@@ -185,6 +188,7 @@ export const useLedger = create<LedgerState>((set) => ({
   shapesSide: 'left',
   poked: {},
   theme: readTheme(),
+  dimension: '3d',
 
   setView: (view) => set({ view }),
   setSelectedId: (selectedId) => set({ selectedId }),
@@ -211,6 +215,7 @@ export const useLedger = create<LedgerState>((set) => ({
   setShapesSide: (shapesSide) => set({ shapesSide }),
   setPoked: (kind) => set((st) => (st.poked[kind] ? {} : { poked: { ...st.poked, [kind]: true } })),
   setTheme: (theme) => { try { localStorage.setItem(THEME_KEY, theme) } catch { /* a browser that will not remember it just asks again */ } set({ theme }) },
+  setDimension: (dimension) => set({ dimension }),
   resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left', poked: {}, flyToId: null }),
   // The domains the reader named in part one are theirs and stay.
   resetBeat: () => set({ selectedId: null, focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left', poked: {} }),

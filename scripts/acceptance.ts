@@ -855,6 +855,58 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   add('V2 the dependence range is identical under a 6x CPU throttle', ok ? 'PASS' : 'FAIL', ok ? normal : `normal "${normal}" / throttled "${slow}"`)
 }
 
+// ---- V3. Audit v0.5: the story on the flat map ----------------------------
+//
+// Every beat renders with the map folded flat: its heading, no page error,
+// and the prologue's own flat map, an SVG overlay, untouched by the switch.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const page = await ctx.newPage()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto('http://localhost:5190/#/tour/9', { waitUntil: 'load' }); await page.waitForTimeout(2500)
+  await page.evaluate(() => (window as unknown as { __ledger: { getState: () => { setDimension: (d: string) => void } } }).__ledger.getState().setDimension('2d'))
+  await page.waitForTimeout(1800)
+  const missing: string[] = []
+  let flatSvg = false
+  for (let n = 0; n <= 40; n++) {
+    await page.evaluate((k) => (window as unknown as { __ledger: { getState: () => { setTourStep: (n: number) => void } } }).__ledger.getState().setTourStep(k), n)
+    await page.waitForTimeout(n === 6 ? 1400 : 450)
+    const want = BEAT_HEADING[n]
+    if (want && !NO_CARD.has(n)) {
+      const h = (await page.locator('.story h1').innerText().catch(() => '')).trim()
+      if (h !== want) missing.push(`${n}: "${h}"`)
+    }
+    if (n === 6) flatSvg = await page.locator('.ov-flat-svg').count() > 0
+  }
+  const dim = await page.evaluate(() => document.documentElement.dataset.mapDimension)
+  await ctx.close()
+  const ok = missing.length === 0 && errors.length === 0 && flatSvg && dim === '2d'
+  add('V3 every beat renders on the flat map', ok ? 'PASS' : 'FAIL',
+    ok ? '41 beats walked in 2D, every heading in place, no page errors, the prologue\'s SVG map unchanged' : `missing ${missing.join(', ') || 'none'}; errors ${errors.slice(0, 2).join(' | ') || 'none'}; flat svg ${flatSvg}; mode ${dim}`)
+}
+
+// ---- V4. Audit v0.5: the switch at 390 px -------------------------------------
+//
+// The 2D and 3D switch sits beside the theme switch and never overlaps the
+// wordmark, the chapter menu or the story card.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } })
+  const page = await ctx.newPage()
+  const hits: string[] = []
+  for (const n of [9, 15, 27, 33, 36, 40]) {
+    await page.goto(`http://localhost:5190/#/tour/${n}`, { waitUntil: 'load' }); await page.waitForTimeout(1800)
+    const sw = await page.locator('.dim-toggle').boundingBox()
+    if (!sw) { hits.push(`${n}: no switch`); continue }
+    for (const sel of ['.wordmark-top', '.chapter-menu', '.story']) {
+      const b = await page.locator(sel).first().boundingBox().catch(() => null)
+      if (b && sw.x < b.x + b.width && sw.x + sw.width > b.x && sw.y < b.y + b.height && sw.y + sw.height > b.y) hits.push(`${n}: over ${sel}`)
+    }
+  }
+  await ctx.close()
+  add('V4 the 2D and 3D switch clears the wordmark, menu and card at 390 px', hits.length === 0 ? 'PASS' : 'FAIL', hits.length === 0 ? 'six beats checked, no overlap' : hits.join(', '))
+}
+
 await browser.close()
 await server.close()
 

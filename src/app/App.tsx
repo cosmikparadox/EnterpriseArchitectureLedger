@@ -82,6 +82,8 @@ export function App() {
   // and is remembered by the store.
   const theme = useLedger((s) => s.theme)
   const setTheme = useLedger((s) => s.setTheme)
+  const dimension = useLedger((s) => s.dimension)
+  const setDimension = useLedger((s) => s.setDimension)
   const systemDark = useSystemDark()
   const dark = theme === 'auto' ? systemDark : theme === 'dark'
   useLayoutEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light' }, [dark])
@@ -194,14 +196,21 @@ export function App() {
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {!onLanding && (
-          <button
-            type="button" className="theme-toggle" role="switch" aria-checked={dark}
-            aria-label="Dark mode"
-            onClick={() => setTheme(dark ? 'light' : 'dark')}
-          >
-            <span className="tt-label">{dark ? copy.theme_dark : copy.theme_light}</span>
-            <span className="tt-track" aria-hidden="true"><span className="tt-knob" /></span>
-          </button>
+          <div className="canvas-switches">
+            <button
+              type="button" className="theme-toggle" role="switch" aria-checked={dark}
+              aria-label="Dark mode"
+              onClick={() => setTheme(dark ? 'light' : 'dark')}
+            >
+              <span className="tt-label">{dark ? copy.theme_dark : copy.theme_light}</span>
+              <span className="tt-track" aria-hidden="true"><span className="tt-knob" /></span>
+            </button>
+            {/* The map, flat or in three dimensions. A tap mid-fold reverses it. */}
+            <div className="dim-toggle" role="group" aria-label={copy.dim_group}>
+              <button type="button" aria-pressed={dimension === '2d'} aria-label={copy.dim_2d_label} title={copy.dim_2d_label} onClick={() => setDimension('2d')}>{copy.dim_2d}</button>
+              <button type="button" aria-pressed={dimension === '3d'} aria-label={copy.dim_3d_label} title={copy.dim_3d_label} onClick={() => setDimension('3d')}>{copy.dim_3d}</button>
+            </div>
+          </div>
         )}
         {story.beat && story.n !== null && (
           <>

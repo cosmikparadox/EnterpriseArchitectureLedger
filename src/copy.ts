@@ -880,6 +880,11 @@ export const copy = {
   // The pulsing marker on the canvas.
   intro_callout_domain: 'Tap a domain',
   flow_button: 'Value flow',
+  dim_group: 'Map view',
+  dim_2d: '2D',
+  dim_3d: '3D',
+  dim_2d_label: 'Flat map',
+  dim_3d_label: '3D map',
   theme_dark: 'Dark',
   theme_light: 'Light',
   flow_legend_head: 'Where the work\'s value lands',
