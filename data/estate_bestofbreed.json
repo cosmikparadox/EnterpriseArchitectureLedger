@@ -352,7 +352,7 @@
       "delta_v_log_sd": 0.64
     },
     {
-      "id": "apigee",
+      "id": "api_gateway",
       "name": "API gateway",
       "category": "API gateway",
       "type": "integration",
@@ -374,7 +374,7 @@
       "delta_v_log_sd": 0.6
     },
     {
-      "id": "okta",
+      "id": "identity",
       "name": "Identity service",
       "category": "Identity",
       "type": "integration",
@@ -396,7 +396,7 @@
       "delta_v_log_sd": 0.68
     },
     {
-      "id": "kafka",
+      "id": "event_bus",
       "name": "Event bus",
       "category": "Event bus",
       "type": "integration",
@@ -448,17 +448,17 @@
           "conditional_failure_prob": 0.591
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 13.448,
           "conditional_failure_prob": 0.738
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 1.927,
           "conditional_failure_prob": 0.965
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 16.716,
           "conditional_failure_prob": 0.486
         }
@@ -488,17 +488,17 @@
           "conditional_failure_prob": 0.482
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 15.869,
           "conditional_failure_prob": 0.684
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.098,
           "conditional_failure_prob": 0.993
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 15.8,
           "conditional_failure_prob": 0.406
         }
@@ -533,17 +533,17 @@
           "conditional_failure_prob": 0.608
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 10.592,
           "conditional_failure_prob": 0.605
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.374,
           "conditional_failure_prob": 0.952
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 13.327,
           "conditional_failure_prob": 0.33
         }
@@ -573,17 +573,17 @@
           "conditional_failure_prob": 0.463
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 10.584,
           "conditional_failure_prob": 0.818
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.163,
           "conditional_failure_prob": 0.985
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 9.636,
           "conditional_failure_prob": 0.39
         }
@@ -618,17 +618,17 @@
           "conditional_failure_prob": 0.545
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.974,
           "conditional_failure_prob": 0.621
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 1.609,
           "conditional_failure_prob": 0.987
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 23.804,
           "conditional_failure_prob": 0.378
         }
@@ -658,17 +658,17 @@
           "conditional_failure_prob": 0.682
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 10.865,
           "conditional_failure_prob": 0.765
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 3.168,
           "conditional_failure_prob": 0.976
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 22.603,
           "conditional_failure_prob": 0.499
         }
@@ -703,17 +703,17 @@
           "conditional_failure_prob": 0.629
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 13.614,
           "conditional_failure_prob": 0.607
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.957,
           "conditional_failure_prob": 0.946
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 19.743,
           "conditional_failure_prob": 0.351
         }
@@ -753,17 +753,17 @@
           "conditional_failure_prob": 0.594
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 12.554,
           "conditional_failure_prob": 0.688
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.603,
           "conditional_failure_prob": 0.958
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 20.963,
           "conditional_failure_prob": 0.284
         }
@@ -798,17 +798,17 @@
           "conditional_failure_prob": 0.605
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.266,
           "conditional_failure_prob": 0.734
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.862,
           "conditional_failure_prob": 0.953
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 22.938,
           "conditional_failure_prob": 0.415
         }
@@ -838,17 +838,17 @@
           "conditional_failure_prob": 0.566
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 9.749,
           "conditional_failure_prob": 0.679
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.413,
           "conditional_failure_prob": 0.988
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 22.105,
           "conditional_failure_prob": 0.254
         }
@@ -878,17 +878,17 @@
           "conditional_failure_prob": 0.695
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.793,
           "conditional_failure_prob": 0.806
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 1.573,
           "conditional_failure_prob": 0.954
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 20.626,
           "conditional_failure_prob": 0.324
         }
@@ -923,17 +923,17 @@
           "conditional_failure_prob": 0.464
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 9.811,
           "conditional_failure_prob": 0.831
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 1.63,
           "conditional_failure_prob": 0.996
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 24.842,
           "conditional_failure_prob": 0.461
         }
@@ -963,17 +963,17 @@
           "conditional_failure_prob": 0.596
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 13.458,
           "conditional_failure_prob": 0.81
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.675,
           "conditional_failure_prob": 0.97
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 14.813,
           "conditional_failure_prob": 0.26
         }
@@ -1008,17 +1008,17 @@
           "conditional_failure_prob": 0.626
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.143,
           "conditional_failure_prob": 0.707
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.276,
           "conditional_failure_prob": 0.993
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 22.292,
           "conditional_failure_prob": 0.28
         }
@@ -1048,17 +1048,17 @@
           "conditional_failure_prob": 0.544
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 9.148,
           "conditional_failure_prob": 0.603
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.297,
           "conditional_failure_prob": 0.943
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 25.229,
           "conditional_failure_prob": 0.472
         }
@@ -1093,17 +1093,17 @@
           "conditional_failure_prob": 0.568
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 17.338,
           "conditional_failure_prob": 0.758
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 1.669,
           "conditional_failure_prob": 0.955
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 11.112,
           "conditional_failure_prob": 0.401
         }
@@ -1138,17 +1138,17 @@
           "conditional_failure_prob": 0.593
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 9.495,
           "conditional_failure_prob": 0.644
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.331,
           "conditional_failure_prob": 0.99
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 15.965,
           "conditional_failure_prob": 0.298
         }
@@ -1188,17 +1188,17 @@
           "conditional_failure_prob": 0.691
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 10.894,
           "conditional_failure_prob": 0.704
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.946,
           "conditional_failure_prob": 0.969
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 11.468,
           "conditional_failure_prob": 0.545
         }
@@ -1228,17 +1228,17 @@
           "conditional_failure_prob": 0.538
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 11.458,
           "conditional_failure_prob": 0.637
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.784,
           "conditional_failure_prob": 0.965
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 11.205,
           "conditional_failure_prob": 0.341
         }
@@ -1273,17 +1273,17 @@
           "conditional_failure_prob": 0.613
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 14.53,
           "conditional_failure_prob": 0.635
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.246,
           "conditional_failure_prob": 0.995
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 15.809,
           "conditional_failure_prob": 0.357
         }
@@ -1313,17 +1313,17 @@
           "conditional_failure_prob": 0.677
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.942,
           "conditional_failure_prob": 0.666
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.585,
           "conditional_failure_prob": 0.978
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 22.823,
           "conditional_failure_prob": 0.289
         }
@@ -1353,17 +1353,17 @@
           "conditional_failure_prob": 0.493
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 14.575,
           "conditional_failure_prob": 0.649
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.159,
           "conditional_failure_prob": 0.976
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 17.705,
           "conditional_failure_prob": 0.49
         }
@@ -1393,17 +1393,17 @@
           "conditional_failure_prob": 0.635
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 13.877,
           "conditional_failure_prob": 0.673
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.356,
           "conditional_failure_prob": 0.968
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 18.065,
           "conditional_failure_prob": 0.506
         }
@@ -1433,17 +1433,17 @@
           "conditional_failure_prob": 0.56
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 13.316,
           "conditional_failure_prob": 0.787
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 1.902,
           "conditional_failure_prob": 0.949
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 18.996,
           "conditional_failure_prob": 0.424
         }
@@ -1473,17 +1473,17 @@
           "conditional_failure_prob": 0.616
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 14.395,
           "conditional_failure_prob": 0.723
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.164,
           "conditional_failure_prob": 0.987
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 25.201,
           "conditional_failure_prob": 0.461
         }
@@ -1513,17 +1513,17 @@
           "conditional_failure_prob": 0.506
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 12.933,
           "conditional_failure_prob": 0.736
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.542,
           "conditional_failure_prob": 0.949
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 24.652,
           "conditional_failure_prob": 0.489
         }
@@ -1553,17 +1553,17 @@
           "conditional_failure_prob": 0.581
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 11.413,
           "conditional_failure_prob": 0.753
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.244,
           "conditional_failure_prob": 0.947
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 14.688,
           "conditional_failure_prob": 0.422
         }
@@ -1588,17 +1588,17 @@
           "conditional_failure_prob": 0.422
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 12.693,
           "conditional_failure_prob": 0.723
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.922,
           "conditional_failure_prob": 0.957
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 9.053,
           "conditional_failure_prob": 0.41
         }
@@ -1628,17 +1628,17 @@
           "conditional_failure_prob": 0.428
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.409,
           "conditional_failure_prob": 0.701
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.513,
           "conditional_failure_prob": 0.989
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 23.975,
           "conditional_failure_prob": 0.398
         }
@@ -1668,17 +1668,17 @@
           "conditional_failure_prob": 0.495
         },
         {
-          "platform_id": "apigee",
+          "platform_id": "api_gateway",
           "driver_units_per_volume_unit": 16.788,
           "conditional_failure_prob": 0.604
         },
         {
-          "platform_id": "okta",
+          "platform_id": "identity",
           "driver_units_per_volume_unit": 2.729,
           "conditional_failure_prob": 0.972
         },
         {
-          "platform_id": "kafka",
+          "platform_id": "event_bus",
           "driver_units_per_volume_unit": 15.198,
           "conditional_failure_prob": 0.466
         }

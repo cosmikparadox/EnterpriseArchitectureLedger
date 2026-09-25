@@ -29,7 +29,7 @@ export interface FixedPoolProps {
 export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps) {
   // Identity is the node the spec's ten-second test uses, so it opens selected
   // when nothing else is selected.
-  const [selected, setSelected] = usePlatformSelection(base, 'okta')
+  const [selected, setSelected] = usePlatformSelection(base, 'identity')
   const added = useLedger((s) => s.fanInAdded)
   const setAdded = useLedger((s) => s.setFanInAdded)
   const [showC1, setShowC1] = useState(true)

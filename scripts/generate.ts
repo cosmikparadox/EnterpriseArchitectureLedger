@@ -45,7 +45,7 @@ type Shape = 'concentrated' | 'bestofbreed'
  * is the system of record for a use case, an identity outage blocks new sign-in
  * but does not stop work already inside the suite.
  */
-const SESSION_HOLDING_SUITES = new Set(['policycenter', 'claimcenter', 'sap_s4', 'workday', 'servicenow', 'billingcenter', 'salesforce', 'opentext'])
+const SESSION_HOLDING_SUITES = new Set(['policy_admin', 'claims_admin', 'erp', 'hcm', 'itsm', 'billing', 'crm', 'doc_mgmt'])
 
 /**
  * Conditional failure probability bands by role. Spec section 3.4 makes this an
@@ -63,14 +63,14 @@ const SESSION_HOLDING_SUITES = new Set(['policycenter', 'claimcenter', 'sap_s4',
 function cfpBand(platformId: string, isPrimary: boolean, shape: Shape, primaryId: string): [number, number] {
   if (isPrimary) return [0.9, 1.0]
   switch (platformId) {
-    case 'okta':
+    case 'identity':
       if (shape === 'bestofbreed') return [0.94, 1.0]
       return SESSION_HOLDING_SUITES.has(primaryId) ? [0.45, 0.7] : [0.9, 1.0]
-    case 'apigee': return [0.6, 0.85]
+    case 'api_gateway': return [0.6, 0.85]
     case 'conduit': return [0.4, 0.7]
-    case 'kafka': return [0.25, 0.55] // buffered, asynchronous
+    case 'event_bus': return [0.25, 0.55] // buffered, asynchronous
     case 'meridian': case 'lakehouse': return [0.2, 0.45] // feeds, mostly async
-    case 'powerbi': return [0.15, 0.4]
+    case 'bi': return [0.15, 0.4]
     default: return [0.5, 0.8]
   }
 }
@@ -136,25 +136,25 @@ const BOB_PLATFORMS: PlatformSpec[] = [
   { id: 'lakehouse', name: 'Lakehouse', category: 'Cloud data platform', type: 'platform', fixed_pool_gbp_month: 33000, driver_name: 'credits', driver_unit_cost_gbp: 0.8, capacity_note: 'Committed tier plus metered compute.', failure_lef: 0.3, loss_median_gbp: 120000, loss_log_sd: 1.1, adopted_month: 17, exit_base_execution_gbp: 350000, exit_k_reversible_gbp: 130000, counterfactual_note: 'An open table format on object storage.', delta_v_median_gbp: 520000, delta_v_log_sd: 0.66, units_band: [0.2, 0.9] },
 ]
 
-const INTEGRATION_IDS = ['conduit', 'apigee', 'okta', 'kafka']
+const INTEGRATION_IDS = ['conduit', 'api_gateway', 'identity', 'event_bus']
 
 /** Maps a concentrated-estate platform onto its best of breed replacement. */
 function bobMap(pid: string, ucId: string): string | null {
   if (INTEGRATION_IDS.includes(pid)) return null // added separately, to every use case
   switch (pid) {
-    case 'policycenter':
+    case 'policy_admin':
       return ['uc_broker_quote', 'uc_broker_portal', 'uc_pricing_refresh'].includes(ucId) ? 'policy_cl' : 'policy_pl'
-    case 'salesforce':
+    case 'crm':
       return ['uc_self_service', 'uc_broker_portal'].includes(ucId) ? 'portal_cx' : 'crm_core'
-    case 'marketingcloud': return 'crm_core'
-    case 'claimcenter': return 'claims_core'
-    case 'servicenow': return 'workflow_svc'
-    case 'opentext': return 'doc_store'
-    case 'billingcenter': return 'billing_core'
-    case 'adyen': return 'pay_orch'
-    case 'sap_s4': return 'ledger_fin'
-    case 'workday': return 'people_core'
-    case 'meridian': case 'powerbi': return 'lakehouse'
+    case 'marketing': return 'crm_core'
+    case 'claims_admin': return 'claims_core'
+    case 'itsm': return 'workflow_svc'
+    case 'doc_mgmt': return 'doc_store'
+    case 'billing': return 'billing_core'
+    case 'payments': return 'pay_orch'
+    case 'erp': return 'ledger_fin'
+    case 'hcm': return 'people_core'
+    case 'meridian': case 'bi': return 'lakehouse'
     default: throw new Error(`no best of breed mapping for ${pid}`)
   }
 }
@@ -259,7 +259,7 @@ function report(estate: Estate, opts: { requireIdentityMaxFanIn: boolean }): Che
   const dataFromAnalytics = dataRiders.filter((u) => u.subdomain === 'data').length
   const analyticsTotal = use_cases.filter((u) => u.subdomain === 'data').length
 
-  const claimsRequired = ['claimcenter', 'servicenow', 'salesforce', 'opentext', 'adyen', 'kafka']
+  const claimsRequired = ['claims_admin', 'itsm', 'crm', 'doc_mgmt', 'payments', 'event_bus']
   const claimsPlatforms = new Set(
     use_cases.filter((u) => u.subdomain === 'claims').flatMap((u) => u.edges.map((e) => e.platform_id)),
   )
@@ -317,16 +317,16 @@ function report(estate: Estate, opts: { requireIdentityMaxFanIn: boolean }): Che
   if (opts.requireIdentityMaxFanIn) {
     checks.push({
       name: 'max fan-in is identity or the cloud data platform',
-      pass: maxFanIn.p.id === 'okta' || maxFanIn.p.id === dataPlatformId,
+      pass: maxFanIn.p.id === 'identity' || maxFanIn.p.id === dataPlatformId,
       detail: `max fan-in is ${maxFanIn.p.id}`,
     })
     checks.push({
       name: 'identity has fan-in from nearly everything (>= 90 percent)',
-      pass: riders.get('okta')!.length >= Math.ceil(use_cases.length * 0.9),
-      detail: `${riders.get('okta')!.length} of ${use_cases.length} use cases`,
+      pass: riders.get('identity')!.length >= Math.ceil(use_cases.length * 0.9),
+      detail: `${riders.get('identity')!.length} of ${use_cases.length} use cases`,
     })
     checks.push({
-      name: 'Claims rides ClaimCenter, ServiceNow, Salesforce, OpenText, Adyen, Kafka',
+      name: 'Claims rides claims administration, service management, CRM, document management, payments, event bus',
       pass: claimsMissing.length === 0,
       detail: claimsMissing.length ? `missing: ${claimsMissing.join(', ')}` : 'all six present',
     })

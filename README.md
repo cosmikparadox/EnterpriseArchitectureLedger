@@ -306,9 +306,9 @@ iPaaS touch nearly everything by construction, and the check stops testing
 anything. Integration nodes are excluded from the path. The result is 27 of 30,
 against a required minimum of 4.
 
-### 9. Power BI driver quantity corrected
+### 9. Business intelligence driver quantity corrected
 
-The first generator gave Power BI a driver band of 0.5 to 3 report renders per
+The first generator gave the business intelligence platform a driver band of 0.5 to 3 report renders per
 analytical output, which produced GBP 106 of metered spend a month against a
 GBP 11,000 fixed pool. Renders are not one-for-one with published outputs; a
 refreshed model or report is viewed tens to hundreds of times a month. The band
@@ -431,8 +431,8 @@ what the data says rather than the prediction.
 
 **Holds.** Rule share of reported cost is higher on the concentrated side in
 five of six subdomains, and it is spread across more nodes on the best of breed
-side. The highest single-node figure falls from 97.1 percent (Salesforce
-Marketing Cloud) to 83.5 percent (Customer portal).
+side. The highest single-node figure falls from 97.1 percent (Marketing
+automation) to 83.5 percent (Customer portal).
 
 **Holds.** The largest blast radius on the best of breed side is an integration
 node, which is acceptance check 5.
@@ -932,7 +932,7 @@ six strictly between nothing and full.
 ### 45. One tour, not two, and the ledger built a section at a time
 
 The owner walked the six-beat intro into the old tour and stopped at the seam:
-"why am I suddenly seeing Okta, why does it say begin the tour, what was I
+"why am I suddenly seeing [the identity service], why does it say begin the tour, what was I
 doing before?" The seam was real. The intro was bolted on in front of a tour
 that had been written first, so the reader built the picture on one card, then
 was handed a second card, a full panel of thirty figures and a counter that
@@ -968,7 +968,7 @@ it was told, and they were one thing: the right column was not carrying the
 story. The card had become a sheet along the bottom on the owner's screen and
 overlapped the screen's panel; the spotlight greyed the whole canvas to point
 at one control, and the grey made the picture unreadable; the panel on the
-first ledger chapter said "Okta" and nothing else; and the chapter that
+first ledger chapter named the identity service and nothing else; and the chapter that
 explained why a ledger exists did so in words, over a graph that already
 looked like the answer.
 
@@ -1949,7 +1949,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 2 | one human completes the tour unaided and can say the five ideas back | NOT RUN | Needs one real human. Cannot be run from a container. Replaces the spec's check 2, per the tour brief B5. |
 | 3 | non-additivity exhibit | PASS | As restated. (a), (b) and (c) all hold; (c) exactly. |
 | 4 | ratification sentence computed, changes when dragged | PASS | Months 24 and 48 differ, and it is not the spec's hard-coded 2.4m example. |
-| 5 | largest blast radius on the right-hand graph is integration | PASS | Okta, integration, on both sides. |
+| 5 | largest blast radius on the right-hand graph is integration | PASS | Identity service, integration, on both sides. |
 | 6 | equal split changes nothing, by-headcount changes figures | PASS | Equal split, driver-proportional and by volume all unchanged; by headcount moved 95 figures. |
 | 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
@@ -2476,3 +2476,29 @@ A direct link to any screen but the explorer, such as #/pool, landed on
 the explorer. On first load a check that moves the front page to the
 explorer read the view from before the address bar had been applied. It
 now reads the view as it is.
+
+### 94. Audit brief v0.4, fix six: internal ids no longer name products
+
+Display names were already generic, but fourteen internal ids were real
+product names and shipped in the built page next to invented failure and
+exit figures. They are renamed in both estates, the generator, the code,
+the acceptance script and this README: crm, itsm, erp, hcm, policy_admin,
+claims_admin, billing, bi, marketing, doc_mgmt, payments, api_gateway,
+identity and event_bus. Meridian, conduit and every best of breed id were
+already generic and stay. Platform order is unchanged in both estates.
+
+The data was regenerated. Both estates and every stored Monte Carlo frame
+are identical to the old ones once the id map is applied, so graph_version
+stays 2026-09-05-a and -b: the graph did not change, only its labels. The
+only figures that moved are the option components, because the option
+seed hashes the platform id. Data cloud and the integration hub kept their
+ids and their option components. A few tie-breaks that sort by id flipped,
+all in illustrations: the flat map's order among nodes with equal riders,
+and which extra platforms the reach cartoon takes down at some settings.
+Every node the story names is unchanged.
+
+Acceptance check 7 now searches both built files, whole word and any case,
+for every old id and product name, stored reversed in the script so the
+repository holds no plain product name. The owner's spec,
+LEDGER_EXPLORER_SPEC_v0_1.md, still names products and is left as written.
+Git history still holds the old ids.

@@ -1,7 +1,7 @@
 // Spec section 10, run end to end against the built bundle and a real browser.
 // Every check prints PASS, FAIL or NOT RUN with the evidence behind it.
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { createServer as createHttp } from 'node:http'
 import { createServer } from 'vite'
 import { launch } from './browser.ts'
@@ -18,10 +18,28 @@ const phrases = ['total cost', 'true cost', 'snowflake', 'infonomics'].map((p) =
 }))
 const emDash = (dist.match(/—/g) ?? []).length
 const enDash = (dist.match(/–/g) ?? []).length
-const grepTotal = caseSensitive + phrases.reduce((a, b) => a + b.n, 0) + emDash + enDash
+// Real product names and the internal ids that used to carry them. Stored
+// reversed, so the repository itself holds no plain product name; decoded
+// here and searched for, whole word and any case, in both built files.
+const PRODUCT_WORDS = [
+  'ecrofselas', 'wonecivres', '4s_pas', 'yadkrow', 'retnecyciloP', 'retnecmialc', 'retnecgnillib', 'ibrewop',
+  'duolcgnitekram', 'txetnepo', 'neyda', 'eegipa', 'atko', 'akfak', 'eriwediug', 'tneulfnoc', 'ib rewop',
+  'anah4/s', 'duolc gnitekram',
+].map((w) => [...w].reverse().join('').toLowerCase())
+const builtFiles = ['dist/index.html', 'dist/artifact.html'].filter((f) => existsSync(f))
+const productHits: string[] = []
+for (const f of builtFiles) {
+  const text = readFileSync(f, 'utf8').toLowerCase()
+  for (const w of PRODUCT_WORDS) {
+    const n = (text.match(new RegExp(`(?<![a-z0-9_])${w.replace(/[/]/g, '\\/')}(?![a-z0-9_])`, 'g')) ?? []).length
+    if (n > 0) productHits.push(`${f} ${w} ${n}`)
+  }
+}
+const grepTotal = caseSensitive + phrases.reduce((a, b) => a + b.n, 0) + emDash + enDash + productHits.length
 add('7 forbidden strings in the bundle', grepTotal === 0 ? 'PASS' : 'FAIL',
   `TCO ${caseSensitive} (case-sensitive), ` + phrases.map((x) => `"${x.p}" ${x.n}`).join(', ') +
-  `, em-dash ${emDash}, en-dash ${enDash}`)
+  `, em-dash ${emDash}, en-dash ${enDash}; ${PRODUCT_WORDS.length} product names and old ids across ${builtFiles.join(' and ')}: ` +
+  (productHits.length === 0 ? '0 hits' : productHits.join(', ')))
 
 // ---- T5. Three words the writing must not reach for ---------------------
 //
@@ -337,7 +355,7 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   // on the 3D canvas.
   const actions: { step: number; what: string; run: () => Promise<void> }[] = [
     { step: 27, what: 'select a different platform', run: async () => {
-      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('sap_s4'))
+      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('erp'))
     } },
     { step: 30, what: 'move the fan-in slider on the card', run: async () => { await page.locator('.story').getByLabel('Add synthetic use cases riding this platform').fill('7') } },
     { step: 31, what: 'press Fail it on the card', run: async () => { await page.locator('.story button:has-text("Fail it")').click() } },
@@ -494,7 +512,7 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1400)
   const why = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Why a ledger'
   const hashAtWhy = await page.evaluate(() => location.hash)
-  const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && stepped && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/25' && errors.length === 0
+  const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && stepped && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'identity' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/25' && errors.length === 0
   add('T7 the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card', ok ? 'PASS' : 'FAIL',
     ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced with its card; Next ran why and the three how beats, the third stepping through its three entries one Next at a time, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25'
        : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, intro ${intro}, title ${nameCentred}, card on title ${cardOnTitle}, opener ${opener.join('/')}, stepped ${lit.join(',')}, pause ${pause}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
@@ -705,7 +723,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
     if (/\bC1\b/.test(text)) hits.push(r)
     // Pool view: open the annotation section by selecting the busiest node.
     if (r === '#/pool') {
-      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('okta'))
+      await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { setSelectedId: (s: string) => void } } }).__ledger?.getState().setSelectedId('identity'))
       await page.waitForTimeout(800)
       if (/\bC1\b/.test(await page.evaluate(() => document.body.innerText))) hits.push(`${r} with a node selected`)
     }
@@ -719,13 +737,13 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 //
 // Every platform carries a generic name from its category. The built file is
 // searched for each retired name as written, and the rendered text of every
-// route for the vendor words regardless of case. Internal ids (okta, sap_s4)
+// route for the vendor words regardless of case. Internal ids (identity, erp)
 // stay in the data because nothing renders them; the rendered-text check is
 // what proves that.
 {
-  const OLD_NAMES = ['Salesforce', 'ServiceNow', 'SAP S/4HANA', 'Workday', 'Guidewire', 'PolicyCenter', 'ClaimCenter', 'BillingCenter', 'Meridian Data Cloud', 'Power BI', 'OpenText', 'Adyen', 'Conduit iPaaS', 'Apigee', 'Okta', 'Confluent', 'Kafka']
-  const inBundle = OLD_NAMES.filter((n) => dist.includes(n))
-  const VENDOR_WORDS = /\b(salesforce|servicenow|s\/4hana|workday|guidewire|policycenter|claimcenter|billingcenter|meridian|power bi|opentext|adyen|conduit|apigee|okta|confluent|kafka)\b/i
+  const OLD_NAMES = PRODUCT_WORDS
+  const inBundle = OLD_NAMES.filter((n) => dist.toLowerCase().includes(n))
+  const VENDOR_WORDS = new RegExp(`\\b(${PRODUCT_WORDS.map((w) => w.replace(/[/]/g, '\\/')).join('|')})\\b`, 'i')
   const onScreen: string[] = []
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()

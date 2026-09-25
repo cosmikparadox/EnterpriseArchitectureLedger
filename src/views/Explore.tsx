@@ -125,10 +125,10 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     // Lines are ringed at their middle, written 'use case>platform'.
     const want: Record<typeof kind, string[]> = {
       useCases: ['uc_claim_settle', 'uc_quote_bind', 'uc_payroll'],
-      platforms: ['claimcenter', 'sap_s4', 'workday'],
-      connectors: ['okta', 'apigee', 'kafka'],
-      lines: ['uc_claim_settle>claimcenter', 'uc_quote_bind>policycenter', 'uc_payroll>workday'],
-      flow: ['uc_claim_settle>adyen', 'uc_reins_settle>sap_s4', 'uc_payroll>workday'],
+      platforms: ['claims_admin', 'erp', 'hcm'],
+      connectors: ['identity', 'api_gateway', 'event_bus'],
+      lines: ['uc_claim_settle>claims_admin', 'uc_quote_bind>policy_admin', 'uc_payroll>hcm'],
+      flow: ['uc_claim_settle>payments', 'uc_reins_settle>erp', 'uc_payroll>hcm'],
     }
     const ok = (id: string) => {
       const [a, b] = id.split('>') as [string, string | undefined]

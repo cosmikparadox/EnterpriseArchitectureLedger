@@ -10,7 +10,7 @@
 import { DEFAULT_RHO, SCENE_ALL, SCENE_NONE, TOUR_STEPS, type LedgerState, type Scene } from '../app/store'
 import { animateValue, type Timeline } from '../tour/animate'
 
-export const IDENTITY_ID = 'okta'
+export const IDENTITY_ID = 'identity'
 export const DATA_PLATFORM_ID = 'meridian'
 export const TOUR_SUBDOMAIN = 'claims'
 /** The use case part three moves across a boundary, and where from. */
