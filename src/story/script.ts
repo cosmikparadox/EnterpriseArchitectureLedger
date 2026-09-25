@@ -20,7 +20,7 @@ export const MOVER_TO = 'service'
 export const OPENER_UC = 'uc_claim_settle'
 
 export type Part = 0 | 1 | 2 | 3
-export type Overlay = 'welcome' | 'title' | 'why' | 'map' | 'flat' | 'pain' | 'reflect' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
+export type Overlay = 'welcome' | 'intro' | 'title' | 'why' | 'map' | 'flat' | 'pain' | 'reflect' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
 export type Control = 'fanin' | 'fail' | 'rho' | 'month' | 'basis' | 'move' | 'shapes' | null
 export type Row = 'metered' | 'pool' | 'rule_first' | 'sum' | 'joint' | 'range' | 'exec' | 'left' | 'right' | 'moved'
 
@@ -54,7 +54,10 @@ export const BEATS: Beat[] = [
   // ---- part 0: the welcome ----
   { part: 0, stem: '', view: 1, overlay: 'welcome', scene: { ...SCENE_NONE, blank: true }, card: false },
   // What, why, and how in three steps, before part one.
-  { part: 0, stem: 'title', view: 1, overlay: 'title', scene: { ...SCENE_NONE, blank: true }, card: true },
+  // The company and the two people the tour is for, then the title as a
+  // picture of its own, with no card over it.
+  { part: 0, stem: '', view: 1, overlay: 'intro', scene: { ...SCENE_NONE, blank: true }, card: false },
+  { part: 0, stem: 'title', view: 1, overlay: 'title', scene: { ...SCENE_NONE, blank: true }, card: false },
   { part: 0, stem: 'opener_why', view: 1, overlay: 'why', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 0, stem: 'how_map', view: 1, overlay: 'map', scene: { ...SCENE_NONE, blank: true }, card: true },
   // The map, flat, with one use case lit: its path is the unit. The 3D
@@ -183,6 +186,15 @@ export const BEATS: Beat[] = [
 ]
 
 export const LAST_BEAT = BEATS.length - 1
+/** Whom each card's step matters to most: the architects, the CFO, or both. */
+export const WHO: Record<string, 'arch' | 'cfo' | 'both'> = {
+  opener_why: 'both', how_map: 'arch', how_work: 'both', how_graph: 'both',
+  domains: 'arch', usecases: 'both', platforms: 'arch', lines: 'arch', connectors: 'arch', flow: 'both', busiest: 'both',
+  docs: 'arch', matrix: 'both', silos: 'cfo', graph_today: 'arch', pain: 'both',
+  why: 'both', mine: 'arch', meter: 'cfo', pool: 'cfo', rule: 'cfo', crowd: 'cfo',
+  fail: 'both', together: 'cfo', rho: 'both', grow: 'arch', exit: 'both', diversify: 'arch',
+  lines_drawn: 'arch', move: 'both', basis: 'cfo', close: 'both',
+}
 if (LAST_BEAT !== TOUR_STEPS) throw new Error(`the router allows ${TOUR_STEPS} beats, the script has ${LAST_BEAT}`)
 export const PART_LABEL_KEY: Record<Part, 'part_label_1' | 'part_label_2' | 'part_label_3' | null> = { 0: null, 1: 'part_label_1', 2: 'part_label_2', 3: 'part_label_3' }
 export function beatAt(n: number | null): Beat | null { return n === null ? null : BEATS[n] ?? null }

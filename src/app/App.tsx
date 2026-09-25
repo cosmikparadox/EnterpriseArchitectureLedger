@@ -140,6 +140,8 @@ export function App() {
   // card docks along the bottom instead of the right.
   if (dockBottom) classes.push('dock-bottom')
   if (tourStep !== null && sheet) classes.push('sheet')
+  // A beat with no card: nothing on the canvas keeps clear of a column.
+  if (tourStep !== null && story.beat && !story.beat.card) classes.push('story-nocard')
 
   return (
     <div className={classes.join(' ')}>
@@ -198,20 +200,10 @@ export function App() {
             {/* The company name: absent on the welcome, centred on the title
                 beat, then small at the top with the part beneath it. Hidden
                 while a part title or an end line has the canvas. */}
-            {story.n > 0 && (
-              <div className={`wordmark${story.n > 1 ? ' wordmark-top' : ''}${arriving ? ' wordmark-start' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' || story.beat.overlay === 'reflect' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
+            {story.n > 1 && (
+              <div className={`wordmark wordmark-top${arriving ? ' wordmark-start' : ''}${story.beat.overlay === 'part' || story.beat.overlay === 'end' || story.beat.overlay === 'reflect' ? ' wordmark-leaving' : ''}`} aria-hidden="true">
                 <div className="wordmark-name">{copy.wordmark_name}</div>
-                <div className="wordmark-tag">{story.n === 1 ? copy.tagline : story.beat.part === 0 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
-                {/* The title's picture: one thing the business does, and the
-                    three entries the ledger keeps for it. */}
-                {story.n === 1 && (
-                  <div className="wm-entries">
-                    <span className="wm-dot ov-in" />
-                    <span className="wm-rows">
-                      {[copy.what_cost, copy.what_risk, copy.what_exit].map((t, i) => <span key={i} className={`wm-row ov-in d${i + 2}`}><span className="book-n">{i + 1}</span>{t}</span>)}
-                    </span>
-                  </div>
-                )}
+                <div className="wordmark-tag">{story.beat.part === 0 ? copy.wordmark_tag : story.beat.part === 1 ? copy.part_label_1 : story.beat.part === 2 ? copy.part_label_2 : copy.part_label_3}</div>
               </div>
             )}
             <Overlay beat={story.beat} n={story.n} estate={estate} ix={ix} onTap={() => setTourStep(Math.min(LAST_BEAT, (story.n ?? 0) + 1))} />

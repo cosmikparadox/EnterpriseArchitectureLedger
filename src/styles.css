@@ -11,6 +11,8 @@
   --ink-3: #767c86;
   --line: #d8d8d4;
   --accent: #1f4e79;
+  --who-arch: #2f78b5;
+  --who-cfo: #a8720c;
   --warn-bg: #fdf6e3;
   --warn-line: #c9a227;
   --refuse-bg: #f7eef0;
@@ -40,6 +42,8 @@
     --ink-3: #808893;
     --line: #2f343d;
     --accent: #7fb2e5;
+    --who-arch: #74b3ea;
+    --who-cfo: #e3b451;
     --warn-bg: #2a2517;
     --warn-line: #c9a227;
     --refuse-bg: #2b1c20;
@@ -58,6 +62,8 @@
     --ink-3: #808893;
     --line: #2f343d;
     --accent: #7fb2e5;
+    --who-arch: #74b3ea;
+    --who-cfo: #e3b451;
     --warn-bg: #2a2517;
     --warn-line: #c9a227;
     --refuse-bg: #2b1c20;
@@ -1421,3 +1427,50 @@ button, input, select { font: inherit; color: inherit; }
 .ov-ask-line { margin-top: 18px; font-size: clamp(13px, 0.95vw, 16px); color: var(--ink-2); max-width: 44ch; margin-left: auto; margin-right: auto; line-height: 1.45; }
 .ov-reflect-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
 .ov-reflect .ov-note { margin-top: 14px; }
+
+/* Two people the tour is for, each with a colour that follows them. */
+.who-arch { --who: var(--who-arch); }
+.who-cfo { --who: var(--who-cfo); }
+.story-eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.story-eyebrow .intro-part { margin: 0; }
+.who-chips { display: inline-flex; gap: 6px; margin-left: auto; }
+.who-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; color: var(--who); border: 1px solid var(--who); border-radius: 999px; padding: 1px 8px; background: color-mix(in srgb, var(--who) 10%, transparent); }
+.who-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--who); }
+/* The company page. */
+.ov-intro { max-width: min(900px, 100%); }
+.ov-intro .ov-people, .ov-intro .ov-note { max-width: 720px; margin-left: auto; margin-right: auto; }
+.ov-intro .ov-big { font-size: clamp(26px, 2.6vw, 42px); }
+.ov-people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 26px; text-align: left; }
+.ov-person { background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--who); border-radius: 10px; padding: 14px 16px; }
+.ov-person strong { display: block; color: var(--who); font-size: 15px; margin-bottom: 6px; }
+.ov-person span { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+.ov-gap { margin-top: 22px; font-size: clamp(15px, 1.2vw, 20px); font-weight: 600; color: var(--ink); }
+.ov-intro .ov-note { margin-top: 10px; }
+.ov-intro .ov-hint { margin-top: 24px; }
+/* The welcome's question, and the title as a picture of its own. */
+.ov-ask-q { margin-top: 14px; font-size: clamp(15px, 1.15vw, 20px); font-weight: 600; color: var(--accent); }
+.overlay-welcome .ov-note { max-width: 46ch; margin-left: auto; margin-right: auto; line-height: 1.45; }
+.wm-line { margin-top: 22px; font-size: clamp(14px, 1.05vw, 18px); color: var(--ink); white-space: normal; }
+.wm-note { margin: 10px auto 0; font-size: 12px; color: var(--ink-3); white-space: normal; max-width: 52ch; line-height: 1.45; }
+.wm-hint { margin-top: 22px; }
+.app.story-open.story-nocard { --wm-right: 0px !important; --wm-bottom: 0px !important; }
+.app.intro-open.story-nocard { --wm-right: 0px !important; --wm-bottom: 0px !important; }
+@media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) {
+  .ov-people { grid-template-columns: 1fr; gap: 8px; margin-top: 16px; }
+  .ov-person { padding: 10px 12px; }
+  .ov-person strong { font-size: 13.5px; margin-bottom: 3px; }
+  .ov-person span { font-size: 12px; }
+  .wm-line { font-size: 13px; }
+  .wm-note { font-size: 11px; }
+}
+
+.ov-title { max-width: min(900px, 100%); }
+.ov-title .wm-line, .ov-title .wm-note { max-width: 640px; margin-left: auto; margin-right: auto; }
+.ov-bridge { text-transform: none; letter-spacing: 0; font-size: clamp(14px, 1.05vw, 18px); color: var(--ink-2); font-style: italic; margin-bottom: 14px; }
+.ov-title .ov-big { font-size: clamp(26px, 2.6vw, 42px); }
+.ov-title .wm-entries { margin-top: 26px; }
+.ov-title .ov-hint { margin-top: 24px; }
+.overlay-intro .ov-fit-inner, .overlay-title .ov-fit-inner { pointer-events: none; }
+.app.story-open .overlay-title { padding-top: 88px; padding-bottom: 12px; }
+@media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) { .app.story-open .overlay-title { padding-top: 60px; } }
+@media (max-height: 520px) { .app.story-open .overlay-title, .app.story-open .overlay-intro { padding-top: 48px; padding-bottom: 6px; } }

@@ -140,8 +140,21 @@ export const copy = {
   // it helps, a second sentence. Anything longer goes under More detail. Every
   // figure is live through fill().
   story_welcome: 'Welcome.',
-  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still price them in colours.',
-  story_welcome_note: 'Here is one invented company, priced in money.',
+  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still mostly price them in colours.',
+  story_welcome_ask: 'Could we price them in money instead?',
+  story_welcome_note: 'Let\'s try, on a fictional company, with an architecture ledger. It is an early idea for linking the blueprint to the books.',
+  // The company, before the title: who works on the estate and what each
+  // asks of it. The two roles keep their colours on every card after this.
+  intro_h: 'Introducing Harbourline Insurance',
+  intro_sub: 'A fictional insurer, much like many firms today.',
+  intro_arch: 'The architects',
+  intro_arch_text: 'Look after a growing estate of systems, and the choices that shape it.',
+  intro_cfo: 'The CFO',
+  intro_cfo_text: 'Asks what the estate costs, what could fail together, and what changing course would cost.',
+  intro_gap: 'Same estate. Rarely a shared number for it.',
+  intro_key: 'These two colours mark, on each card ahead, whom that step matters to most.',
+  who_arch: 'Architects',
+  who_cfo: 'CFO',
   story_welcome_tap: 'Tap anywhere to begin',
   story_welcome_skip: 'Skip to the tool',
   story_continue: 'Tap anywhere, or press the right arrow, to continue',
@@ -163,8 +176,10 @@ export const copy = {
   // works in three steps. Each is one line and one picture.
   tagline: 'What the architecture costs, one decision at a time.',
   b_title_h: 'The Architecture Ledger',
+  title_bridge: 'So how might both see the same estate the same way?',
+  title_big: 'Introducing the architecture ledger',
   b_title:
-    'An architecture ledger: three numbers for each thing the business does.',
+    'Three numbers for each thing the business does, kept side by side and never added up.',
   b_title_see: 'What it costs. What it risks. What leaving would cost.',
   // The owner's sentence, reproduced unchanged by instruction, and exempt
   // from the twenty-word rule. It sits under More detail on the title beat.

@@ -24,15 +24,15 @@ import type { AllocationRule } from '../model/types'
 export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6
 
 /**
- * Beats. 0 is the welcome. 1 to 5 open the story: what the ledger is, why it
- * matters, how it works in three steps, and a pause to continue or leave.
+ * Beats. 0 is the welcome, 1 the company. 2 to 6 open the story: what the
+ * ledger is, why it matters, how it works in three steps, and a pause to continue or leave.
  * Part one builds the picture,
  * part two shows how it is decided today, part three builds the ledger on
- * the busiest node and closes. The last beat is 39; script.ts holds them.
+ * the busiest node and closes. The last beat is 40; script.ts holds them.
  */
-export const TOUR_STEPS = 39
+export const TOUR_STEPS = 40
 /** The first beat of the third part, where the numbers start. Kept for the router. */
-export const FIRST_LEDGER_CHAPTER = 24
+export const FIRST_LEDGER_CHAPTER = 25
 
 /** What the canvas shows during the story. Every field is a layer or a mode. */
 export interface Scene {

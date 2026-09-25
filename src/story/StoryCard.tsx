@@ -13,7 +13,7 @@ import { SUBDOMAIN_COLOUR } from '../app/graph'
 import { describeLink, describePlatform, describeSubdomain, describeUseCase } from '../model/describe'
 import type { Estate } from '../model/types'
 import type { Index } from '../model/ledger'
-import { BEATS, LAST_BEAT, PART_COUNTS, PART_LABEL_KEY, type Beat, type Row } from './script'
+import { BEATS, LAST_BEAT, PART_COUNTS, PART_LABEL_KEY, WHO, type Beat, type Row } from './script'
 import { useStoryFigures } from './figures'
 import { Controls } from './Controls'
 
@@ -144,7 +144,19 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
     <aside className={peek ? 'story peek' : 'story'} aria-label="The story" ref={cardRef} style={style}>
       <button type="button" className="story-handle" aria-label={peek ? 'Open the card' : 'Lower the card'} aria-expanded={!peek} onClick={() => setPeek((v) => !v)}><span /></button>
       <header className="story-head" onPointerDown={onHeaderDown} title={copy.story_drag}>
-        {partKey && <div className="intro-part">{copy[partKey]}</div>}
+        {(partKey || WHO[stem]) && (
+          <div className="story-eyebrow">
+            {partKey && <span className="intro-part">{copy[partKey]}</span>}
+            {/* Whom this step matters to most, in the two colours the
+                company page gave them. */}
+            {WHO[stem] && (
+              <span className="who-chips">
+                {WHO[stem] !== 'cfo' && <span className="who-chip who-arch">{copy.who_arch}</span>}
+                {WHO[stem] !== 'arch' && <span className="who-chip who-cfo">{copy.who_cfo}</span>}
+              </span>
+            )}
+          </div>
+        )}
         <h1 key={`h${n}`}>{heading}</h1>
       </header>
       <div className="story-body">

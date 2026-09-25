@@ -47,7 +47,7 @@ npm run build        # static build into dist/
 ## The story
 
 Launching the app is a grey canvas and a welcome. From there the story runs in
-40 beats at `#/tour/1` to `#/tour/39`, one thing per Next, on one card. The
+41 beats at `#/tour/1` to `#/tour/40`, one thing per Next, on one card. The
 card floats: drag it by its header, resize it by its corner; its header and
 footer stay put and only its body scrolls, so Back and Next are always where
 they were. The screens' own rails, top bars and panels are never shown during
@@ -1940,14 +1940,14 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | 7 | forbidden strings in the bundle | PASS | TCO 0 case-sensitive; "total cost" 0, "true cost" 0, "snowflake" 0, "infonomics" 0; em-dash 0, en-dash 0. |
 | 8 | every view carries the footer | PASS | 6 of 6. |
 | 9 | README explains the estate, formulas, coefficients, and is not a measurement | PASS | 47.5 KB. |
-| T1 | the story walks all 40 beats on Next alone | PASS | 40 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
+| T1 | the story walks all 41 beats on Next alone | PASS | 41 beats, every heading in place, no rail and no panel at any beat, every placeholder resolved, no page errors. |
 | T2 | on 390 by 844, the card never covers the node the beat is about | PASS | The ledger beats with a selected node on screen; none under the card. |
 | T3 | each waitFor fires on the action it describes | PASS | 7 of 7 fired, each through the control on the card. |
-| T4 | deep link to one beat cold-loads into it | PASS | #/tour/34 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
+| T4 | deep link to one beat cold-loads into it | PASS | #/tour/35 opens headed What leaving would cost, on the Footprint screen with the cloud data platform selected, no page errors. |
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
-| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 29 and 35 among them: all sized, none under the panel. |
+| T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 30 and 36 among them: all sized, none under the panel. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `fecf52bb`. |
-| T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the name and the card; Next ran why and the three how beats, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/24. |
+| T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced as a picture with no card; Next ran why and the three how beats, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | N1 | the copy deck: no dashes, no sentence over twenty words, no retired phrase | PASS | Every string in `src/copy.ts` scanned; two named exemptions, deviation 63. |
 | N2 | the closing card carries the caveat, the DOI, and no placeholder link | PASS | The caveat on screen character for character; the DOI line shown; the Medium line not rendered while the address is the placeholder; blocks in order. |
@@ -2260,3 +2260,30 @@ The welcome now reads "Architecture decisions cost money and carry risk.
 We still price them in colours." with "Here is one invented company,
 priced in money." beneath it. "We" keeps it an observation shared with
 the reader rather than an accusation.
+
+### 86. A humbler welcome, the company and its two people, and the ledger introduced
+
+The welcome now hedges its claim and asks its question: architecture
+decisions cost money and carry risk; we still mostly price them in
+colours; could we price them in money instead? A small line says what
+follows: a try, on a fictional company, with an architecture ledger, an
+early idea for linking the blueprint to the books. "The books" rather than
+"the balance sheet": running costs land in the income statement, and the
+retired-phrase check keeps "balance sheet" out, since architecture is not
+recognised as an asset there.
+
+A new beat introduces Harbourline and the two people the tour is for: the
+architects, who look after a growing estate of systems, and the CFO, who
+asks what it costs, what could fail together, and what changing course
+would cost. Those three questions are the ledger's three entries. The
+owner's draft also had the CFO asking what opportunities the estate
+creates; that is left out, because the ledger does not yet price the
+choices a commitment creates, and the closing card says so. Each role has
+a colour, and from here every card carries a chip in one colour or both,
+marking whom the step matters to most.
+
+The title beat answers the company page. It opens with the question it
+leaves, how might both see the same estate the same way, then introduces
+the architecture ledger with its three entries, one line on what it is,
+and the owner's sentence beneath. It is a picture of its own, with no card
+over it, like the welcome. Every later beat moves up by one.

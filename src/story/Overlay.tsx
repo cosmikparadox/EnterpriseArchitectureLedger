@@ -49,7 +49,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
   const [t, sub] = PART_TITLE[beat.part]
   const endLine = beat.part === 1 ? [copy.story_end1, copy.story_end1_sub] : [copy.story_end2, copy.story_end2_sub]
 
-  const tappable = beat.overlay === 'welcome' || beat.overlay === 'part' || beat.overlay === 'end'
+  const tappable = beat.overlay === 'welcome' || beat.overlay === 'intro' || beat.overlay === 'title' || beat.overlay === 'part' || beat.overlay === 'end'
   const picture = !tappable && beat.overlay !== 'title' && beat.overlay !== 'reflect'
   return (
     <div className={`overlay overlay-${beat.overlay}${tappable ? ' overlay-tap' : ''}${picture ? ' overlay-picture' : ''}`} key={beat.overlay === 'flat' ? 'flat' : n} onClick={tappable ? onTap : undefined} role={tappable ? 'button' : undefined}>
@@ -57,11 +57,42 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
         <div className="ov-centre">
           <div className="ov-big ov-in">{copy.story_welcome}</div>
           <div className="ov-sub ov-hook ov-in d1">{copy.story_welcome_sub}</div>
-          <div className="ov-note ov-in d2">{copy.story_welcome_note}</div>
-          <div className="ov-hint ov-in d3">{copy.story_welcome_tap}</div>
+          <div className="ov-ask-q ov-in d2">{copy.story_welcome_ask}</div>
+          <div className="ov-note ov-in d3">{copy.story_welcome_note}</div>
+          <div className="ov-hint ov-in d4">{copy.story_welcome_tap}</div>
         </div>
       )}
-      {beat.overlay === 'title' && null}
+      {beat.overlay === 'title' && (
+        <Fit><div className="ov-centre ov-title">
+          {/* The answer to the company page: the ledger, its three entries
+              on one thing the business does, and what it is in one line. */}
+          <div className="ov-eyebrow ov-bridge ov-in">{copy.title_bridge}</div>
+          <div className="ov-big ov-in d1">{copy.title_big}</div>
+          <div className="ov-sub ov-in d1">{copy.tagline}</div>
+          <div className="wm-entries">
+            <span className="wm-dot ov-in d2" />
+            <span className="wm-rows">
+              {[copy.what_cost, copy.what_risk, copy.what_exit].map((t, i) => <span key={i} className={`wm-row ov-in d${i + 2}`}><span className="book-n">{i + 1}</span>{t}</span>)}
+            </span>
+          </div>
+          <div className="wm-line ov-in d5">{copy.b_title}</div>
+          <div className="wm-note ov-in d6">{copy.b_title_more}</div>
+          <div className="ov-hint ov-in d6">{copy.story_continue}</div>
+        </div></Fit>
+      )}
+      {beat.overlay === 'intro' && (
+        <Fit><div className="ov-centre ov-intro">
+          <div className="ov-big ov-in">{copy.intro_h}</div>
+          <div className="ov-sub ov-in d1">{copy.intro_sub}</div>
+          <div className="ov-people">
+            <div className="ov-person who-arch ov-in d2"><strong>{copy.intro_arch}</strong><span>{copy.intro_arch_text}</span></div>
+            <div className="ov-person who-cfo ov-in d3"><strong>{copy.intro_cfo}</strong><span>{copy.intro_cfo_text}</span></div>
+          </div>
+          <div className="ov-gap ov-in d4">{copy.intro_gap}</div>
+          <div className="ov-note ov-in d5">{copy.intro_key}</div>
+          <div className="ov-hint ov-in d6">{copy.story_continue}</div>
+        </div></Fit>
+      )}
       {beat.overlay === 'reflect' && (
         <div className="ov-centre ov-reflect">
           <div className="ov-big ov-in">{copy.reflect_big}</div>
