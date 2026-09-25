@@ -16,21 +16,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import McWorker from '../worker/mc.worker.ts?worker&inline'
-import precomputedRaw from '../../data/precomputed.json?raw'
 import type { McRequest, McResult } from '../model/montecarlo'
-import { nearestFrame, unpackFrame, type PrecomputedIndex } from '../model/precomputed'
+import { nearestFrame, unpackFrame } from '../model/precomputed'
+import { precomputedIndex, storedFrame } from './stored'
 import type { Estate } from '../model/types'
 
-// Imported as text, not as JSON. Importing it as JSON makes the bundler emit
-// 145 KB of object literals that every visitor's engine parses on startup, for
-// data almost nobody needs. As a string it costs nothing until the worker has
-// actually failed, and JSON.parse is then faster than the literal would have
-// been. Acceptance check 1 is a 3 second cold start, and the eager form missed it.
-let precomputedCache: PrecomputedIndex | null = null
-function precomputedIndex(): PrecomputedIndex {
-  if (!precomputedCache) precomputedCache = JSON.parse(precomputedRaw) as PrecomputedIndex
-  return precomputedCache
-}
 
 /** How long to wait for the worker to answer a ping before giving up on it. */
 const HANDSHAKE_MS = 2500
@@ -159,36 +149,7 @@ export function useMonteCarlo(estate: Estate, rho: number, runs: number, nu = 4,
  * two are the same run, so the story and the prologue agree.
  */
 export function resultFor(estate: Estate, rho: number, runs = 10_000, nu = 4, seed = 20260905): McResult | null {
-  const hit = cache.get(cacheKey(estate, rho, runs, nu, seed))
-  if (hit) return hit
-  return storedFrame(estate, rho)
+  return cache.get(cacheKey(estate, rho, runs, nu, seed)) ?? storedFrame(estate, rho)
 }
 
-/** The stored frame at the fixed point nearest this dependence. */
-export function storedFrame(estate: Estate, rho: number): McResult | null {
-  const set = precomputedIndex()[estate.provenance.graph_version]
-  return set ? unpackFrame(set, nearestFrame(set, rho)) : null
-}
-
-/** The stored frames at all five fixed points, in order of dependence. */
-export function storedFrames(estate: Estate): McResult[] {
-  const set = precomputedIndex()[estate.provenance.graph_version]
-  return set ? set.frames.map((f) => unpackFrame(set, f)).sort((a, b) => a.rho - b.rho) : []
-}
-
-/**
- * A domain's two bad-month figures at the five fixed points of dependence,
- * read from the stored runs, with the range each spans. The same on every
- * device and on every call, whatever the live runs are doing.
- */
-export function fixedPointRange(estate: Estate, subdomain: string): FixedPointRange | null {
-  const points = storedFrames(estate).map((f) => {
-    const s = f.subdomains.find((x) => x.id === subdomain)
-    return s ? { rho: f.rho, sum: s.sumOfP99s, joint: s.jointP99 } : null
-  }).filter((x): x is FixedPoint => x !== null)
-  if (points.length === 0) return null
-  const sums = points.map((x) => x.sum), joints = points.map((x) => x.joint)
-  return { points, sumLo: Math.min(...sums), sumHi: Math.max(...sums), jointLo: Math.min(...joints), jointHi: Math.max(...joints) }
-}
-export interface FixedPoint { rho: number; sum: number; joint: number }
-export interface FixedPointRange { points: FixedPoint[]; sumLo: number; sumHi: number; jointLo: number; jointHi: number }
+export { fixedPointRange, storedFrame, storedFrames, type FixedPoint, type FixedPointRange } from './stored'

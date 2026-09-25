@@ -700,7 +700,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const mediumReal = !copyModule.copy.tour_medium_url.includes(copyModule.copy.tour_medium_placeholder_host)
   const mediumLinks = await page.locator('.story-close a').count()
   const mediumOk = mediumReal ? mediumLinks === 1 : mediumLinks === 0
-  const flex = 'It does not show the cost of adding the next use case. The paper treats that as the primary flexibility measure.'
+  const flex = 'It shows the cost of the next use case on one node only. The paper treats that as the primary flexibility measure.'
   const order = ['What this is', 'What it does not do', flex, caveat, 'Read the argument', copyModule.copy.close_built].map((m) => text.toLowerCase().indexOf(m.toLowerCase()))
   const ordered = order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1]!))
   const ok = hasCaveat && hasDoi && mediumOk && ordered && errors.length === 0
@@ -801,6 +801,58 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   await ctx.close()
   add('N5 simulated and estimated figures show two significant figures', bad.length === 0 && counted > 0 ? 'PASS' : 'FAIL',
     bad.length === 0 ? `${counted} figures read across the story ledger, the risk view, the two shapes and the footprint, none with more than two` : bad.slice(0, 8).join(' | '))
+}
+
+// ---- V1. Audit v0.4: one use case carries all three entries --------------
+//
+// The prologue's map, the book on the mine beat and the close all show
+// Claim triage, with the same three figures.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  const page = await ctx.newPage()
+  const faults: string[] = []
+  const nums = (t: string) => (t.match(/\d[\d,]*/g) ?? []).filter((x) => x.length > 2)
+  await page.goto('http://localhost:5190/#/tour/6', { waitUntil: 'load' }); await page.waitForTimeout(2500)
+  for (let i = 0; i < 2; i++) { await page.locator('.story .cta').click(); await page.waitForTimeout(1200) }
+  const prologue = (await page.locator('.ov-flat-entries').innerText()).replace(/\s+/g, ' ')
+  await page.goto('http://localhost:5190/#/tour/26', { waitUntil: 'load' }); await page.waitForTimeout(4000)
+  const bookTitle = (await page.locator('.book-title').innerText().catch(() => '')).trim()
+  const book = (await page.locator('.canvas-book').innerText().catch(() => '')).replace(/\s+/g, ' ')
+  await page.goto('http://localhost:5190/#/tour/40', { waitUntil: 'load' }); await page.waitForTimeout(3000)
+  const closeLine = (await page.locator('.story .intro-line').first().innerText()).trim()
+  const head = (await page.locator('.ledger-head').innerText()).trim()
+  const entries = (await page.locator('.ledger-row.entry').allInnerTexts()).join(' ').replace(/\s+/g, ' ')
+  if (bookTitle !== 'The ledger, Claim triage') faults.push(`book title "${bookTitle}"`)
+  if (!/claim triage/i.test(head)) faults.push(`card head "${head}"`)
+  if (!closeLine.includes('Claim triage')) faults.push(`close "${closeLine}"`)
+  for (const [where, t] of [['prologue', prologue], ['book', book], ['close', entries]] as const) {
+    for (const want of ['49,444', '59,000', '5,400,000']) if (!nums(t).includes(want)) faults.push(`${where} lacks ${want}`)
+    if (!/Data cloud/.test(t)) faults.push(`${where} lacks Data cloud`)
+  }
+  await ctx.close()
+  add('V1 one use case carries all three entries, everywhere', faults.length === 0 ? 'PASS' : 'FAIL',
+    faults.length === 0 ? `prologue, book and close agree: ${entries.slice(0, 160)}` : faults.slice(0, 8).join(' | '))
+}
+
+// ---- V2. Audit v0.4: the dependence range is the same on a slow device ------
+//
+// The range comes from the five stored runs, so a 6x CPU throttle must give
+// the same text as a normal run.
+{
+  const read = async (throttle: number) => {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+    const page = await ctx.newPage()
+    if (throttle > 1) { const cdp = await ctx.newCDPSession(page); await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle }) }
+    await page.goto('http://localhost:5190/#/tour/33', { waitUntil: 'load' })
+    await page.waitForSelector('.ledger-row'); await page.waitForTimeout(throttle > 1 ? 12000 : 6000)
+    const row = (await page.locator('.ledger-row', { hasText: 'across the slider' }).innerText()).replace(/\s+/g, ' ')
+    const see = (await page.locator('.story .intro-see').innerText()).replace(/\s+/g, ' ')
+    await ctx.close()
+    return `${row} || ${see}`
+  }
+  const normal = await read(1), slow = await read(6)
+  const ok = normal === slow && normal.includes('200,000') && normal.includes('270,000')
+  add('V2 the dependence range is identical under a 6x CPU throttle', ok ? 'PASS' : 'FAIL', ok ? normal : `normal "${normal}" / throttled "${slow}"`)
 }
 
 await browser.close()

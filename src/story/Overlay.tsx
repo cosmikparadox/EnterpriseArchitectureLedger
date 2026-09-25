@@ -17,7 +17,7 @@ import { gbpAbout } from '../model/ledger'
 import { describeUseCase } from '../model/describe'
 import { useLedger } from '../app/store'
 import { OPENER_UC } from './script'
-import { tourUseCaseFigures } from './figures'
+import { tourUseCaseFigures } from './tourFigures'
 import { firstTime } from '../app/hints'
 
 const PART_TITLE: Record<Part, [string, string]> = {

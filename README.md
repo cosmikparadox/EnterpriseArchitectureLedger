@@ -1968,6 +1968,8 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | N3 | the literal C1 appears nowhere on screen | PASS | Ten routes read, including the pool view with its annotation open. |
 | N4 | no real product or company name in the bundle or on screen | PASS | Seventeen retired names absent from dist; ten routes rendered with no vendor word. |
 | N5 | simulated and estimated figures show two significant figures | PASS | Read from the story ledger, the risk view, the two shapes and the footprint. |
+| V1 | one use case carries all three entries, everywhere | PASS | The prologue, the mine-beat book and the close all show Claim triage: USD 49,444, about USD 59,000, Data cloud about USD 5,400,000 shared by 16. |
+| V2 | the dependence range is identical under a 6x CPU throttle | PASS | Claims domain: added up across the slider USD 200,000 to USD 270,000, on both runs. |
 | C3 | nothing on the page links to another site | PASS | 0 offsite links across 8 routes. The bundle mentions 5 hosts, none rendered: 4 are vendored library internals, the fifth is the unset Medium placeholder, which is why that line is not drawn. |
 | - | no page errors across all six views | PASS | none |
 | - | dist is one self-contained file, no runtime network calls | PASS | 1.76 MB, 0 offsite requests. |
@@ -2502,3 +2504,89 @@ for every old id and product name, stored reversed in the script so the
 repository holds no plain product name. The owner's spec,
 LEDGER_EXPLORER_SPEC_v0_1.md, still names products and is left as written.
 Git history still holds the old ids.
+
+### 95. Audit brief v0.4: one use case, the switching split, fixed points, and the next use case
+
+**One use case carries all three entries (fix one).** Part three used to
+show four objects: the identity service's meter and pool, another use
+case's rule share, the Claims domain's bad month and the Data cloud's
+work of leaving. It now follows one use case, Claim triage, from the
+prologue's lit example to the close. The mine beat's book is its page.
+The card's ledger is titled with its name. Each entry line shows once its
+entry starts. Worked lines show only while the beat is about that entry,
+and each names its object: a node, the use case or a domain. The close
+shows the three entry lines with a Show workings toggle. At rho 0.5 and
+an equal split the entries read USD 49,444 a month, about USD 59,000 in
+a bad month, and Data cloud, about USD 5,400,000 to leave today, shared
+by 16. `useCaseView.strandedBy` (conditional failure 0.9 or more) was a
+risk measure used for leaving; it is gone. Leaving is read on a named
+path platform: the Data cloud in the story, the largest work of leaving
+at month 60 elsewhere (`leavingFor`). A work of leaving is never divided
+among the use cases that share it. The risk entry falls back to the
+stored frame at the nearest fixed point until the live run lands.
+
+**The switching split (fix two).** The work of leaving is an engineering
+estimate of the work to leave today. Canon 9.5.2 replaces that estimate
+with two parts: committed minus reversible, and the option component.
+The two parts do not add up to the estimate and are never added to it.
+The platform panel and the footprint show the estimate, then a refusal
+block holding both parts, the option tip, the split note and the
+refusal. At month 31 the Data cloud reads about 3,700,000, then about
+3,500,000 and about 790,000. The glossary key for the estimate is now
+`work_of_leaving`; `execution_component` names the work the commitment
+created.
+
+**Adding is not a law (fix three).** Adding each use case's bad month is
+a reference point, not a ceiling. In this estate it comes out higher at
+every setting tested. With very heavy tails it can come out lower
+(9.3.8).
+
+**Fixed points for dependence (fix four).** The dependence beat's range
+used to collect whatever live runs landed during its animation, so a
+slow phone printed a different range from a laptop. The beat and the
+risk screen now read the five stored runs at rho 0, 0.25, 0.5, 0.75 and
+1 (`src/app/stored.ts`). Claims added up runs from about 200,000 to
+270,000; together from about 190,000 to 210,000. Acceptance V2 checks
+the text under a 6x CPU throttle.
+
+**The next use case (fix five).** The crowd beat now shows the metered
+increment of one more rider on the identity service: 85.80 a month,
+shown as 86. The pool does not move. It is the worked line under entry
+one.
+
+**Boundaries (fix seven), owner decision O3.** "Risk does not move" was
+false. A stopped use case is valued at its owning domain's margin, so a
+moved use case takes its new domain's margin. Moving Broker quote
+submission to Customer Service, rho 0.5, seed 20260905:
+
+| figure | before | after |
+|---|---|---|
+| Broker quote submission, own P99 | 113,261 | 37,754 (x 6/18) |
+| Sales and Distribution, together | 361,290 | 280,946 |
+| Customer Service, together | 217,837 | 246,686 |
+| Claims, together | 203,758 | 203,758 |
+| Cost figures moved, equal / driver / by volume | 0 / 0 / 0 | |
+| Cost figures moved, by headcount | 72, largest USD 1,656 | |
+
+The story's boundary beats still mention only cost; whether to show this
+is the owner's call.
+
+**Two shapes (fixes eight and nine).** The cost row is the busiest
+node's pool, named; the exit row is read at month 60, named. The sum of
+works of leaving across integration commitments is gone; the panel ranks
+the three largest on each side instead. `option_upper_bound` is retired.
+
+**Smaller wording (section 11) and prose moved (section 12).** The
+sentences the audit flagged are reworded as given. Every sentence that
+was typed into a component now lives in `copy.ts`.
+
+**Tests.** `src/audit.test.ts` adds 15 tests: the copy lint, the tour use
+case's three figures, the fixed-point range, the next use case, the
+switching split and the boundary move. Acceptance adds V1 (one use case
+everywhere) and V2 (the range under throttle); N2 and N5 follow the new
+text.
+
+**Option components after the rename.** The option seed hashes the
+platform id, so fix six moved every renamed platform's option component
+slightly. Data cloud and the integration hub kept their ids and did not
+move. Identity service at month 60: 487,965 before, 486,529 after.

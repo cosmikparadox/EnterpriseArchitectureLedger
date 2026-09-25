@@ -5,31 +5,17 @@ import { useMemo } from 'react'
 import { copy, fill } from '../copy'
 import { useLedger } from '../app/store'
 import { fixedPointRange, storedFrame, useMonteCarlo } from '../app/useMonteCarlo'
-import { leavingFor } from '../app/graph'
 import { buildIndex, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
-import { gbpAbout, workOfLeaving, type Index } from '../model/ledger'
+import { gbpAbout, workOfLeaving } from '../model/ledger'
 import { describeEstate } from '../model/describe'
 import { shapeEntry, SHAPES_SEED } from '../model/shapes'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
-import type { McResult } from '../model/montecarlo'
 import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN, TOUR_UC } from './script'
+import { tourUseCaseFigures } from './tourFigures'
+export { tourUseCaseFigures }
 
 export const gbp = (n: number) => Math.round(n).toLocaleString('en-GB')
 const BASIS: Record<AllocationRule, string> = { equal: 'equal split', driver: 'driver-proportional', by_volume: 'by volume', by_head: 'by headcount' }
-
-/**
- * The tour use case's own figures, read from one index and one Monte Carlo
- * result. The prologue's map, the book and the card all quote these, so the
- * same use case shows the same figures wherever it appears.
- */
-export function tourUseCaseFigures(ix: Index, rule: AllocationRule, mc: McResult | null) {
-  const u = ix.useCaseById.get(TOUR_UC)!
-  let reported = 0, byRule = 0
-  for (const e of u.edges) { reported += reportedCost(ix, e.platform_id, u.id, rule); byRule += ruleShare(ix, e.platform_id, u.id, rule) }
-  const p99 = mc?.useCases.find((x) => x.id === u.id)?.p99 ?? null
-  const leaving = leavingFor(ix, u.id, DATA_PLATFORM_ID)
-  return { name: u.name, platforms: u.edges.length, reported, byRule, metered: reported - byRule, p99, leaving }
-}
 
 export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Record<string, string | number> {
   const rule = useLedger((s) => s.rule)
