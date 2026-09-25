@@ -44,7 +44,7 @@ export const copy = {
   option_tip:
     'When you first adopted this, you could still have picked something else ' +
     'cheaply. Every use case you attached made that harder. This number is the ' +
-    'price of the choices you no longer have.',
+    'value of the choices you no longer have.',
 
   // Canon 9.5.7 and 9.9. The counterfactual is declared, not evidenced from a
   // dated decision record, because a synthetic estate has no decision record.
@@ -140,8 +140,8 @@ export const copy = {
   // it helps, a second sentence. Anything longer goes under More detail. Every
   // figure is live through fill().
   story_welcome: 'Welcome.',
-  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still mostly rate them in colours.',
-  story_welcome_ask: 'Can we price them in dollars instead?',
+  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still mostly measure them in colours.',
+  story_welcome_ask: 'Can we measure them in dollars instead?',
   // The owner's sentence. The two coloured words take the architects' and
   // the CFO's colours; the words between are split so they can be styled.
   story_welcome_note_1: 'Let\'s try it on a fictional organisation, with the architecture ledger. It is an early idea I am exploring, to bridge the ',
@@ -156,7 +156,7 @@ export const copy = {
   intro_arch: 'The architects',
   intro_arch_text: 'Look after a growing estate of systems, and the choices that shape it.',
   intro_cfo: 'The CFO',
-  intro_cfo_text: 'Asks what the estate costs, what could fail together, and what changing course would cost.',
+  intro_cfo_text: 'Asks what the estate costs to run, what an outage would cost the business, and what changing course would cost.',
   intro_gap: 'Same estate. Rarely a shared number for it.',
   who_arch: 'Architects',
   who_cfo: 'CFO',
@@ -217,7 +217,7 @@ export const copy = {
   // app, not the ledger, as the model; exempt from the twenty-word rule.
   b_title_see:
     'This app is an interactive model of one invented insurer, built to show ' +
-    'what architecture decisions cost when you price them in money instead ' +
+    'what architecture decisions cost when you measure them in dollars instead ' +
     'of colours. Everything here is synthetic and says so.',
   what_cost: 'What it costs',
   what_risk: 'What it risks',
@@ -232,7 +232,7 @@ export const copy = {
     'in different units. So decisions often fall back on a colour.',
   b_opener_why_more:
     'FinOps meters cloud cost, TBM allocates IT cost by rule, and risk ' +
-    'methods price losses that arrive together. The Ledger paper claims ' +
+    'methods estimate losses that arrive together. The Ledger paper claims ' +
     'none of these methods as its own. As a thesis, it tests reading all ' +
     'three on one unit: a single use case on the shared map. ' +
     'See the Ledger paper, 9.16.',
@@ -241,7 +241,7 @@ export const copy = {
   why_cost_so: 'Shared costs are often split by a rule, not by use.',
   why_risk: 'A risk register',
   why_risk_sub: 'What it risks: high, medium or low',
-  why_risk_so: 'An outage can reach work that no one priced.',
+  why_risk_so: 'An outage can reach work that no one measured.',
   why_exit: 'Rarely written down',
   why_exit_sub: 'What leaving would cost',
   why_exit_so: 'Dependence can grow before anyone decides.',
@@ -283,7 +283,7 @@ export const copy = {
     'Leaving strands whatever depends on a system.',
   b_how_graph_see:
     'Press Next, or tap an entry under the map, to play each one in turn. ' +
-    'Part three prices all three properly, and never adds them up.',
+    'Part three measures all three properly, and never adds them up.',
   b_how_graph_more:
     'The map plays each entry on the path of {opener_uc}. After the third, ' +
     'Next moves on to a short pause. Part one then builds this map in three ' +
@@ -298,8 +298,8 @@ export const copy = {
   // A pause after the opening: the whole idea has been said. Go on into the
   // full tour, or leave for the tool.
   reflect_big: 'That is the whole idea.',
-  reflect_sub: 'Three entries for each thing the business does, read off the map, and never added up.',
-  reflect_ask: 'If that sounds like a problem you know, the full tour builds it step by step, in three parts.',
+  reflect_sub: 'Each thing the business does gets three numbers. They are read off the map and never added up.',
+  reflect_ask: 'If this sounds like a problem you have seen, the full tour walks through it in three parts.',
   reflect_go: 'Continue the tour',
   reflect_leave: 'Leave the tour',
   reflect_note: 'The tour stays one tap away, on the rail.',
@@ -395,7 +395,7 @@ export const copy = {
     'drawing. A matrix, one colour per judgment.',
   b_matrix_see:
     'Someone scores each system for fit and value, and the cell takes the ' +
-    'colour. Nothing on it is a price.',
+    'colour. Nothing on it is a measurement.',
   b_matrix_more:
     'This is the common practice: capability heat maps, and the two-by-two ' +
     'of business value against technical fit. Each is scored one to five by ' +
@@ -429,7 +429,7 @@ export const copy = {
     'Ledger paper.',
 
   // The end of part two: what deciding this way costs, and who it lands on.
-  // Each tile is a consequence the mathematics shows and part three prices.
+  // Each tile is a consequence the mathematics shows and part three measures.
   b_pain_h: 'Four blind spots',
   b_pain:
     'Deciding on a colour is not careless. But it leaves four blind spots, ' +
@@ -523,8 +523,8 @@ export const copy = {
   b_fail_see: 'How far that reaches is the blast radius.',
   b_together_h: 'A bad month, two ways',
   b_together:
-    'Price a bad month for {sub} one use case at a time and add them up: ' +
-    'about USD {sum}. Price the domain together: about USD {joint}.',
+    'Measure a bad month for {sub} one use case at a time and add them up: ' +
+    'about USD {sum}. Measure the domain together: about USD {joint}.',
   b_together_def: 'Bad month: one so bad that a worse one comes about once in a hundred months.',
   b_together_see:
     'Adding assumes every use case has its worst month in the same month. ' +
@@ -589,7 +589,7 @@ export const copy = {
     'out multiplies the shared connectors and the contracts. It does not ' +
     'remove it. At full dependence the two bad months ' +
     'converge. When platforms fail together it stops mattering how many ' +
-    'there are. These three entries do not price the coordination cost of ' +
+    'there are. These three entries do not measure the coordination cost of ' +
     'many vendors. Nor the latency of a process that crosses them. Both ' +
     'belong in the decision record, not in a figure here.',
   // The comparison on the card, and the two shapes' names.
@@ -653,7 +653,7 @@ export const copy = {
   close_pitch: 'What the architecture costs, one decision at a time.',
   close_h_what: 'What this is',
   close_what:
-    'An invented insurer and a way of pricing its architecture: three ' +
+    'An invented insurer and a way of measuring its architecture: three ' +
     'entries per use case, kept apart. Nothing here is a real measurement.',
   close_h_not: 'What it does not do',
   close_not:
@@ -743,7 +743,7 @@ export const copy = {
   docpic_1_tag: 'v7, last edited 14 months ago',
   docpic_1_sub:
     'Nested boxes, one colour per box, scored one to five in a workshop. ' +
-    'Nothing on it is a price, and nothing on it says which system does what.',
+    'Nothing on it is a measurement, and nothing on it says which system does what.',
   docpic_2_tag: '412 rows, 31 columns',
   docpic_2_more: '403 more rows, 23 more columns',
   docpic_2_sub:
@@ -751,9 +751,8 @@ export const copy = {
     'says which use cases ride it or what they would lose if it stopped.',
   docpic_3_tag: '22 drawings, three authors',
   docpic_3_sub:
-    'Boxes and arrows in three hands, none dated the same, two marked final. ' +
-    'The arrows say something flows. They do not say how much, or what it ' +
-    'costs.',
+    'The same systems, drawn by three people. One routes everything through ' +
+    'the bus, one has no bus, and one adds a system the others leave out.',
   docpic_4_tag: 'reviewed quarterly',
   docpic_4_impact: 'impact',
   docpic_4_likelihood: 'likelihood',
@@ -784,9 +783,9 @@ export const copy = {
   m_cost_1: 'FinOps', m_cost_1_for: 'Meters cloud cost per unit of work.', m_cost_1_stop: 'Stops at the cloud bill.',
   m_cost_2: 'TBM', m_cost_2_for: 'Allocates every IT cost to a tower and a service.', m_cost_2_stop: 'By rule, not by use case.',
   m_cost_3: 'IFRS 17', m_cost_3_for: 'For an insurer, allocates directly attributable costs, IT included, to groups of contracts.', m_cost_3_stop: 'By a systematic rule, not by use case.',
-  m_risk_1: 'FAIR', m_risk_1_for: 'Prices a loss as how often it happens times how much it costs.', m_risk_1_stop: 'Per scenario or asset, not per use case.',
+  m_risk_1: 'FAIR', m_risk_1_for: 'Estimates a loss as how often it happens times how much it costs.', m_risk_1_stop: 'Per scenario or asset, not per use case.',
   m_risk_2: 'Correlated-failure models', m_risk_2_for: 'Simulate an outage spreading across a dependency graph.', m_risk_2_stop: 'Per asset, weighted by importance, not per use case.',
-  m_risk_3: 'The risk register', m_risk_3_for: 'Rates each risk high, medium or low.', m_risk_3_stop: 'A judgment, not a price.',
+  m_risk_3: 'The risk register', m_risk_3_for: 'Rates each risk high, medium or low.', m_risk_3_stop: 'A judgment, not a measurement.',
   m_exit_1: 'Switching-cost economics', m_exit_1_for: 'Counts what moving costs: learning, contracts, compatibility.', m_exit_1_stop: 'Studied per market, rarely recorded per use case.',
   m_exit_2: 'Real options', m_exit_2_for: 'Values the freedom to switch later.', m_exit_2_stop: 'Rarely applied to architecture, and its inputs are contested.',
   m_exit_3: 'Engineering estimates', m_exit_3_for: 'Size the work of a migration when one is planned.', m_exit_3_stop: 'Made once, for one move, then filed.',
@@ -822,6 +821,9 @@ export const copy = {
   canvas_gesture: 'Drag to look around. Scroll or pinch to zoom.',
   poke_useCases: 'Tap a dot to see what it does',
   poke_platforms: 'Tap a sphere to see what rides on it',
+  poke_lines: 'Tap a line to see what it carries',
+  poke_connectors: 'Tap a diamond to see what passes through it',
+  poke_flow: 'Tap a line to see where its value lands',
   book_title: 'The ledger, {name}',
   book_row_1: 'Entry one: what it costs',
   book_row_2: 'Entry two: what it risks',
@@ -1146,11 +1148,11 @@ export const summary = {
     'Fail {name} and {affected} use cases stop, stalling {volume} units of ' +
     'monthly work.',
   s3_number:
-    'A bad month for {sub} looks like about USD {sum} priced one use case at ' +
+    'A bad month for {sub} looks like about USD {sum} measured one use case at ' +
     'a time. Taken together it is about USD {joint}.',
   s3_mechanism:
     'The first figure assumes every use case has its worst month at once. ' +
-    'Priced together, the worst months do not all coincide.',
+    'Measured together, the worst months do not all coincide.',
 
   // View 4.
   s4_head:

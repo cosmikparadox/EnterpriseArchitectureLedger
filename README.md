@@ -2375,10 +2375,9 @@ card carries the same note.
 
 ### 90. Rated, not priced; the ledger as a framework; two shapes, one at a time
 
-The welcome said decisions are "priced" in colours. A red, amber or green
-cell is neither a price nor a measurement; it is a rating, so it now says
-we still mostly rate them in colours, and asks whether we can price them
-in dollars instead. The line beneath is the owner's: an early idea they
+The welcome said decisions are "priced" in colours. The ledger prices
+nothing; it measures. The welcome now says we still mostly measure them in
+colours, and asks whether we can measure them in dollars instead. The line beneath is the owner's: an early idea they
 are exploring, to bridge the blueprint and the balance sheet, with
 "blueprint" in the architects' colour and "balance sheet" in the CFO's.
 "Balance sheet" is on the retired-phrase list because architecture is not
@@ -2399,3 +2398,28 @@ does not remove it, and a three-row comparison: the largest shared pool,
 a bad month for the domain, and the largest single exit, one column per
 shape. Next, or a tap on a row, plays each entry on the canvas; no timer
 runs. The explorer's view 5 keeps its split.
+
+### 91. Measure, not price; what the CFO asks; rings on every layer
+
+On the owner's instruction the app measures and never prices. Every
+on-screen use of price as what the ledger does now says measure or
+estimate. The closing caveat, the owner's sentence, keeps its wording
+character for character, and a vendor contract's price of staying is
+still a price.
+
+The CFO's line on the company page asked "what could fail together".
+That is the architect's mechanism, not the CFO's question. It now reads:
+what the estate costs to run, what an outage would cost the business, and
+what changing course would cost. The pause beat's two lines are plainer.
+
+The first-visit rings came back only once per browser, because the first
+tap was remembered across visits. They now show on every visit and retire
+only for the beat on which the reader taps one. Rings now also mark three
+lines on the lines beat, three connectors, and three lines on the value
+flow beat, each with its own hint. A line's ring sits at its middle.
+
+The three integration drawings looked the same, used three box styles and
+ran lines through the bus. They now share one style, lines meet box edges,
+and each tells a different story of the same systems: everything through
+the bus, no bus at all, and the bus plus a direct line and a fifth system
+the others leave out. The caption says so.

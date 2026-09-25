@@ -75,11 +75,11 @@ export const BEATS: Beat[] = [
     card: true, enter: ({ store }) => { store.setSelectedId(null); store.setShowHulls(true) } },
   { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, hint: true, pokes: 'useCases' }, card: true },
   { part: 1, stem: 'platforms', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, hint: true, pokes: 'platforms' }, card: true },
-  { part: 1, stem: 'lines', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, links: true }, card: true },
-  { part: 1, stem: 'connectors', view: 1, overlay: null, scene: { ...PICTURE, stagger: true }, card: true },
+  { part: 1, stem: 'lines', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, links: true, pokes: 'lines' }, card: true },
+  { part: 1, stem: 'connectors', view: 1, overlay: null, scene: { ...PICTURE, stagger: true, pokes: 'connectors' }, card: true },
   // The value flow: every line tinted by where its work's value lands and
   // widened by how much work it carries, with the flow running along it.
-  { part: 1, stem: 'flow', view: 1, overlay: null, scene: { ...PICTURE, flow: true }, card: true,
+  { part: 1, stem: 'flow', view: 1, overlay: null, scene: { ...PICTURE, flow: true, pokes: 'flow' }, card: true,
     enter: ({ store }) => { store.setSelectedId(null) } },
   { part: 1, stem: 'busiest', view: 1, overlay: null, scene: { ...PICTURE }, card: true,
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFlyToId(IDENTITY_ID) } },

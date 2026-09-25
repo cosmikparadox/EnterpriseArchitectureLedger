@@ -35,6 +35,8 @@ export const TOUR_STEPS = 40
 export const FIRST_LEDGER_CHAPTER = 25
 
 /** What the canvas shows during the story. Every field is a layer or a mode. */
+export type PokeKind = 'useCases' | 'platforms' | 'lines' | 'connectors' | 'flow'
+
 export interface Scene {
   /** The canvas faded to nothing. */
   blank: boolean
@@ -59,7 +61,7 @@ export interface Scene {
   /** The value flow picture: lines tinted by where their work's value lands. */
   flow: boolean
   /** Rings on a few nodes of one kind, and a tap hint, until the reader has tapped one. */
-  pokes: 'useCases' | 'platforms' | null
+  pokes: PokeKind | null
 }
 
 export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null, flow: false, pokes: null }
@@ -116,8 +118,8 @@ export interface LedgerState {
   shapesSide: 'left' | 'right'
   /** The third how beat: which entry is playing on the flat map. Next steps it on. */
   flatPhase: 0 | 1 | 2
-  /** What the reader has already tapped once, kept across visits, so a hint is shown only until it is needed no more. */
-  poked: { useCases: boolean; platforms: boolean }
+  /** The kinds the reader has tapped on this beat: its rings stop once one is tapped. */
+  poked: Partial<Record<PokeKind, boolean>>
   /** Dark or light, chosen by the viewer; 'auto' follows the system. */
   theme: 'auto' | 'light' | 'dark'
 
@@ -146,7 +148,7 @@ export interface LedgerState {
   setShapesPhase: (p: 0 | 1 | 2) => void
   setFlatPhase: (p: 0 | 1 | 2) => void
   setShapesSide: (s: 'left' | 'right') => void
-  setPoked: (kind: 'useCases' | 'platforms') => void
+  setPoked: (kind: PokeKind) => void
   setTheme: (t: 'auto' | 'light' | 'dark') => void
   resetStory: () => void
   /** Going back a beat: what later beats set is cleared, so the earlier beat shows what it showed the first time. */
@@ -154,12 +156,6 @@ export interface LedgerState {
 }
 
 const THEME_KEY = 'ledger.theme'
-function readPoked(): { useCases: boolean; platforms: boolean } {
-  try {
-    const v = JSON.parse(localStorage.getItem('ledger.poked') ?? '{}') as Partial<{ useCases: boolean; platforms: boolean }>
-    return { useCases: v.useCases === true, platforms: v.platforms === true }
-  } catch { return { useCases: false, platforms: false } }
-}
 function readTheme(): 'auto' | 'light' | 'dark' {
   try { const t = localStorage.getItem(THEME_KEY); return t === 'light' || t === 'dark' ? t : 'auto' } catch { return 'auto' }
 }
@@ -187,7 +183,7 @@ export const useLedger = create<LedgerState>((set) => ({
   shapesPhase: 0,
   flatPhase: 0,
   shapesSide: 'left',
-  poked: readPoked(),
+  poked: {},
   theme: readTheme(),
 
   setView: (view) => set({ view }),
@@ -205,7 +201,7 @@ export const useLedger = create<LedgerState>((set) => ({
   setCursor: (cursor) => set({ cursor }),
   setRatified: (ratified) => set({ ratified }),
   setFanInAdded: (fanInAdded) => set({ fanInAdded }),
-  setTourStep: (tourStep) => set((s) => ({ tourStep, sceneReady: tourStep === null ? true : s.tourStep !== null })),
+  setTourStep: (tourStep) => set((s) => ({ tourStep, poked: {}, sceneReady: tourStep === null ? true : s.tourStep !== null })),
   setScene: (patch) => set((s) => ({ scene: { ...s.scene, ...patch }, sceneReady: true })),
   nameDomain: (id) => set((s) => ({ namedDomains: s.namedDomains.includes(id) ? s.namedDomains : [...s.namedDomains, id] })),
   setFocus: (focus) => set({ focus }),
@@ -213,14 +209,9 @@ export const useLedger = create<LedgerState>((set) => ({
   setShapesPhase: (shapesPhase) => set({ shapesPhase }),
   setFlatPhase: (flatPhase) => set({ flatPhase }),
   setShapesSide: (shapesSide) => set({ shapesSide }),
-  setPoked: (kind) => set((st) => {
-    if (st.poked[kind]) return {}
-    const poked = { ...st.poked, [kind]: true }
-    try { localStorage.setItem('ledger.poked', JSON.stringify(poked)) } catch { /* storage blocked: the hint simply returns next visit */ }
-    return { poked }
-  }),
+  setPoked: (kind) => set((st) => (st.poked[kind] ? {} : { poked: { ...st.poked, [kind]: true } })),
   setTheme: (theme) => { try { localStorage.setItem(THEME_KEY, theme) } catch { /* a browser that will not remember it just asks again */ } set({ theme }) },
-  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left', flyToId: null }),
+  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left', poked: {}, flyToId: null }),
   // The domains the reader named in part one are theirs and stay.
-  resetBeat: () => set({ selectedId: null, focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left' }),
+  resetBeat: () => set({ selectedId: null, focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left', poked: {} }),
 }))

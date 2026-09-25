@@ -92,26 +92,31 @@ export function DocPicture({ i, estate }: { i: number; estate: Estate }) {
       <div className="dp-more">{c.docpic_2_more}</div>
     </div>
   )
+  // Three drawings of the same four systems, by three hands. Same box
+  // style throughout; what differs is what each one says is connected. The
+  // final has everything through the bus, the draft has no bus at all, and
+  // the as-is adds a direct line and a fifth system the others never show.
   if (i === 3) body = (
     <div className="dp-diagrams">
       {[0, 1, 2].map((d) => (
-        <svg key={d} className="dp-diagram dp-in" style={{ animationDelay: `${d * 160}ms` }} viewBox="0 0 220 150">
-          <rect x="8" y="14" width="56" height="28" rx={d === 1 ? 14 : 3} />
-          <rect x="150" y="14" width="56" height="28" rx={d === 1 ? 14 : 3} />
-          <rect x="80" y="64" width="60" height="28" rx={d === 1 ? 14 : 3} />
-          <rect x="8" y="112" width="56" height="28" rx={d === 1 ? 14 : 3} />
-          <rect x="150" y="112" width="56" height="28" rx={d === 1 ? 14 : 3} />
-          {d === 2 && <line className="dp-bus" x1="10" y1="100" x2="210" y2="100" />}
-          <path className="dp-arrow" d="M64 28 L150 28" />
-          <path className="dp-arrow" d="M36 42 L110 64" />
-          <path className="dp-arrow" d="M178 42 L110 64" />
-          <path className="dp-arrow" d="M36 112 L178 42" />
-          <path className="dp-arrow" d="M178 112 L36 42" />
-          <path className="dp-arrow" d="M110 92 L36 112" />
-          <path className="dp-arrow" d="M110 92 L178 112" />
-          <text x="36" y="32">CRM</text><text x="178" y="32">Policy</text><text x="110" y="82">Bus</text>
-          <text x="36" y="130">Billing</text><text x="178" y="130">Data</text>
-          <text className="dp-stamp" x="110" y="146">{['v3 FINAL (2)', 'draft, do not share', 'as-is, 2024'][d]}</text>
+        <svg key={d} className="dp-diagram dp-in" style={{ animationDelay: `${d * 160}ms` }} viewBox="0 0 220 158">
+          {d !== 1 && <>
+            <path className="dp-arrow" d="M64 38 L80 66" /><path className="dp-arrow" d="M150 38 L140 66" />
+            <path className="dp-arrow" d="M64 116 L80 90" /><path className="dp-arrow" d="M150 116 L140 90" />
+          </>}
+          {d === 1 && <>
+            <path className="dp-arrow" d="M64 28 L150 28" /><path className="dp-arrow" d="M36 42 L36 112" />
+            <path className="dp-arrow" d="M178 42 L178 112" /><path className="dp-arrow" d="M64 126 L150 126" />
+            <path className="dp-arrow" d="M64 42 L150 112" />
+          </>}
+          {d === 2 && <><path className="dp-arrow" d="M64 24 L150 24" /><path className="dp-arrow" d="M110 90 L110 112" /></>}
+          <rect x="8" y="14" width="56" height="28" rx="4" /><text x="36" y="32">CRM</text>
+          <rect x="150" y="14" width="56" height="28" rx="4" /><text x="178" y="32">Policy</text>
+          {d !== 1 && <><rect x="80" y="62" width="60" height="28" rx="4" /><text x="110" y="80">Bus</text></>}
+          <rect x="8" y="112" width="56" height="28" rx="4" /><text x="36" y="130">Billing</text>
+          <rect x="150" y="112" width="56" height="28" rx="4" /><text x="178" y="130">Data</text>
+          {d === 2 && <><rect x="80" y="112" width="60" height="28" rx="4" /><text x="110" y="130">Payments</text></>}
+          <text className="dp-stamp" x="110" y="154">{['v3 FINAL (2)', 'draft, do not share', 'as-is, 2024'][d]}</text>
         </svg>
       ))}
     </div>

@@ -1288,7 +1288,9 @@ export function Graph3D(props: Graph3DProps) {
       let x = 0, y = 0, z = 0, k = 0
       for (const n of nodes) {
         if (n.x === undefined) continue
-        const hit = target.kind === 'node' ? n.id === target.id : (n.kind === 'use_case' && n.subdomain === target.id)
+        const hit = target.kind === 'node'
+          ? (target.id.includes('>') ? target.id.split('>').includes(n.id) : n.id === target.id)
+          : (n.kind === 'use_case' && n.subdomain === target.id)
         if (!hit) continue
         x += n.x; y += n.y ?? 0; z += n.z ?? 0; k++
       }

@@ -115,10 +115,22 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const poked = useLedger((s) => s.poked)
   const setPoked = useLedger((s) => s.setPoked)
   const pokes = useMemo(() => {
-    if (!inStory || !scene.pokes || poked[scene.pokes]) return null
-    const want = scene.pokes === 'useCases' ? ['uc_claim_settle', 'uc_quote_bind', 'uc_payroll'] : ['claimcenter', 'sap_s4', 'workday']
-    const ids = want.filter((id) => ix.useCaseById.has(id) || ix.platformById.has(id))
-    return ids.length ? { ids, text: scene.pokes === 'useCases' ? copy.poke_useCases : copy.poke_platforms } : null
+    const kind = scene.pokes
+    if (!inStory || !kind || poked[kind]) return null
+    // Lines are ringed at their middle, written 'use case>platform'.
+    const want: Record<typeof kind, string[]> = {
+      useCases: ['uc_claim_settle', 'uc_quote_bind', 'uc_payroll'],
+      platforms: ['claimcenter', 'sap_s4', 'workday'],
+      connectors: ['okta', 'apigee', 'kafka'],
+      lines: ['uc_claim_settle>claimcenter', 'uc_quote_bind>policycenter', 'uc_payroll>workday'],
+      flow: ['uc_claim_settle>adyen', 'uc_reins_settle>sap_s4', 'uc_payroll>workday'],
+    }
+    const ok = (id: string) => {
+      const [a, b] = id.split('>') as [string, string | undefined]
+      return b ? ix.useCaseById.get(a)?.edges.some((e) => e.platform_id === b) === true : ix.useCaseById.has(a) || ix.platformById.has(a)
+    }
+    const ids = want[kind].filter(ok)
+    return ids.length ? { ids, text: (copy as Record<string, string>)[`poke_${kind}`] ?? '' } : null
   }, [inStory, scene.pokes, poked, ix])
   // The book's rows are read off the graph for whatever node is tapped: a
   // platform's meter, pool, riders and execution work; a use case's bill,
@@ -239,10 +251,10 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}
           onSelectNode={(id) => {
-            if (inStory) { if (ix.useCaseById.has(id)) setPoked('useCases'); else if (ix.platformById.has(id)) setPoked('platforms'); setFocus({ kind: 'node', id }); setSelectedId(id); return }
+            if (inStory) { if (ix.useCaseById.has(id)) setPoked('useCases'); else if (ix.platformById.has(id)) { setPoked('platforms'); if (ix.platformById.get(id)?.type === 'integration') setPoked('connectors') } setFocus({ kind: 'node', id }); setSelectedId(id); return }
             setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false); if (walk && walk !== id) setWalk(null)
           }}
-          onSelectLink={(l) => { if (inStory) { setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
+          onSelectLink={(l) => { if (inStory) { setPoked('lines'); setPoked('flow'); setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}
           onBackground={() => { if (inStory) { setFocus(null); return } setHullPop(null); setSelectedId(null); setSelectedLink(null) }}
           // A coloured shape is a domain. In the story it names itself on the
           // card; afterwards it explains itself in a pop-up where it was tapped.
