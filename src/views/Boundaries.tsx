@@ -291,11 +291,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
 
           <section>
             <h3>What did not change</h3>
-            <div className="note">
-              The graph. Edges do not move. Risk does not move. Metered spend does not move.
-              Only figures that read the declared decomposition move, and those are the ones
-              to trust least.
-            </div>
+            <div className="note">{copy.boundaries_unchanged}</div>
           </section>
         </PanelShell>
         {!inStory && w.walk && (ixAfter.platformById.has(w.walk) || ixAfter.useCaseById.has(w.walk)) && (

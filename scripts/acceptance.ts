@@ -653,11 +653,11 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 // Every on-screen string lives in src/copy.ts. No dash of either kind, no
 // sentence over twenty words, and none of the phrases the narrative
 // correction retired. Two exemptions, both recorded in the README: the
-// title sentence is the owner's, reproduced unchanged; and "overstates" in
-// option_upper_bound is canon 9.8.3 result three on option components.
+// title sentence is the owner's, reproduced unchanged; and the welcome
+// note's metaphor is the owner's too.
 {
   const EXEMPT_LENGTH = new Set(['copy.b_title_see'])
-  const EXEMPT_PHRASE = new Set(['copy.option_upper_bound', 'copy.story_welcome_note_bs'])
+  const EXEMPT_PHRASE = new Set(['copy.story_welcome_note_bs'])
   const FORBIDDEN = ['bad year', 'a year worse', 'overstates', 'counts the same', 'never together', 'always together', 'balance sheet', 'nothing new is collected', 'written down nowhere']
   const faults: string[] = []
   let strings = 0
@@ -676,7 +676,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   }
   for (const [name, v] of Object.entries(copyModule)) if (typeof v !== 'function') walk(name, v)
   add('N1 the copy deck: no dashes, no sentence over twenty words, no retired phrase', faults.length === 0 ? 'PASS' : 'FAIL',
-    faults.length === 0 ? `${strings} strings scanned; exempt: b_title_see (owner's sentence), option_upper_bound (canon 9.8.3 result three), story_welcome_note_bs (the owner's metaphor)` : faults.slice(0, 8).join(' | '))
+    faults.length === 0 ? `${strings} strings scanned; exempt: b_title_see (owner's sentence), story_welcome_note_bs (the owner's metaphor)` : faults.slice(0, 8).join(' | '))
 }
 
 // ---- N2. The closing card ---------------------------------------------------
@@ -791,7 +791,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   }
   for (const row of await page.locator('.cmp').all()) {
     const l = (await row.locator('.cl').innerText()).trim()
-    if (l === 'work of leaving') { check('two shapes exit', 'left', (await row.locator('.ca').innerText()).trim()); check('two shapes exit', 'right', (await row.locator('.cb').innerText()).trim()) }
+    if (/^[123]$/.test(l)) { check('two shapes exit', 'left', (await row.locator('.ca').innerText()).trim()); check('two shapes exit', 'right', (await row.locator('.cb').innerText()).trim()) }
   }
   await page.goto('http://localhost:5190/#/footprint', { waitUntil: 'load' }); await page.waitForTimeout(2500)
   for (const row of await page.locator('.panel .row').all()) {

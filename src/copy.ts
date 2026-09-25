@@ -84,11 +84,6 @@ export const copy = {
     'There is no estate figure here. The three axes do not add, and the ' +
     'entries do not add across use cases. See the Ledger paper.',
 
-  // Canon 9.8.3 result three. Option components across commitments overstate,
-  // so the sum is reported as an upper bound and never as a position.
-  option_upper_bound:
-    'Adding option components across commitments overstates the joint ' +
-    'position. This is an upper bound, not a total.',
 
   integration_note:
     'This node exists because the estate is diversified. Its fan-in is the ' +
@@ -236,9 +231,9 @@ export const copy = {
     'But they tend to live in different places, owned by different people, ' +
     'in different units. So decisions often fall back on a colour.',
   b_opener_why_more:
-    'FinOps meters cloud cost, TBM allocates IT cost by rule, and risk ' +
+    'FinOps meters technology spend, TBM allocates IT cost by rule, and risk ' +
     'methods estimate losses that arrive together. The Ledger paper claims ' +
-    'none of these methods as its own. As a thesis, it tests reading all ' +
+    'none of these methods as its own. As a thesis, it proposes reading all ' +
     'three on one unit: a single use case on the shared map. ' +
     'See the Ledger paper, 9.16.',
   why_cost: 'A spreadsheet',
@@ -258,7 +253,7 @@ export const copy = {
     'drawn for one purpose, as of one date.',
   b_how_map_see:
     'The systems\' own traces say which calls which, every day. That is a ' +
-    'map, and it stays current.',
+    'map, as current as its last reading.',
   b_how_map_more:
     'Operations teams already collect these traces to find outages. The same ' +
     'traces give the map, with no vendor in between. The map has gaps too: ' +
@@ -278,9 +273,9 @@ export const copy = {
   b_how_work_def: 'Use case: one thing the business does, such as settling a claim.',
   b_how_work_def2: 'Unit of work: one run of a use case, one claim settled.',
   b_how_work_more:
-    'This is why the ledger reads use cases, not systems. A system on its ' +
-    'own has no owner and no margin. A use case has both. See the Ledger ' +
-    'paper, 9.1.2.',
+    'This is why the ledger reads use cases, not systems. A system has an ' +
+    'owner but no margin. A use case sits in a domain that has both. See the ' +
+    'Ledger paper, 9.1.2.',
 
   b_how_graph_h: 'How: why a graph',
   b_how_graph:
@@ -303,7 +298,7 @@ export const copy = {
   // A pause after the opening: the whole idea has been said. Go on into the
   // full tour, or leave for the tool.
   reflect_big: 'That is the whole idea.',
-  reflect_sub: 'Each thing the business does gets three numbers. They are read off the map and never added up.',
+  reflect_sub: 'Each thing the business does gets three figures. They start from the map and are never added up.',
   reflect_ask: 'If this sounds like a problem you have seen, the full tour walks through it in three parts.',
   reflect_go: 'Continue the tour',
   reflect_leave: 'Leave the tour',
@@ -363,7 +358,7 @@ export const copy = {
   b_flow_h: 'What flows through it',
   b_flow:
     'Every line carries work, and work carries value. Warm lines carry work ' +
-    'that reaches a customer. Cooler lines carry work that reaches a ' +
+    'that reaches a customer. Mid-tone lines carry work that reaches a ' +
     'reinsurer, a supplier or a regulator. Cool lines carry the work that ' +
     'keeps the company running. The width is how much.',
   b_flow_see:
@@ -391,7 +386,7 @@ export const copy = {
     'right about something, and says little about the three questions a ' +
     'decision needs.',
   b_docs_more:
-    'The method calls the whole collection an architecture repository, and ' +
+    'TOGAF calls the whole collection an architecture repository, and ' +
     'it is only as current as its most recent edit. The picture you just ' +
     'built is not in it; it would have to be drawn.',
   b_matrix_h: 'What decisions are made on',
@@ -404,9 +399,9 @@ export const copy = {
   b_matrix_more:
     'This is the common practice: capability heat maps, and the two-by-two ' +
     'of business value against technical fit. Each is scored one to five by ' +
-    'a person. The colours here are derived from this estate\'s data, so the ' +
-    'drawing is of Harbourline. But it is judgment by construction, and it ' +
-    'is labelled illustrative.',
+    'a person. Here the colours are set from each system\'s share of fixed ' +
+    'cost, so the drawing is of Harbourline. Part three shows why that share ' +
+    'must never decide a replacement. The drawing is labelled illustrative.',
   b_silos_h: 'Three questions, three places',
   b_silos:
     'What it costs is in a finance spreadsheet, by cost centre. What it risks ' +
@@ -425,9 +420,10 @@ export const copy = {
     'The system half of that picture is not imaginary. Operations tools ' +
     'discover which systems call which, every day, to find outages.',
   b_graph_today_see:
-    'The use cases and the domains are not discovered. People declare them. ' +
-    'The graph carries no money. In most estates nobody has joined the ' +
-    'spreadsheet, the register and the exit figure to it per use case.',
+    'Which systems a use case touches is discovered. What counts as a use ' +
+    'case, and which domain owns it, is declared. The graph carries no ' +
+    'money. In most estates nobody has joined the spreadsheet, the register ' +
+    'and the exit figure to it per use case.',
   b_graph_today_more:
     'That is the gap the Ledger paper names. The graph is mined, the numbers ' +
     'are elsewhere, and the decision is often made on a colour. See the ' +
@@ -442,7 +438,7 @@ export const copy = {
   b_pain_see: 'Part three puts a figure on each, on one shared platform.',
   b_pain_more:
     'These follow from the mathematics, not from a survey of organisations. ' +
-    'In the Ledger paper: the saving at 9.2.4, the risk at 9.8.3, leaving at ' +
+    'In the Ledger paper: the saving at 9.2.6, the risk at 9.8.3, leaving at ' +
     '9.5, the boundary at 9.2.8.',
   pain_1_h: 'A saving that never arrives',
   pain_1: 'Retire a use case and its share of a shared platform stays, spread over the rest.',
@@ -488,7 +484,9 @@ export const copy = {
   b_meter_more:
     'The meter\'s unit is called the driver, the thing that gets counted. ' +
     'Logins for an identity platform, policy transactions for a policy ' +
-    'engine. Tap another grey sphere to see its meter.',
+    'engine. Tap another node to see its meter. A real ledger would show ' +
+    'each cost as a range over months of readings. This invented estate has ' +
+    'one month, so it shows one figure. See the Ledger paper, 9.2.5.',
   b_pool_h: 'The fixed pool',
   b_pool:
     'The rest of the bill is a fixed pool. Licences and the team who run it, ' +
@@ -525,14 +523,14 @@ export const copy = {
     'primary flexibility measure. See the Ledger paper, 9.2.4 and 9.4.',
   b_fail_h: 'Entry two: risk. When it stops',
   b_fail:
-    'When a shared platform stops, the work riding it is exposed, across ' +
+    'When a shared node stops, the work riding it is exposed, across ' +
     'teams that never speak. Fail it and watch which use cases go dark.',
   b_fail_see: 'How far that reaches is the blast radius.',
   b_together_h: 'A bad month, two ways',
   b_together:
     'Measure a bad month for {sub} one use case at a time and add them up: ' +
     'about USD {sum}. Measure the domain together: about USD {joint}.',
-  b_together_def: 'Bad month: one so bad that a worse one comes about once in a hundred months.',
+  b_together_def: 'Bad month: one so bad that a worse one comes about once in a hundred months. It counts margin lost from stopped work.',
   b_together_see:
     'Adding assumes every use case has its worst month in the same month. ' +
     'Here they do not, so adding comes out higher. Together is the figure ' +
@@ -612,10 +610,23 @@ export const copy = {
   // The comparison on the card, and the two shapes' names.
   shape_left: 'Concentrated',
   shape_right: 'Best of breed',
-  shapes_row_cost: 'largest shared pool',
+  shapes_row_cost: 'busiest node\'s pool',
   shapes_row_risk: 'a bad month for {sub}',
-  shapes_row_exit: 'largest single exit',
-  shapes_cell_cost: 'USD {pool}, {riders} riders',
+  shapes_row_exit: 'largest single exit, month 60',
+  shapes_cell_cost: '{name}: USD {pool}, {riders} riders',
+  shapes_cell_risk: 'about USD {v}',
+  shapes_cell_exit: '{name}: about USD {exec}',
+  // The two shapes panel: the three largest works of leaving on each side,
+  // ranked. Never summed: each belongs to its own platform.
+  shapes_exit_rank_h: 'Work of leaving, the three largest',
+  shapes_exit_rank_note: 'A ranking, not a sum. Each figure belongs to its own platform.',
+  // Boundaries: what a redrawn line leaves alone, and what it moves.
+  boundaries_unchanged:
+    'The graph does not move, and neither do its edges or metered spend. ' +
+    'Risk does: a domain\'s bad month adds up whoever is inside the line. ' +
+    'In this model a moved use case also takes its new domain\'s margin. ' +
+    'Cost figures move only under a basis that reads the line. Those are ' +
+    'the figures to trust least.',
   ctl_shapes_cost: 'Cost',
   ctl_shapes_risk: 'Risk',
   ctl_shapes_exit: 'Leaving',
@@ -811,7 +822,7 @@ export const copy = {
   silo_open: 'Methods',
   silo_methods_note: 'Each is sound on its own terms. None is keyed to a single use case.',
   // Three methods under each tile: what each is for, and where it stops.
-  m_cost_1: 'FinOps', m_cost_1_for: 'Meters cloud cost per unit of work.', m_cost_1_stop: 'Stops at the cloud bill.',
+  m_cost_1: 'FinOps', m_cost_1_for: 'Meters technology spend per unit of work: cloud, SaaS, data centre.', m_cost_1_stop: 'Keyed to accounts and tags, not use cases.',
   m_cost_2: 'TBM', m_cost_2_for: 'Allocates every IT cost to a tower and a service.', m_cost_2_stop: 'By rule, not by use case.',
   m_cost_3: 'IFRS 17', m_cost_3_for: 'For an insurer, allocates directly attributable costs, IT included, to groups of contracts.', m_cost_3_stop: 'By a systematic rule, not by use case.',
   m_risk_1: 'FAIR', m_risk_1_for: 'Estimates a loss as how often it happens times how much it costs.', m_risk_1_stop: 'Per scenario or asset, not per use case.',
@@ -912,7 +923,9 @@ export const copy = {
   walk_p_stops:
     'Everything riding it is exposed: {riders} use cases across {n_sub} ' +
     'domains. About {lef} loss events a year, a typical one costing USD ' +
-    '{loss}. The wireframe nodes are the ones an outage reached.',
+    '{loss} in direct damage. That direct loss is not in any bad-month ' +
+    'figure, which counts only margin lost from stopped work. The wireframe ' +
+    'nodes are the ones an outage reached.',
   walk_p_leaving_h: 'What leaving would cost',
   walk_p_leaving:
     'The work of leaving today is about USD {exec}: migration, rewiring, ' +
@@ -1143,7 +1156,7 @@ export const summary = {
     '{n_platforms} shared platforms carry {n_uc} pieces of this business. The ' +
     'busiest, {top}, carries {top_riders} of them.',
   s1_number:
-    'Every use case is billed part meter, part rule. Across these nodes the ' +
+    'Every use case is charged part meter, part rule. Across these nodes the ' +
     'rule part runs from {c1_lo} to {c1_hi} percent.',
   s1_mechanism:
     'Each line into a node is a dependency. The more lines, the more work ' +

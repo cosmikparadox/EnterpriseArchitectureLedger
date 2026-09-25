@@ -75,15 +75,11 @@ function shapeStats(shape: Shape, rule: AllocationRule) {
     return { p, exec: workOfLeaving(p, n, AS_AT - p.adopted_month), k: kCommitted(p, n, AS_AT - p.adopted_month) }
   }).sort((a, b) => b.exec - a.exec)
 
-  const integrationExecSum = exits
-    .filter((e) => e.p.type === 'integration')
-    .reduce((a, e) => a + e.exec, 0)
-
   const maxC1 = estate.platforms
     .map((p) => ({ p, v: c1(ix, p.id) }))
     .sort((a, b) => b.v - a.v)[0]!
 
-  return { perSubdomain, blast, exits, integrationExecSum, maxC1 }
+  return { perSubdomain, blast, exits, maxC1 }
 }
 
 export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: TwoShapesProps) {
@@ -380,16 +376,14 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           </section>
 
           <section>
-            <h3>Work of leaving, largest single</h3>
-            <Row l="node" a={sl.exits[0]!.p.name} b={sr.exits[0]!.p.name} />
-            <Row l="work of leaving" a={`about USD ${gbpAbout(sl.exits[0]!.exec)}`} b={`about USD ${gbpAbout(sr.exits[0]!.exec)}`} />
-            <div className="refusal">
-              <span className="fig">
-                Sum across integration commitments: about USD {gbpAbout(sl.integrationExecSum)} left,{' '}
-                about USD {gbpAbout(sr.integrationExecSum)} right
-              </span>
-              {copy.option_upper_bound}
-            </div>
+            <h3>{copy.shapes_exit_rank_h}</h3>
+            <Row l="" a="concentrated" b="best of breed" />
+            {[0, 1, 2].map((i) => (
+              <Row key={i} l={String(i + 1)}
+                a={fill(copy.shapes_cell_exit, { name: sl.exits[i]!.p.name, exec: gbpAbout(sl.exits[i]!.exec) })}
+                b={fill(copy.shapes_cell_exit, { name: sr.exits[i]!.p.name, exec: gbpAbout(sr.exits[i]!.exec) })} />
+            ))}
+            <div className="note">{copy.shapes_exit_rank_note}</div>
           </section>
         </PanelShell>
       </div>

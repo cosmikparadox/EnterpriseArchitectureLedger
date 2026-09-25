@@ -76,9 +76,9 @@ export function Controls({ control, estate, figures }: { control: Control; estat
     // play lit. A tap on a row plays it on the canvas.
     const f = (k: string) => figures[k] ?? ''
     const rows = [
-      { label: copy.ctl_shapes_cost, sub: copy.shapes_row_cost, a: fill(copy.shapes_cell_cost, { pool: f('left_pool'), riders: f('left_riders') }), b: fill(copy.shapes_cell_cost, { pool: f('right_pool'), riders: f('right_riders') }) },
-      { label: copy.ctl_shapes_risk, sub: fill(copy.shapes_row_risk, { sub: f('sub') }), a: `about USD ${f('left')}`, b: `about USD ${f('right')}` },
-      { label: copy.ctl_shapes_exit, sub: copy.shapes_row_exit, a: `about USD ${f('left_exec')}`, b: `about USD ${f('right_exec')}` },
+      { label: copy.ctl_shapes_cost, sub: copy.shapes_row_cost, a: fill(copy.shapes_cell_cost, { name: f('left_top'), pool: f('left_pool'), riders: f('left_riders') }), b: fill(copy.shapes_cell_cost, { name: f('right_top'), pool: f('right_pool'), riders: f('right_riders') }) },
+      { label: copy.ctl_shapes_risk, sub: fill(copy.shapes_row_risk, { sub: f('sub') }), a: fill(copy.shapes_cell_risk, { v: f('left') }), b: fill(copy.shapes_cell_risk, { v: f('right') }) },
+      { label: copy.ctl_shapes_exit, sub: copy.shapes_row_exit, a: fill(copy.shapes_cell_exit, { name: f('left_exit'), exec: f('left_exec') }), b: fill(copy.shapes_cell_exit, { name: f('right_exit'), exec: f('right_exec') }) },
     ]
     return (
       <div className="story-ctl shapes-table" data-tour="shapes" role="tablist">
