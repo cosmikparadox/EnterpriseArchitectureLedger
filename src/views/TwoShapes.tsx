@@ -33,7 +33,6 @@ export interface TwoShapesProps {
 }
 
 const AS_AT = 60
-const gbpPlain = (n: number) => Math.round(n).toLocaleString('en-GB')
 
 interface Shape {
   label: string
@@ -158,6 +157,8 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   const tourStep = useLedger((s) => s.tourStep)
   const phase = useLedger((s) => s.shapesPhase)
   const inStory = tourStep !== null
+  const side = useLedger((s) => s.shapesSide)
+  const setSide = useLedger((s) => s.setShapesSide)
   const entries = useMemo(() => ({
     left: shapeEntry(left.estate, left.ix, rho, SHAPES_SEED.left),
     right: shapeEntry(right.estate, right.ix, rho, SHAPES_SEED.right),
@@ -179,7 +180,6 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
       nodeRing: ring,
       selectedId: e.topId,
       focus: { nodes: new Set([e.topId, ...riders(e.topId)]) },
-      note: <div className="shape-note">{fill(copy.shapes_note_cost, { pool: gbpPlain(e.pool), riders: e.riders, c1: (e.c1 * 100).toFixed(0) })}</div>,
     }
     if (phase === 1) {
       const affected = e.reach ? new Set([...e.reach.affected, ...e.reach.platforms]) : new Set<string>()
@@ -189,13 +189,11 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         litLinks: e.reach?.litLinks,
         wave: e.reach ? { from: e.topId, nonce: 1000 * visit + e.reach.platforms.size, hop: e.reach.hop } : null,
         focus: { nodes: new Set([e.topId, ...affected]) },
-        note: <div className="shape-note">{fill(copy.shapes_note_risk, { aff: e.affected })}</div>,
       }
     }
     return {
       selectedId: e.exitId,
       focus: { nodes: new Set([e.exitId, ...e.exitRiders]) },
-      note: <div className="shape-note">{fill(copy.shapes_note_exit, { name: e.exitName, exec: gbpAbout(e.exec) })}</div>,
     }
   }
   // Each entry into the risk phase replays the wave from the source; a
@@ -248,8 +246,16 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
       </div>
 
 
-      <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}`} style={{ ['--split' as string]: `${split}%` }}>
-        {!stacked && (
+      <div className={`graphwrap split${stacked ? ' stacked' : ''}${collapsed ? '' : ' panel-open'}${inStory ? ' solo' : ''}`} style={{ ['--split' as string]: `${split}%` }}>
+        {/* In the story, one shape at a time: the two canvases sit on top of
+            each other and the toggle cross-fades between them. */}
+        {inStory && (
+          <div className="shape-toggle" role="tablist" aria-label="Which shape">
+            <button type="button" role="tab" aria-selected={side === 'left'} className={side === 'left' ? 'on' : ''} onClick={() => setSide('left')}>{copy.shape_left}</button>
+            <button type="button" role="tab" aria-selected={side === 'right'} className={side === 'right' ? 'on' : ''} onClick={() => setSide('right')}>{copy.shape_right}</button>
+          </div>
+        )}
+        {!stacked && !inStory && (
           <div
             className={`split-divider${dragging ? ' dragging' : ''}`}
             role="separator" aria-orientation="vertical" aria-label="Divider between the two estates"
@@ -257,7 +263,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             onPointerDown={onDividerDown}
           />
         )}
-        <div className="half">
+        <div className={`half${inStory && side !== 'left' ? ' off' : ''}`}>
           <div className="half-title" data-tour="caption-left">
             Concentrated
             <span className="half-note">
@@ -272,7 +278,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             {...stagedLeft}
           />
         </div>
-        <div className="half">
+        <div className={`half${inStory && side !== 'right' ? ' off' : ''}`}>
           <div className="half-title" data-tour="caption-right">
             Best of breed
             <span className="half-note">

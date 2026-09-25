@@ -112,6 +112,8 @@ export interface LedgerState {
   moves: Record<string, string>
   /** The two shapes beat: which entry is being compared, cost, risk or leaving. */
   shapesPhase: 0 | 1 | 2
+  /** The two shapes beat in the story: which shape is on the canvas. */
+  shapesSide: 'left' | 'right'
   /** The third how beat: which entry is playing on the flat map. Next steps it on. */
   flatPhase: 0 | 1 | 2
   /** What the reader has already tapped once, kept across visits, so a hint is shown only until it is needed no more. */
@@ -143,6 +145,7 @@ export interface LedgerState {
   setMoves: (m: Record<string, string>) => void
   setShapesPhase: (p: 0 | 1 | 2) => void
   setFlatPhase: (p: 0 | 1 | 2) => void
+  setShapesSide: (s: 'left' | 'right') => void
   setPoked: (kind: 'useCases' | 'platforms') => void
   setTheme: (t: 'auto' | 'light' | 'dark') => void
   resetStory: () => void
@@ -183,6 +186,7 @@ export const useLedger = create<LedgerState>((set) => ({
   moves: {},
   shapesPhase: 0,
   flatPhase: 0,
+  shapesSide: 'left',
   poked: readPoked(),
   theme: readTheme(),
 
@@ -208,6 +212,7 @@ export const useLedger = create<LedgerState>((set) => ({
   setMoves: (moves) => set({ moves }),
   setShapesPhase: (shapesPhase) => set({ shapesPhase }),
   setFlatPhase: (flatPhase) => set({ flatPhase }),
+  setShapesSide: (shapesSide) => set({ shapesSide }),
   setPoked: (kind) => set((st) => {
     if (st.poked[kind]) return {}
     const poked = { ...st.poked, [kind]: true }
@@ -215,7 +220,7 @@ export const useLedger = create<LedgerState>((set) => ({
     return { poked }
   }),
   setTheme: (theme) => { try { localStorage.setItem(THEME_KEY, theme) } catch { /* a browser that will not remember it just asks again */ } set({ theme }) },
-  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, flyToId: null }),
+  resetStory: () => set({ scene: SCENE_ALL, namedDomains: [], focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left', flyToId: null }),
   // The domains the reader named in part one are theirs and stay.
-  resetBeat: () => set({ selectedId: null, focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0 }),
+  resetBeat: () => set({ selectedId: null, focus: null, moves: {}, fanInAdded: 0, rho: DEFAULT_RHO, cursor: 60, ratified: 31, rule: 'equal', failRequest: null, subdomain: null, shapesPhase: 0, shapesSide: 'left' }),
 }))

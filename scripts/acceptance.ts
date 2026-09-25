@@ -244,7 +244,7 @@ add('3 non-additivity, as restated', 'PASS',
 // picture, part two shows how it is decided today, part three builds the
 // ledger. Each beat shows one thing.
 const BEAT_HEADING: Record<number, string> = {
-  3: 'Why it matters', 4: 'How: a map, not a drawing', 5: 'How: from systems to work', 6: 'How: why a graph',
+  2: 'The architecture ledger', 3: 'Why it matters', 4: 'How: a map, not a drawing', 5: 'How: from systems to work', 6: 'How: why a graph',
   9: 'Domains', 10: 'Use cases', 11: 'Platforms', 12: 'Lines', 13: 'Connectors', 14: 'What flows through it', 15: 'The busiest node',
   18: 'Where the architecture lives', 19: 'What decisions are made on', 20: 'Three questions, three places', 21: 'The graph already exists', 22: 'Four blind spots',
   25: 'Why a ledger', 26: 'The blueprint fills the book', 27: 'Entry one: cost. The meter', 28: 'The fixed pool', 29: 'The rule', 30: 'The crowd changes',
@@ -252,18 +252,20 @@ const BEAT_HEADING: Record<number, string> = {
   34: 'Entry three: leaving. How the footprint grew', 35: 'What leaving would cost', 36: 'Does spreading it out help?',
   37: 'Whose lines decided all of it', 38: 'Move one use case', 39: 'Change the rule', 40: 'The ledger, closed',
 }
-const NO_CARD = new Set([0, 1, 2, 7, 8, 16, 17, 23, 24])
+const NO_CARD = new Set([0, 1, 7, 8, 16, 17, 23, 24])
 // Long enough for each beat's own animations to finish before the card is
 // read: 4 and 6 draw their maps, 26 wires the book, 27 counts the meter, 30 adds riders for 3s, 31 fails after 0.9s, 33 sweeps for about 4s, 34 runs the months for 3.2s.
 const BEAT_SETTLE: Record<number, number> = { 4: 3200, 6: 3000, 26: 3000, 27: 3000, 30: 3600, 31: 2800, 33: 5000, 34: 4200, 36: 11000, 38: 8600 }
 const LAST = 40
 const HOW_GRAPH = 6
+const DIVERSIFY = 36
 const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   if (i === 0) await page.locator('.overlay-welcome').click()
   else if (NO_CARD.has(i)) await page.keyboard.press('ArrowRight')
   else {
-    // The third how beat plays its three entries on Next before it moves on.
-    if (i === HOW_GRAPH) for (let k = 0; k < 2; k++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(400) }
+    // The third how beat and the two shapes play their three entries on Next
+    // before moving on.
+    if (i === HOW_GRAPH || i === DIVERSIFY) for (let k = 0; k < 2; k++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(400) }
     await page.locator('.story button:has-text("Next")').click()
   }
 }
@@ -428,7 +430,7 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.keyboard.press('ArrowRight')
   await page.waitForTimeout(1400)
   const nameCentred = (await page.locator('.overlay-title').innerText().catch(() => '')).includes('Introducing the architecture ledger')
-  const cardOnTitle = (await page.locator('.story').count()) === 0 && (await page.locator('.overlay-title .wm-row').count()) === 3
+  const cardOnTitle = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'The architecture ledger' && (await page.locator('.overlay-title .wm-row').count()) === 3
   // What, then why, then how in three steps, then part one.
   const opener: string[] = []
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1200); opener.push((await page.locator('.story h1').innerText().catch(() => '')).trim())
@@ -494,7 +496,7 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   const hashAtWhy = await page.evaluate(() => location.hash)
   const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && stepped && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/25' && errors.length === 0
   add('T7 the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card', ok ? 'PASS' : 'FAIL',
-    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced as a picture with no card; Next ran why and the three how beats, the third stepping through its three entries one Next at a time, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25'
+    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced with its card; Next ran why and the three how beats, the third stepping through its three entries one Next at a time, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25'
        : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, intro ${intro}, title ${nameCentred}, card on title ${cardOnTitle}, opener ${opener.join('/')}, stepped ${lit.join(',')}, pause ${pause}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
   await ctx.close()
 }
@@ -636,8 +638,8 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 // title sentence is the owner's, reproduced unchanged; and "overstates" in
 // option_upper_bound is canon 9.8.3 result three on option components.
 {
-  const EXEMPT_LENGTH = new Set(['copy.b_title_more'])
-  const EXEMPT_PHRASE = new Set(['copy.option_upper_bound'])
+  const EXEMPT_LENGTH = new Set(['copy.b_title_see'])
+  const EXEMPT_PHRASE = new Set(['copy.option_upper_bound', 'copy.story_welcome_note_bs'])
   const FORBIDDEN = ['bad year', 'a year worse', 'overstates', 'counts the same', 'never together', 'always together', 'balance sheet', 'nothing new is collected', 'written down nowhere']
   const faults: string[] = []
   let strings = 0
@@ -656,7 +658,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   }
   for (const [name, v] of Object.entries(copyModule)) if (typeof v !== 'function') walk(name, v)
   add('N1 the copy deck: no dashes, no sentence over twenty words, no retired phrase', faults.length === 0 ? 'PASS' : 'FAIL',
-    faults.length === 0 ? `${strings} strings scanned; exempt: b_title_more (owner's sentence), option_upper_bound (canon 9.8.3 result three)` : faults.slice(0, 8).join(' | '))
+    faults.length === 0 ? `${strings} strings scanned; exempt: b_title_see (owner's sentence), option_upper_bound (canon 9.8.3 result three), story_welcome_note_bs (the owner's metaphor)` : faults.slice(0, 8).join(' | '))
 }
 
 // ---- N2. The closing card ---------------------------------------------------

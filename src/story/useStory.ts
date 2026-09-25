@@ -94,14 +94,17 @@ export const STORY_LENGTH = BEATS.length
 
 /**
  * A beat that plays in steps takes Next and Back itself until its steps run
- * out: the third how beat plays cost, then risk, then leaving, one per Next.
+ * out: the third how beat and the two shapes each play cost, then risk, then
+ * leaving, one per Next.
  * Returns true when the step was taken inside the beat.
  */
 export function stepWithin(n: number, dir: 1 | -1): boolean {
   const st = useLedger.getState()
-  if (BEATS[n]?.stem !== 'how_graph') return false
-  const next = st.flatPhase + dir
+  const stem = BEATS[n]?.stem
+  if (stem !== 'how_graph' && stem !== 'diversify') return false
+  const now = stem === 'how_graph' ? st.flatPhase : st.shapesPhase
+  const next = now + dir
   if (next < 0 || next > 2) return false
-  st.setFlatPhase(next as 0 | 1 | 2)
+  if (stem === 'how_graph') st.setFlatPhase(next as 0 | 1 | 2); else st.setShapesPhase(next as 0 | 1 | 2)
   return true
 }

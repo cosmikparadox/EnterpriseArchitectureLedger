@@ -25,7 +25,7 @@ import { WipNote } from '../components/WipNote'
 import { Overlay } from '../story/Overlay'
 import { useStory } from '../story/useStory'
 import { beatAt, LAST_BEAT } from '../story/script'
-import { isSheet, isShort, SHEET_QUERY, SHORT_QUERY } from './layout'
+import { isSheet, SHEET_QUERY, SHORT_QUERY } from './layout'
 
 const estate = estateJson as unknown as Estate
 const bestOfBreed = bestOfBreedJson as unknown as Estate
@@ -126,7 +126,9 @@ export function App() {
   const sheet = isSheet()
   // The split view docks the card along the bottom so both halves keep the
   // width, unless the screen is too short for a sheet under two graphs.
-  const dockBottom = tourStep !== null && story.beat?.view === 5 && !sheet && !isShort()
+  // The two shapes show one shape at a time in the story, so the card keeps
+  // the right like every other beat.
+  const dockBottom = false as boolean
   useEffect(() => {
     const dock = tourStep === null ? '' : sheet ? 'sheet' : dockBottom ? 'bottom' : 'right'
     document.documentElement.dataset.storyDock = dock

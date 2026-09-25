@@ -54,10 +54,10 @@ export const BEATS: Beat[] = [
   // ---- part 0: the welcome ----
   { part: 0, stem: '', view: 1, overlay: 'welcome', scene: { ...SCENE_NONE, blank: true }, card: false },
   // What, why, and how in three steps, before part one.
-  // The company and the two people the tour is for, then the title as a
-  // picture of its own, with no card over it.
+  // The company and the two people the tour is for, then the ledger
+  // introduced, with the card saying what it is.
   { part: 0, stem: '', view: 1, overlay: 'intro', scene: { ...SCENE_NONE, blank: true }, card: false },
-  { part: 0, stem: 'title', view: 1, overlay: 'title', scene: { ...SCENE_NONE, blank: true }, card: false },
+  { part: 0, stem: 'title', view: 1, overlay: 'title', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 0, stem: 'opener_why', view: 1, overlay: 'why', scene: { ...SCENE_NONE, blank: true }, card: true },
   { part: 0, stem: 'how_map', view: 1, overlay: 'map', scene: { ...SCENE_NONE, blank: true }, card: true },
   // The map, flat, with one use case lit: its path is the unit. The 3D
@@ -157,16 +157,11 @@ export const BEATS: Beat[] = [
   { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, control: 'month', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec'],
     enter: ({ store }) => { store.setSelectedId(DATA_PLATFORM_ID); store.setCursor(store.ratified) },
     waitFor: (now, at) => now.cursor !== at.cursor },
-  // Three entries, both shapes at once: the pool and its rule share, then
-  // the busiest node failing on each side, then the largest exit. The
-  // phases run on their own and the card's control replays any of them.
-  { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, control: 'shapes', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
-    enter: ({ store, timeline, reduced }) => {
-      store.setSubdomain(TOUR_SUBDOMAIN); store.setShapesPhase(0)
-      timeline.after(5000, () => store.setShapesPhase(1), reduced)
-      timeline.after(10500, () => store.setShapesPhase(2), reduced)
-    },
-    settleMs: 10500 },
+  // Two shapes, one at a time: the toggle on the canvas switches between
+  // them, and the card compares the three entries side by side. The reader
+  // steps through cost, risk and leaving with Next or a tap on a row.
+  { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, control: 'shapes',
+    enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN); store.setShapesPhase(0); store.setShapesSide('left') } },
   { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE, focus: 'lines' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
     enter: ({ store }) => { store.setMoves({}); store.setRule('equal'); store.setSelectedId(null) } },
   // The move, in order: the picture ghosts to the use case and its two

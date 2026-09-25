@@ -140,9 +140,15 @@ export const copy = {
   // it helps, a second sentence. Anything longer goes under More detail. Every
   // figure is live through fill().
   story_welcome: 'Welcome.',
-  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still mostly price them in colours.',
-  story_welcome_ask: 'Could we price them in money instead?',
-  story_welcome_note: 'Let\'s try, on a fictional company, with an architecture ledger. It is an early idea for linking the blueprint to the books.',
+  story_welcome_sub: 'Architecture decisions cost money and carry risk. We still mostly rate them in colours.',
+  story_welcome_ask: 'Can we price them in dollars instead?',
+  // The owner's sentence. The two coloured words take the architects' and
+  // the CFO's colours; the words between are split so they can be styled.
+  story_welcome_note_1: 'Let\'s try it on a fictional organisation, with the architecture ledger. It is an early idea I am exploring, to bridge the ',
+  story_welcome_note_bp: 'blueprint',
+  story_welcome_note_2: ' and the ',
+  story_welcome_note_bs: 'balance sheet',
+  story_welcome_note_3: '.',
   // The company, before the title: who works on the estate and what each
   // asks of it. The two roles keep their colours on every card after this.
   intro_h: 'Introducing Harbourline Insurance',
@@ -152,7 +158,6 @@ export const copy = {
   intro_cfo: 'The CFO',
   intro_cfo_text: 'Asks what the estate costs, what could fail together, and what changing course would cost.',
   intro_gap: 'Same estate. Rarely a shared number for it.',
-  intro_key: 'These two colours mark, on each card ahead, whom that step matters to most.',
   who_arch: 'Architects',
   who_cfo: 'CFO',
   story_welcome_tap: 'Tap anywhere to begin',
@@ -200,18 +205,20 @@ export const copy = {
   // The opening, after the welcome: what it is, why it matters, and how it
   // works in three steps. Each is one line and one picture.
   tagline: 'What the architecture costs, one decision at a time.',
-  b_title_h: 'The Architecture Ledger',
+  b_title_h: 'The architecture ledger',
   title_bridge: 'So how might both see the same estate the same way?',
   title_big: 'Introducing the architecture ledger',
   b_title:
-    'Three numbers for each thing the business does, kept side by side and never added up.',
-  b_title_see: 'What it costs. What it risks. What leaving would cost.',
+    'A proposed framework: three numbers for each thing the business does, ' +
+    'kept side by side and never added up.',
   // The owner's sentence, reproduced unchanged by instruction, and exempt
   // from the twenty-word rule. It sits under More detail on the title beat.
-  b_title_more:
-    'An interactive model of one invented insurer, built to show what ' +
-    'architecture decisions cost when you price them in money instead of ' +
-    'colours. Everything here is synthetic and says so.',
+  // The owner's sentence, reworded at their instruction so it names the
+  // app, not the ledger, as the model; exempt from the twenty-word rule.
+  b_title_see:
+    'This app is an interactive model of one invented insurer, built to show ' +
+    'what architecture decisions cost when you price them in money instead ' +
+    'of colours. Everything here is synthetic and says so.',
   what_cost: 'What it costs',
   what_risk: 'What it risks',
   what_exit: 'What leaving would cost',
@@ -566,14 +573,12 @@ export const copy = {
     'last use case attaches, only that grows it.',
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
-    'Same {n_uc} use cases, wired two ways. On the left, one platform does ' +
-    'most of the work. On the right, specialists. Watch the three entries ' +
-    'run on both at once: cost, then risk, then leaving.',
+    'Same {n_uc} use cases, wired two ways: one platform doing most of the ' +
+    'work, or specialists. Spreading out moves the shared point. It does not ' +
+    'remove it.',
   b_diversify_see:
-    'The shared point did not disappear. On the left one connector carries ' +
-    '{left_riders} use cases. On the right {n_int} connectors each carry ' +
-    'every use case. A bad month for {sub}: about USD {left} on the left, ' +
-    'about USD {right} on the right.',
+    'Switch shapes with the toggle on the canvas. Press Next, or tap a row, ' +
+    'to see each entry on the map.',
   b_diversify_more:
     'Neither shape is right, and the ledger does not pick one. Concentration ' +
     'inside a domain boundary is cheap to reason about. One domain shares ' +
@@ -587,26 +592,16 @@ export const copy = {
     'there are. These three entries do not price the coordination cost of ' +
     'many vendors. Nor the latency of a process that crosses them. Both ' +
     'belong in the decision record, not in a figure here.',
-  // The three phases of the comparison, on the card under the control.
-  shapes_cost:
-    'Cost. One pool of USD {left_pool} on {left_top}, shared by {left_riders} ' +
-    'use cases. On the right the largest pool is USD {right_pool} on ' +
-    '{right_top}, shared by {right_riders}. Rule share of what riders are ' +
-    'told: {left_c1} percent on the left, {right_c1} on the right.',
-  shapes_risk:
-    'Risk. The busiest node fails on each side. Left: {left_aff} use cases ' +
-    'stop. Right: {right_aff}, because every use case crosses that connector. ' +
-    'A bad month for {sub}: about USD {left} against about USD {right}.',
-  shapes_exit:
-    'Leaving. The largest single exit is about USD {left_exec} of work, off ' +
-    '{left_exit}, on the left. On the right, about USD {right_exec} off ' +
-    '{right_exit}, with more contracts behind it.',
+  // The comparison on the card, and the two shapes' names.
+  shape_left: 'One platform does most',
+  shape_right: 'Specialists',
+  shapes_row_cost: 'largest shared pool',
+  shapes_row_risk: 'a bad month for {sub}',
+  shapes_row_exit: 'largest single exit',
+  shapes_cell_cost: 'USD {pool}, {riders} riders',
   ctl_shapes_cost: 'Cost',
   ctl_shapes_risk: 'Risk',
   ctl_shapes_exit: 'Leaving',
-  shapes_note_cost: 'Pool USD {pool}, {riders} riders, rule share {c1} percent',
-  shapes_note_risk: '{aff} use cases stop',
-  shapes_note_exit: 'Largest exit: {name}, about USD {exec} of work',
   b_lines_drawn_h: 'Whose lines decided all of it',
   b_lines_drawn:
     'The domain figures so far, such as a bad month for {sub}, depend on ' +

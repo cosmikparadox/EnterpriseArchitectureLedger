@@ -1961,7 +1961,7 @@ Run with `npm run acceptance`, against the built bundle and a real browser.
 | T5 | forbidden words in our own writing | PASS | "leverage" 0, "seamless" 0, "journey" 0 in our source. Bundle counts 0, 1, 0; the one hit is React's HTML attribute table. |
 | T6 | every canvas fills the space it is given | PASS | 30 canvases across 8 routes and 3 widths, beats 30 and 36 among them: all sized, none under the panel. |
 | A4 | the settled layout is the same on every load | PASS | Three cold loads publish the same digest, `fecf52bb`. |
-| T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced as a picture with no card; Next ran why and the three how beats, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25. |
+| T7 | the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card | PASS | Launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced with its card; Next ran why and the three how beats, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25. |
 | T8 | outside the intro a tapped domain explains itself on the canvas | PASS | 6 of 6 domains opened a pop-up with their own name, inside the canvas, and Close closed it. |
 | N1 | the copy deck: no dashes, no sentence over twenty words, no retired phrase | PASS | Every string in `src/copy.ts` scanned; two named exemptions, deviation 63. |
 | N2 | the closing card carries the caveat, the DOI, and no placeholder link | PASS | The caveat on screen character for character; the DOI line shown; the Medium line not rendered while the address is the placeholder; blocks in order. |
@@ -2372,3 +2372,30 @@ finding, on an invented company; the next step is real telemetry, which
 needs an organisation willing to try; a public repository to plug in
 telemetry is on the roadmap. It folds to a tab that stays. The closing
 card carries the same note.
+
+### 90. Rated, not priced; the ledger as a framework; two shapes, one at a time
+
+The welcome said decisions are "priced" in colours. A red, amber or green
+cell is neither a price nor a measurement; it is a rating, so it now says
+we still mostly rate them in colours, and asks whether we can price them
+in dollars instead. The line beneath is the owner's: an early idea they
+are exploring, to bridge the blueprint and the balance sheet, with
+"blueprint" in the architects' colour and "balance sheet" in the CFO's.
+"Balance sheet" is on the retired-phrase list because architecture is not
+recognised as an asset there; it is exempted here as the owner's metaphor.
+The line on the company page explaining the two colours is gone; the
+chips speak for themselves.
+
+The title beat has its card back. It calls the architecture ledger a
+proposed framework, not a model; the owner's sentence now names the app
+as the interactive model of one invented insurer.
+
+The two shapes beat was crowded: two half canvases with header strips and
+floating notes, and the card docked along the bottom with its phases below
+the fold. In the story it now shows one shape at a time, with a toggle on
+the canvas that cross-fades between them. The card is back on the right
+and carries the takeaway, that spreading out moves the shared point and
+does not remove it, and a three-row comparison: the largest shared pool,
+a bad month for the domain, and the largest single exit, one column per
+shape. Next, or a tap on a row, plays each entry on the canvas; no timer
+runs. The explorer's view 5 keeps its split.

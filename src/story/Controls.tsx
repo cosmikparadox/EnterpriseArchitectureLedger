@@ -4,7 +4,7 @@
 // the story the reader is asked for one thing at a time, and that thing sits
 // here, under the sentence that asked for it.
 
-import { copy } from '../copy'
+import { copy, fill } from '../copy'
 import { useLedger } from '../app/store'
 import type { AllocationRule, Estate } from '../model/types'
 import { IDENTITY_ID, MOVER_ID, type Control } from './script'
@@ -16,7 +16,7 @@ const BASES: { r: AllocationRule; label: string }[] = [
   { r: 'by_head', label: 'By headcount, prohibited' },
 ]
 
-export function Controls({ control, estate }: { control: Control; estate: Estate }) {
+export function Controls({ control, estate, figures }: { control: Control; estate: Estate; figures: Record<string, string | number> }) {
   const fanIn = useLedger((s) => s.fanInAdded)
   const setFanIn = useLedger((s) => s.setFanInAdded)
   const rho = useLedger((s) => s.rho)
@@ -64,13 +64,28 @@ export function Controls({ control, estate }: { control: Control; estate: Estate
       </select>
     </label>
   )
-  if (control === 'shapes') return (
-    <div className="story-ctl story-phases" data-tour="shapes" role="tablist">
-      {([copy.ctl_shapes_cost, copy.ctl_shapes_risk, copy.ctl_shapes_exit] as const).map((label, i) => (
-        <button key={label} role="tab" className="ctl" aria-selected={shapesPhase === i} aria-pressed={shapesPhase === i} onClick={() => setShapesPhase(i as 0 | 1 | 2)}>{label}</button>
-      ))}
-    </div>
-  )
+  if (control === 'shapes') {
+    // The comparison: three entries, one column per shape, and the row in
+    // play lit. A tap on a row plays it on the canvas.
+    const f = (k: string) => figures[k] ?? ''
+    const rows = [
+      { label: copy.ctl_shapes_cost, sub: copy.shapes_row_cost, a: fill(copy.shapes_cell_cost, { pool: f('left_pool'), riders: f('left_riders') }), b: fill(copy.shapes_cell_cost, { pool: f('right_pool'), riders: f('right_riders') }) },
+      { label: copy.ctl_shapes_risk, sub: fill(copy.shapes_row_risk, { sub: f('sub') }), a: `about USD ${f('left')}`, b: `about USD ${f('right')}` },
+      { label: copy.ctl_shapes_exit, sub: copy.shapes_row_exit, a: `about USD ${f('left_exec')}`, b: `about USD ${f('right_exec')}` },
+    ]
+    return (
+      <div className="story-ctl shapes-table" data-tour="shapes" role="tablist">
+        <div className="st-head"><span /><span>{copy.shape_left}</span><span>{copy.shape_right}</span></div>
+        {rows.map((r, i) => (
+          <button key={r.label} type="button" role="tab" className={`st-row${shapesPhase === i ? ' on' : ''}`} aria-selected={shapesPhase === i} onClick={() => setShapesPhase(i as 0 | 1 | 2)}>
+            <span className="st-l"><strong>{r.label}</strong><em>{r.sub}</em></span>
+            <span className="st-v">{r.a}</span>
+            <span className="st-v">{r.b}</span>
+          </button>
+        ))}
+      </div>
+    )
+  }
   if (control === 'move') {
     const uc = estate.use_cases.find((u) => u.id === MOVER_ID)
     const current = moves[MOVER_ID] ?? uc?.subdomain ?? ''
