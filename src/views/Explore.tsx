@@ -109,6 +109,17 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   const reveal = walk ? revealFor(ix.platformById.has(walk), walkStep) : undefined
   const onWalkFocus = useCallback((f: Focus | null) => setWalkFocus(f), [])
   const gestureHint = inStory && scene.hint && !dragged ? copy.canvas_gesture : null
+  // The first time the reader meets dots or spheres, a few of them pulse
+  // and a hint says they can be tapped. One tap on that kind retires it,
+  // here and on later visits.
+  const poked = useLedger((s) => s.poked)
+  const setPoked = useLedger((s) => s.setPoked)
+  const pokes = useMemo(() => {
+    if (!inStory || !scene.pokes || poked[scene.pokes]) return null
+    const want = scene.pokes === 'useCases' ? ['uc_claim_settle', 'uc_quote_bind', 'uc_payroll'] : ['claimcenter', 'sap_s4', 'workday']
+    const ids = want.filter((id) => ix.useCaseById.has(id) || ix.platformById.has(id))
+    return ids.length ? { ids, text: scene.pokes === 'useCases' ? copy.poke_useCases : copy.poke_platforms } : null
+  }, [inStory, scene.pokes, poked, ix])
   // The book's rows are read off the graph for whatever node is tapped: a
   // platform's meter, pool, riders and execution work; a use case's bill,
   // what it stops with, and what strands it.
@@ -220,6 +231,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           dimHulls={inStory ? storySets.hulls : undefined}
           callout={callout}
           gestureHint={gestureHint}
+          pokes={pokes}
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
           focus={!inStory && walk ? walkFocus : null}
@@ -227,7 +239,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}
           onSelectNode={(id) => {
-            if (inStory) { setFocus({ kind: 'node', id }); setSelectedId(id); return }
+            if (inStory) { if (ix.useCaseById.has(id)) setPoked('useCases'); else if (ix.platformById.has(id)) setPoked('platforms'); setFocus({ kind: 'node', id }); setSelectedId(id); return }
             setHullPop(null); setSelectedLink(null); setSelectedId(id); setCollapsed(false); if (walk && walk !== id) setWalk(null)
           }}
           onSelectLink={(l) => { if (inStory) { setFocus({ kind: 'link', ucId: l.ucId, platformId: l.platformId }); return } setHullPop(null); setSelectedId(null); setSelectedLink(l); setCollapsed(false) }}

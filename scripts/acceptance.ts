@@ -257,10 +257,15 @@ const NO_CARD = new Set([0, 1, 2, 7, 8, 16, 17, 23, 24])
 // read: 4 and 6 draw their maps, 26 wires the book, 27 counts the meter, 30 adds riders for 3s, 31 fails after 0.9s, 33 sweeps for about 4s, 34 runs the months for 3.2s.
 const BEAT_SETTLE: Record<number, number> = { 4: 3200, 6: 3000, 26: 3000, 27: 3000, 30: 3600, 31: 2800, 33: 5000, 34: 4200, 36: 11000, 38: 8600 }
 const LAST = 40
+const HOW_GRAPH = 6
 const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   if (i === 0) await page.locator('.overlay-welcome').click()
   else if (NO_CARD.has(i)) await page.keyboard.press('ArrowRight')
-  else await page.locator('.story button:has-text("Next")').click()
+  else {
+    // The third how beat plays its three entries on Next before it moves on.
+    if (i === HOW_GRAPH) for (let k = 0; k < 2; k++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(400) }
+    await page.locator('.story button:has-text("Next")').click()
+  }
 }
 
 {
@@ -429,6 +434,12 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1200); opener.push((await page.locator('.story h1').innerText().catch(() => '')).trim())
   for (let i = 0; i < 3; i++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1200); opener.push((await page.locator('.story h1').innerText().catch(() => '')).trim()) }
   const openerOk = opener.join('|') === 'Why it matters|How: a map, not a drawing|How: from systems to work|How: why a graph'
+  // The third how beat steps through cost, risk and leaving on Next, and
+  // only then moves on. Each Next lights the next entry under the map.
+  const lit: number[] = []
+  for (let k = 0; k < 2; k++) { lit.push(await page.locator('.ov-flat-entry.shown').count()); await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(700) }
+  lit.push(await page.locator('.ov-flat-entry.shown').count())
+  const stepped = lit.join(',') === '1,2,3' && (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'How: why a graph'
   // The pause: continue or leave. Continue goes on to part one.
   await page.locator('.story button:has-text("Next")').click()
   await page.waitForTimeout(1400)
@@ -481,10 +492,10 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1400)
   const why = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Why a ledger'
   const hashAtWhy = await page.evaluate(() => location.hash)
-  const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/25' && errors.length === 0
+  const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && stepped && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'okta' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/25' && errors.length === 0
   add('T7 the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card', ok ? 'PASS' : 'FAIL',
-    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced as a picture with no card; Next ran why and the three how beats, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25'
-       : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, intro ${intro}, title ${nameCentred}, card on title ${cardOnTitle}, opener ${opener.join('/')}, pause ${pause}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
+    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced as a picture with no card; Next ran why and the three how beats, the third stepping through its three entries one Next at a time, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/25'
+       : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, intro ${intro}, title ${nameCentred}, card on title ${cardOnTitle}, opener ${opener.join('/')}, stepped ${lit.join(',')}, pause ${pause}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
   await ctx.close()
 }
 

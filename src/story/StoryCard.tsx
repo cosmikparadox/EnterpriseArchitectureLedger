@@ -16,6 +16,7 @@ import type { Index } from '../model/ledger'
 import { BEATS, LAST_BEAT, PART_COUNTS, PART_LABEL_KEY, WHO, type Beat, type Row } from './script'
 import { useStoryFigures } from './figures'
 import { Controls } from './Controls'
+import { stepWithin } from './useStory'
 
 type CopyMap = Record<string, string>
 const ROW_KEY: Record<Row, { label: keyof typeof copy; value: string }> = {
@@ -96,7 +97,10 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
     root.style.removeProperty('--tour-card-actual-h'); root.style.removeProperty('--tour-card-actual-w'); delete root.dataset.storyCard
   }, [])
 
-  const go = (k: number) => { if (k < 0) return; if (k > LAST_BEAT) { setTourStep(null); return } setTourStep(k) }
+  const go = (k: number) => {
+    if (stepWithin(n, k > n ? 1 : -1)) return
+    if (k < 0) return; if (k > LAST_BEAT) { setTourStep(null); return } setTourStep(k)
+  }
   const leave = () => { setTourStep(null); setView(1) }
 
   const stem = beat.stem

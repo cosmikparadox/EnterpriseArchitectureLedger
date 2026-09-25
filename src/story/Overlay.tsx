@@ -348,19 +348,14 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
     return { px, ux, riders }
   }, [estate, ix])
 
-  // The entries play once on arrival, a few seconds each; a tap on an
-  // entry below the map plays it again.
-  const [phase, setPhase] = useState<Phase>(-1)
-  const [shown, setShown] = useState(0)
-  useEffect(() => {
-    if (!entries) { setPhase(-1); setShown(0); return }
-    const t = [
-      setTimeout(() => { setPhase(0); setShown(1) }, 700),
-      setTimeout(() => { setPhase(1); setShown(2) }, 4700),
-      setTimeout(() => { setPhase(2); setShown(3) }, 8700),
-    ]
-    return () => t.forEach(clearTimeout)
-  }, [entries])
+  // The entries play one at a time, and the reader sets the pace: Next on
+  // the card, or a tap on an entry under the map, plays the next one.
+  const flatPhase = useLedger((st) => st.flatPhase)
+  const setFlatPhase = useLedger((st) => st.setFlatPhase)
+  const phase: Phase = entries ? flatPhase : -1
+  const [reached, setReached] = useState(0)
+  useEffect(() => { setReached((r) => (entries ? Math.max(r, flatPhase + 1) : 0)) }, [entries, flatPhase])
+  const shown = entries ? Math.max(reached, flatPhase + 1) : 0
 
   const lit = estate.use_cases.find((u) => u.id === OPENER_UC)
   const litP = new Set(lit?.edges.map((e) => e.platform_id) ?? [])
@@ -444,7 +439,7 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
             [copy.flat_entry_2, fill(copy.book_v_risk_u, { worst: String(d.worst) })],
             [copy.flat_entry_3, fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none })],
           ].map(([h, v], i) => (
-            <button type="button" key={i} className={`ov-flat-entry${i < shown ? ' shown' : ''}${i === phase ? ' active' : ''}`} onClick={() => { setPhase(i as Phase); setShown((k) => Math.max(k, i + 1)) }}>
+            <button type="button" key={i} className={`ov-flat-entry${i < shown ? ' shown' : ''}${i === phase ? ' active' : ''}`} onClick={() => setFlatPhase(i as 0 | 1 | 2)}>
               <span className="book-n">{i + 1}</span><span><strong>{h}</strong><em>{v}</em></span>
             </button>
           ))}

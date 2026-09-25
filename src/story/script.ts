@@ -64,7 +64,8 @@ export const BEATS: Beat[] = [
   // picture waits for part one.
   { part: 0, stem: 'how_work', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true },
   // The same path, with the three entries pinned where each one lives.
-  { part: 0, stem: 'how_graph', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true },
+  { part: 0, stem: 'how_graph', view: 1, overlay: 'flat', scene: { ...SCENE_NONE, blank: true }, card: true,
+    enter: ({ store }) => { store.setFlatPhase(0) } },
   // A pause: the whole idea has been said. Continue, or leave for the tool.
   { part: 0, stem: '', view: 1, overlay: 'reflect', scene: { ...SCENE_NONE, blank: true }, card: false },
   { part: 1, stem: '', view: 1, overlay: 'part', scene: { ...SCENE_NONE, blank: true }, card: false },
@@ -72,8 +73,8 @@ export const BEATS: Beat[] = [
   // ---- part 1: the architecture ----
   { part: 1, stem: 'domains', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, hint: true, callout: { kind: 'hull', id: '', text: '' } },
     card: true, enter: ({ store }) => { store.setSelectedId(null); store.setShowHulls(true) } },
-  { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, hint: true }, card: true },
-  { part: 1, stem: 'platforms', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true }, card: true },
+  { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, hint: true, pokes: 'useCases' }, card: true },
+  { part: 1, stem: 'platforms', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, hint: true, pokes: 'platforms' }, card: true },
   { part: 1, stem: 'lines', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, links: true }, card: true },
   { part: 1, stem: 'connectors', view: 1, overlay: null, scene: { ...PICTURE, stagger: true }, card: true },
   // The value flow: every line tinted by where its work's value lands and

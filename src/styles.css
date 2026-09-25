@@ -1474,3 +1474,20 @@ button, input, select { font: inherit; color: inherit; }
 .app.story-open .overlay-title { padding-top: 88px; padding-bottom: 12px; }
 @media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) { .app.story-open .overlay-title { padding-top: 60px; } }
 @media (max-height: 520px) { .app.story-open .overlay-title, .app.story-open .overlay-intro { padding-top: 48px; padding-bottom: 6px; } }
+
+/* First-visit tap cues: rings pulse on a few nodes, and a hint that fades
+   once it has been read. The rings stay until the reader taps one. */
+.canvas-poke { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; }
+.canvas-poke span { position: absolute; left: -26px; top: -26px; width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--accent); animation: poke-ring 1.8s ease-out infinite; }
+.canvas-poke i { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.85; box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent); }
+.canvas-poke.p1 span { animation-delay: 0.6s; }
+.canvas-poke.p2 span { animation-delay: 1.2s; }
+@keyframes poke-ring { 0% { transform: scale(0.6); opacity: 1; } 80% { transform: scale(1.3); opacity: 0; } 100% { opacity: 0; } }
+.canvas-poke-hint {
+  position: absolute; left: calc((100% - var(--wm-right, 0px)) / 2); top: 96px; transform: translateX(-50%); z-index: 3; pointer-events: none;
+  font-size: 13px; font-weight: 600; color: var(--accent); background: var(--panel); border: 1px solid var(--accent); border-radius: 999px; padding: 6px 14px; white-space: nowrap;
+  opacity: 0; animation: poke-hint 6s ease 800ms forwards;
+}
+@keyframes poke-hint { 0% { opacity: 0; } 10% { opacity: 1; } 25% { opacity: 0.55; } 40% { opacity: 1; } 55% { opacity: 0.55; } 70% { opacity: 1; } 100% { opacity: 0; } }
+@media (max-width: 720px), ((max-width: 1024px) and (orientation: portrait)) { .canvas-poke-hint { top: 66px; font-size: 12px; } }
+@media (prefers-reduced-motion: reduce) { .canvas-poke span { animation: none; opacity: 0.8; } .canvas-poke-hint { animation: none; opacity: 1; } }

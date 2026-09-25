@@ -80,8 +80,8 @@ export function useStory(): StoryState {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null
       if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return
-      if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); useLedger.getState().setTourStep(Math.min(BEATS.length - 1, n + 1)) }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); useLedger.getState().setTourStep(Math.max(0, n - 1)) }
+      if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!stepWithin(n, 1)) useLedger.getState().setTourStep(Math.min(BEATS.length - 1, n + 1)) }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); if (!stepWithin(n, -1)) useLedger.getState().setTourStep(Math.max(0, n - 1)) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -91,3 +91,17 @@ export function useStory(): StoryState {
 }
 
 export const STORY_LENGTH = BEATS.length
+
+/**
+ * A beat that plays in steps takes Next and Back itself until its steps run
+ * out: the third how beat plays cost, then risk, then leaving, one per Next.
+ * Returns true when the step was taken inside the beat.
+ */
+export function stepWithin(n: number, dir: 1 | -1): boolean {
+  const st = useLedger.getState()
+  if (BEATS[n]?.stem !== 'how_graph') return false
+  const next = st.flatPhase + dir
+  if (next < 0 || next > 2) return false
+  st.setFlatPhase(next as 0 | 1 | 2)
+  return true
+}

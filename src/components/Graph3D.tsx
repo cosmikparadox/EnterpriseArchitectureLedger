@@ -84,6 +84,8 @@ export interface Graph3DProps {
    * the viewer drags. The story shows it once, on the first picture.
    */
   gestureHint?: string | null
+  /** A few nodes ringed and pulsing, with a tap hint that fades, until the reader taps one. */
+  pokes?: { ids: string[]; text: string } | null
   /** The viewer dragged the canvas: the hint has done its job. */
   onGesture?: () => void
   /**
@@ -1314,6 +1316,13 @@ export function Graph3D(props: Graph3DProps) {
   const noteEl = useRef<HTMLDivElement | null>(null)
   useEffect(() => follow(noteEl.current, props.noteAt ? { kind: 'node', id: props.noteAt } : null, true), [props.noteAt, props.note])
   useEffect(() => follow(popoverEl.current, props.popover, true), [props.popover])
+  const pokeEls = useRef<(HTMLDivElement | null)[]>([])
+  const pokeKey = props.pokes?.ids.join(',') ?? ''
+  useEffect(() => {
+    const ids = props.pokes?.ids ?? []
+    const stops = ids.map((id, i) => follow(pokeEls.current[i] ?? null, { kind: 'node', id }))
+    return () => stops.forEach((f) => f())
+  }, [pokeKey])
 
   // The book's wires: one curve from the node to each ruled row, redrawn
   // every other frame in canvas pixels, so they follow the camera.
@@ -1433,6 +1442,14 @@ export function Graph3D(props: Graph3DProps) {
           </svg>
           <span>{props.gestureHint}</span>
         </div>
+      )}
+      {props.pokes && (
+        <>
+          {props.pokes.ids.map((id, i) => (
+            <div key={id} ref={(el) => { pokeEls.current[i] = el }} className={`canvas-poke p${i}`} hidden aria-hidden="true"><span /><i /></div>
+          ))}
+          <div key={props.pokes.text} className="canvas-poke-hint" aria-hidden="true">{props.pokes.text}</div>
+        </>
       )}
       {props.note && <div ref={noteEl} className={props.noteAt ? 'canvas-book canvas-note canvas-note-at' : 'canvas-book canvas-note'} aria-hidden="true">{props.note}</div>}
       {props.book && (

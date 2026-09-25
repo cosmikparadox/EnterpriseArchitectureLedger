@@ -250,12 +250,12 @@ export const copy = {
     'Cost pools where systems are shared. Risk travels along the lines. ' +
     'Leaving strands whatever depends on a system.',
   b_how_graph_see:
-    'Watch each one on the map in turn. Part three prices all three properly, ' +
-    'and never adds them up.',
+    'Press Next, or tap an entry under the map, to play each one in turn. ' +
+    'Part three prices all three properly, and never adds them up.',
   b_how_graph_more:
-    'The map plays each entry on the path of {opener_uc}. Tap an entry under ' +
-    'the map to play it again. Next opens part one, which builds this map ' +
-    'in three dimensions, one layer at a time.',
+    'The map plays each entry on the path of {opener_uc}. After the third, ' +
+    'Next moves on to a short pause. Part one then builds this map in three ' +
+    'dimensions, one layer at a time.',
   flat_cost_note: 'Cost pools at {name}: {n} use cases share its fixed costs, split by a rule.',
   flat_risk_note: 'Risk travels from {name}: if it stops, the {n} use cases on it can stop too.',
   flat_exit_note: 'Leaving {name} strands work: all {n} use cases on it must move first.',
@@ -297,15 +297,14 @@ export const copy = {
   b_platforms_h: 'Platforms',
   b_platforms:
     'None of that work happens by hand. It runs on {n_platforms} systems ' +
-    'the company bought or built. Each grey circle is one: a platform.',
+    'the company bought or built. Each grey sphere is one: a platform.',
   b_platforms_def: 'Platform: a system the business bought or built, that use cases run on.',
   b_platforms_see:
-    'The bigger the circle, the more use cases depend on it. Notice that ' +
-    'almost every platform is shared across domains.',
+    'The bigger the sphere, the more use cases depend on it. Almost every ' +
+    'platform is shared across domains. Tap a sphere to see what rides on it.',
   b_platforms_more:
     'The platforms are shared. That is the first thing this whole story turns ' +
-    'on, and the picture says it before any number does. Tap a circle to see ' +
-    'what rides on it.',
+    'on, and the picture says it before any number does.',
   b_lines_h: 'Lines',
   b_lines:
     'Each line joins a use case to a platform it cannot run without. ' +
@@ -451,7 +450,7 @@ export const copy = {
   b_meter_more:
     'The meter\'s unit is called the driver, the thing that gets counted. ' +
     'Logins for an identity platform, policy transactions for a policy ' +
-    'engine. Tap another grey circle to see its meter.',
+    'engine. Tap another grey sphere to see its meter.',
   b_pool_h: 'The fixed pool',
   b_pool:
     'The rest of the bill is a fixed pool. Licences and the team who run it, ' +
@@ -800,6 +799,8 @@ export const copy = {
   flow_width: 'width is work a month, not money',
   flow_declared: 'Declared by {owner}, {date}. Not a value figure.',
   canvas_gesture: 'Drag to look around. Scroll or pinch to zoom.',
+  poke_useCases: 'Tap a dot to see what it does',
+  poke_platforms: 'Tap a sphere to see what rides on it',
   book_title: 'The ledger, {name}',
   book_row_1: 'Entry one: what it costs',
   book_row_2: 'Entry two: what it risks',

@@ -2304,3 +2304,21 @@ are often split by a rule; an outage can reach work no one priced; the
 cost of leaving is rarely written down, and dependence can grow before
 anyone decides. The documents beat now says each "says little about" the
 three questions rather than being "silent on" them.
+
+### 88. The reader sets the pace on the third how beat, and first-visit tap cues
+
+The third how beat played cost, risk and leaving on a timer. The owner
+asked for the reader to set the pace. The first entry now plays on
+arrival, and each Next on the card plays the next one; only after the
+third does Next move on. Back steps back through them the same way, the
+arrow keys follow Next and Back, and a tap on an entry under the map plays
+that entry. The card says so.
+
+The platforms beat now says sphere, not circle, since the platforms are
+spheres in a 3D scene, and it tells the reader to tap one. The use case
+and platform beats each show, until the reader has tapped a dot or a
+sphere once, a hint at the top of the canvas that pulses and fades, and
+pulsing rings on three nodes of that kind. The memory of that first tap
+is kept in the browser, so a returning reader is not shown it again; if
+storage is blocked, the hint simply returns. The drag hint now also shows
+on the platforms beat.
