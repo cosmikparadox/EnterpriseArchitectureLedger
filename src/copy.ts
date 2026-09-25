@@ -516,10 +516,13 @@ export const copy = {
   b_crowd_see:
     '{uc} did nothing different. Its bill on this node moved from USD ' +
     '{before} to USD {after}.',
+  b_crowd_after: 'Each newcomer adds about USD {mc} a month in metered use here, and nothing to the pool.',
   b_crowd_more:
     'A rule share changes only when the rule or the crowd changes. Leaving ' +
     'does not release it: the pool stays and is shared among fewer riders. ' +
-    'See the Ledger paper, 9.2.6.',
+    'See the Ledger paper, 9.2.6. The cost of adding the next use case is ' +
+    'that increment, not an allocated share. The paper treats it as the ' +
+    'primary flexibility measure. See the Ledger paper, 9.2.4 and 9.4.',
   b_fail_h: 'Entry two: risk. When it stops',
   b_fail:
     'When a shared platform stops, the work riding it is exposed, across ' +
@@ -670,8 +673,8 @@ export const copy = {
   close_h_not: 'What it does not do',
   close_not:
     'It will not add the estate up to one number. It cannot say where a ' +
-    'boundary belongs, or what leaving would really cost. It does not show ' +
-    'the cost of adding the next use case. The paper treats that as the ' +
+    'boundary belongs, or what leaving would really cost. It shows the cost ' +
+    'of the next use case on one node only. The paper treats that as the ' +
     'primary flexibility measure.',
   close_caveat:
     'It prices the choices a commitment removes. It does not yet price the ' +
