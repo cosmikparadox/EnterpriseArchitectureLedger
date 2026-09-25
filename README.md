@@ -2423,3 +2423,33 @@ ran lines through the bus. They now share one style, lines meet box edges,
 and each tells a different story of the same systems: everything through
 the bus, no bus at all, and the bus plus a direct line and a fifth system
 the others leave out. The caption says so.
+
+### 92. One cue system, lines that answer, canon names, and part two measured
+
+Cues now follow one rule everywhere. What can be tapped pulses, with a
+border or a ring, on every visit until it has been used on that beat. The
+line of hint text above it shows only the first time a reader meets that
+cue in their browser. This covers the canvas rings on dots, spheres,
+lines, connectors and value flow; the documents and silos tiles; the
+entries on the third how beat; and the two shapes' rows and toggle.
+
+Tapping a line in the story did nothing. The lines are a few pixels wide,
+so most taps missed them, and a tap inside a domain went to the domain.
+In the story, a tap that misses the nodes is now tested against every
+visible line in screen space first; one within nine pixels is selected,
+and only then does the tap fall to a domain or the background. In the
+explorer a tap inside a domain still belongs to the domain, and lines
+outside one are picked the same way. Nodes always come first.
+
+The two shapes are called concentrated and best of breed again, as in the
+spec and the canon. The instruction line on that card is replaced by the
+cues, and the takeaway now sits under the comparison, where the figures
+have just been read. The card's scrollbar, when it must scroll, is thin
+and quiet. The navigator's chapter groups now take width in proportion to
+their pages, so every bar is the same width.
+
+Part two was titled how it is decided today. What it shows is how cost,
+risk and exit are recorded and rated now: documents, a colour matrix,
+three silos. The canon's ledger is an instrument that measures, reading
+principle C1, and part two is the contrast with that. It is now titled
+how it is measured today.

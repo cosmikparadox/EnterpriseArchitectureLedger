@@ -1,6 +1,6 @@
 // View 1, Explore. Spec section 4.1.
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Graph3D, type LabelMode } from '../components/Graph3D'
 import { Term, ViewName } from '../components/Hint'
 import { Legend } from '../components/Legend'
@@ -13,6 +13,7 @@ import { usePrefersReducedMotion } from '../app/useNarrow'
 import { describeSubdomain } from '../model/describe'
 import { copy, fill } from '../copy'
 import { useLayoutReport } from '../app/layoutReport'
+import { firstTime } from '../app/hints'
 import { MeterBadge, PoolBadge } from '../story/Badges'
 import { Walkthrough, revealFor, type Focus } from './Walkthrough'
 import { platformView, useCaseView } from '../app/graph'
@@ -114,6 +115,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // here and on later visits.
   const poked = useLedger((s) => s.poked)
   const setPoked = useLedger((s) => s.setPoked)
+  // Whether each kind's hint text is shown this visit: only the first time.
+  const pokeText = useRef(new Map<string, boolean>())
   const pokes = useMemo(() => {
     const kind = scene.pokes
     if (!inStory || !kind || poked[kind]) return null
@@ -130,7 +133,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
       return b ? ix.useCaseById.get(a)?.edges.some((e) => e.platform_id === b) === true : ix.useCaseById.has(a) || ix.platformById.has(a)
     }
     const ids = want[kind].filter(ok)
-    return ids.length ? { ids, text: (copy as Record<string, string>)[`poke_${kind}`] ?? '' } : null
+    if (!pokeText.current.has(kind)) pokeText.current.set(kind, firstTime(`poke_${kind}`))
+    return ids.length ? { ids, text: pokeText.current.get(kind) ? (copy as Record<string, string>)[`poke_${kind}`] ?? '' : '' } : null
   }, [inStory, scene.pokes, poked, ix])
   // The book's rows are read off the graph for whatever node is tapped: a
   // platform's meter, pool, riders and execution work; a use case's bill,
@@ -244,6 +248,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           callout={callout}
           gestureHint={gestureHint}
           pokes={pokes}
+          preferLines={inStory}
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
           focus={!inStory && walk ? walkFocus : null}

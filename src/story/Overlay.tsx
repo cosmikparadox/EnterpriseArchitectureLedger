@@ -15,6 +15,7 @@ import { SUBDOMAIN_COLOUR, useCaseView } from '../app/graph'
 import { describeUseCase } from '../model/describe'
 import { useLedger } from '../app/store'
 import { OPENER_UC } from './script'
+import { firstTime } from '../app/hints'
 
 const PART_TITLE: Record<Part, [string, string]> = {
   0: ['', ''],
@@ -43,6 +44,9 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
   // unopened ones pulse and a hint asks for them.
   const [seen, setSeen] = useState<Set<string>>(new Set())
   useEffect(() => { setOpenDoc(null); setOpenSilo(null); setSeen(new Set()) }, [n])
+  // The hint text over the tiles shows only the first time a reader meets it;
+  // the tiles themselves pulse every visit until opened.
+  const firstHint = useMemo(() => (beat.overlay === 'docs' || beat.overlay === 'silos' ? firstTime(`ov_${beat.overlay}`) : false), [n, beat.overlay])
   const openIt = (key: string) => setSeen((prev) => (prev.has(key) ? prev : new Set(prev).add(key)))
   useEffect(() => {
     if (openDoc === null && openSilo === null) return
@@ -157,7 +161,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
       {beat.overlay === 'docs' && (
         <>
           <Fit><div className="ov-centre ov-docs">
-            {seen.size < 6 && <div className="ov-tap-hint">{copy.docs_hint}</div>}
+            {firstHint && seen.size < 6 && <div className="ov-tap-hint">{copy.docs_hint}</div>}
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <button key={i} type="button" className={`ov-doc ov-in d${i}${openDoc === i ? ' ov-doc-open' : ''}${seen.has(`d${i}`) ? ' ov-seen' : ' ov-unseen'}`} onClick={() => { setOpenDoc(i); openIt(`d${i}`) }} aria-expanded={openDoc === i}>
                 <strong>{(copy as Record<string, string>)[`doc_${i}`]}</strong>
@@ -198,7 +202,7 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
       {beat.overlay === 'silos' && (
         <>
           <Fit><div className="ov-centre">
-            {seen.size < 3 && <div className="ov-tap-hint">{copy.silo_tap}</div>}
+            {firstHint && seen.size < 3 && <div className="ov-tap-hint">{copy.silo_tap}</div>}
             {/* The question at the top, the three places at the foot, and a
                 curve from each that draws upward and stops short of it.
                 Each tile opens into the methods behind it. */}
@@ -370,6 +374,7 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
   const [reached, setReached] = useState(0)
   useEffect(() => { setReached((r) => (entries ? Math.max(r, flatPhase + 1) : 0)) }, [entries, flatPhase])
   const shown = entries ? Math.max(reached, flatPhase + 1) : 0
+  const entriesHint = useMemo(() => entries && firstTime('flat_entries'), [entries])
 
   const lit = estate.use_cases.find((u) => u.id === OPENER_UC)
   const litP = new Set(lit?.edges.map((e) => e.platform_id) ?? [])
@@ -446,6 +451,7 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
       {entries && (
         <div className="ov-flat-note" key={`n${phase}`} aria-live="polite">{note}</div>
       )}
+      {entries && entriesHint && shown < 3 && <div className="ov-tap-hint">{copy.hint_entries}</div>}
       {entries && d && uv && (
         <div className="ov-flat-entries">
           {[
@@ -453,7 +459,7 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
             [copy.flat_entry_2, fill(copy.book_v_risk_u, { worst: String(d.worst) })],
             [copy.flat_entry_3, fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none })],
           ].map(([h, v], i) => (
-            <button type="button" key={i} className={`ov-flat-entry${i < shown ? ' shown' : ''}${i === phase ? ' active' : ''}`} onClick={() => setFlatPhase(i as 0 | 1 | 2)}>
+            <button type="button" key={i} className={`ov-flat-entry${i < shown ? ' shown' : ''}${i === phase ? ' active' : ''}${i === shown ? ' ov-unseen' : ''}`} onClick={() => setFlatPhase(i as 0 | 1 | 2)}>
               <span className="book-n">{i + 1}</span><span><strong>{h}</strong><em>{v}</em></span>
             </button>
           ))}

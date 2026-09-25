@@ -8,6 +8,7 @@
 
 import type React from 'react'
 import { useMemo, useRef, useState } from 'react'
+import { firstTime } from '../app/hints'
 import { Graph3D } from '../components/Graph3D'
 import { Hint, Term, ViewName } from '../components/Hint'
 import { PanelShell } from '../components/PanelShell'
@@ -159,6 +160,10 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   const inStory = tourStep !== null
   const side = useLedger((s) => s.shapesSide)
   const setSide = useLedger((s) => s.setShapesSide)
+  // The toggle pulses until it has been used; its hint text shows only the
+  // first time a reader meets it.
+  const [switched, setSwitched] = useState(false)
+  const toggleHint = useMemo(() => inStory && firstTime('shapes_toggle'), [inStory])
   const entries = useMemo(() => ({
     left: shapeEntry(left.estate, left.ix, rho, SHAPES_SEED.left),
     right: shapeEntry(right.estate, right.ix, rho, SHAPES_SEED.right),
@@ -250,9 +255,12 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         {/* In the story, one shape at a time: the two canvases sit on top of
             each other and the toggle cross-fades between them. */}
         {inStory && (
-          <div className="shape-toggle" role="tablist" aria-label="Which shape">
-            <button type="button" role="tab" aria-selected={side === 'left'} className={side === 'left' ? 'on' : ''} onClick={() => setSide('left')}>{copy.shape_left}</button>
-            <button type="button" role="tab" aria-selected={side === 'right'} className={side === 'right' ? 'on' : ''} onClick={() => setSide('right')}>{copy.shape_right}</button>
+          <div className="shape-toggle-wrap">
+            <div className={`shape-toggle${switched ? '' : ' ov-unseen'}`} role="tablist" aria-label="Which shape">
+              <button type="button" role="tab" aria-selected={side === 'left'} className={side === 'left' ? 'on' : ''} onClick={() => { setSide('left'); setSwitched(true) }}>{copy.shape_left}</button>
+              <button type="button" role="tab" aria-selected={side === 'right'} className={side === 'right' ? 'on' : ''} onClick={() => { setSide('right'); setSwitched(true) }}>{copy.shape_right}</button>
+            </div>
+            {toggleHint && !switched && <div className="ov-tap-hint">{copy.hint_toggle}</div>}
           </div>
         )}
         {!stacked && !inStory && (

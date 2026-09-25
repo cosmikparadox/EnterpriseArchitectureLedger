@@ -86,6 +86,8 @@ export interface Graph3DProps {
   gestureHint?: string | null
   /** A few nodes ringed and pulsing, with a tap hint that fades, until the reader taps one. */
   pokes?: { ids: string[]; text: string } | null
+  /** In the story, a tap near a line takes it before a domain does. */
+  preferLines?: boolean
   /** The viewer dragged the canvas: the hint has done its job. */
   onGesture?: () => void
   /**
@@ -483,11 +485,47 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  /** A click that reached past the nodes: a hull if one is under it, else the background. */
+  /**
+   * A click that reached past the nodes: a line if one passes within a few
+   * pixels of it, then a hull if one is under it, else the background. The
+   * lines are too thin to hit exactly, and a hull behind one would otherwise
+   * take every tap meant for it.
+   */
   function clickBehind(ev: MouseEvent) {
-    const hit = hullUnderPointer(ev)
+    // In the story a line wins within nine pixels. In the explorer a tap
+    // inside a domain belongs to the domain, and lines outside one are
+    // picked within the same reach.
+    const hull = hullUnderPointer(ev)
+    const line = propsRef.current.preferLines || !hull ? linkNearPointer(ev, 9) : null
+    if (line) { propsRef.current.onSelectLink(line); return }
+    const hit = hull
     if (hit && propsRef.current.onSelectHull) propsRef.current.onSelectHull(hit)
     else propsRef.current.onBackground()
+  }
+
+  function linkNearPointer(ev: MouseEvent, reach: number): GLink | null {
+    const g = gRef.current
+    const el = holder.current
+    if (!g || !el) return null
+    const box = el.getBoundingClientRect()
+    const px = ev.clientX - box.left, py = ev.clientY - box.top
+    const now = performance.now()
+    let best: GLink | null = null, bestD = reach
+    for (const raw of g.graphData().links as object[]) {
+      const l = raw as GLink & { __showAt?: number; source: unknown; target: unknown }
+      if ((l.__showAt ?? 0) > now) continue
+      const a = l.source as Positioned, b = l.target as Positioned
+      if (a?.x === undefined || b?.x === undefined) continue
+      const pa = g.graph2ScreenCoords(a.x, a.y ?? 0, a.z ?? 0), pb = g.graph2ScreenCoords(b.x, b.y ?? 0, b.z ?? 0)
+      const dx = pb.x - pa.x, dy = pb.y - pa.y, len2 = dx * dx + dy * dy
+      if (len2 < 1) continue
+      // Nearest point on the segment, kept off the ends so a node's own
+      // neighbourhood still belongs to the node.
+      const t = Math.min(0.92, Math.max(0.08, ((px - pa.x) * dx + (py - pa.y) * dy) / len2))
+      const d = Math.hypot(px - (pa.x + t * dx), py - (pa.y + t * dy))
+      if (d < bestD) { bestD = d; best = l }
+    }
+    return best
   }
 
   // ---- hulls ----
@@ -1450,7 +1488,7 @@ export function Graph3D(props: Graph3DProps) {
           {props.pokes.ids.map((id, i) => (
             <div key={id} ref={(el) => { pokeEls.current[i] = el }} className={`canvas-poke p${i}`} hidden aria-hidden="true"><span /><i /></div>
           ))}
-          <div key={props.pokes.text} className="canvas-poke-hint" aria-hidden="true">{props.pokes.text}</div>
+          {props.pokes.text && <div key={props.pokes.text} className="canvas-poke-hint" aria-hidden="true">{props.pokes.text}</div>}
         </>
       )}
       {props.note && <div ref={noteEl} className={props.noteAt ? 'canvas-book canvas-note canvas-note-at' : 'canvas-book canvas-note'} aria-hidden="true">{props.note}</div>}

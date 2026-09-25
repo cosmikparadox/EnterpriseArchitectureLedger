@@ -4,7 +4,9 @@
 // the story the reader is asked for one thing at a time, and that thing sits
 // here, under the sentence that asked for it.
 
+import { useEffect, useMemo, useState } from 'react'
 import { copy, fill } from '../copy'
+import { firstTime } from '../app/hints'
 import { useLedger } from '../app/store'
 import type { AllocationRule, Estate } from '../model/types'
 import { IDENTITY_ID, MOVER_ID, type Control } from './script'
@@ -17,6 +19,10 @@ const BASES: { r: AllocationRule; label: string }[] = [
 ]
 
 export function Controls({ control, estate, figures }: { control: Control; estate: Estate; figures: Record<string, string | number> }) {
+  // The comparison's rows pulse until each has been played; the hint text
+  // above them shows only the first time a reader meets it.
+  const [played, setPlayed] = useState<Set<number>>(new Set())
+  const showRowsHint = useMemo(() => control === 'shapes' && firstTime('shapes_rows'), [control])
   const fanIn = useLedger((s) => s.fanInAdded)
   const setFanIn = useLedger((s) => s.setFanInAdded)
   const rho = useLedger((s) => s.rho)
@@ -30,6 +36,7 @@ export function Controls({ control, estate, figures }: { control: Control; estat
   const moves = useLedger((s) => s.moves)
   const setMoves = useLedger((s) => s.setMoves)
   const shapesPhase = useLedger((s) => s.shapesPhase)
+  useEffect(() => { if (control === 'shapes') setPlayed((p) => (p.has(shapesPhase) ? p : new Set(p).add(shapesPhase))) }, [control, shapesPhase])
   const setShapesPhase = useLedger((s) => s.setShapesPhase)
 
   if (control === 'fanin') return (
@@ -75,9 +82,10 @@ export function Controls({ control, estate, figures }: { control: Control; estat
     ]
     return (
       <div className="story-ctl shapes-table" data-tour="shapes" role="tablist">
+        {showRowsHint && <div className="ov-tap-hint card-hint">{copy.hint_rows}</div>}
         <div className="st-head"><span /><span>{copy.shape_left}</span><span>{copy.shape_right}</span></div>
         {rows.map((r, i) => (
-          <button key={r.label} type="button" role="tab" className={`st-row${shapesPhase === i ? ' on' : ''}`} aria-selected={shapesPhase === i} onClick={() => setShapesPhase(i as 0 | 1 | 2)}>
+          <button key={r.label} type="button" role="tab" className={`st-row${shapesPhase === i ? ' on' : ''}${played.has(i) || shapesPhase === i ? '' : ' ov-unseen'}`} aria-selected={shapesPhase === i} onClick={() => setShapesPhase(i as 0 | 1 | 2)}>
             <span className="st-l"><strong>{r.label}</strong><em>{r.sub}</em></span>
             <span className="st-v">{r.a}</span>
             <span className="st-v">{r.b}</span>

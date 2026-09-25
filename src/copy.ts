@@ -166,12 +166,12 @@ export const copy = {
   story_part1_title: 'Part one',
   story_part1_sub: 'The architecture',
   story_part2_title: 'Part two',
-  story_part2_sub: 'How it is decided today',
+  story_part2_sub: 'How it is measured today',
   story_part3_title: 'Part three',
   story_part3_sub: 'The ledger',
   story_end1: 'That is the architecture.',
   story_end1_sub: 'Now, how decisions about it get made.',
-  story_end2: 'That is how it is decided today.',
+  story_end2: 'That is how it is measured today.',
   story_end2_sub: 'Now, the ledger.',
   // The chapter navigator and the menu.
   // Work in progress: said plainly in the explorer and on the closing card.
@@ -186,7 +186,7 @@ export const copy = {
   wip_hide: 'Hide',
   chapter_0: 'Prologue',
   chapter_1: 'The architecture',
-  chapter_2: 'How it is decided today',
+  chapter_2: 'How it is measured today',
   chapter_3: 'The ledger',
   chapter_explorer: 'Explorer',
   chapter_explorer_sub: 'skip the chapters',
@@ -199,7 +199,7 @@ export const copy = {
   nav_part: 'Chapter opening',
   nav_end: 'Chapter close',
   part_label_1: 'Part one: the architecture',
-  part_label_2: 'Part two: how it is decided today',
+  part_label_2: 'Part two: how it is measured today',
   part_label_3: 'Part three: the ledger',
 
   // The opening, after the welcome: what it is, why it matters, and how it
@@ -376,7 +376,7 @@ export const copy = {
     'use cases. If it stops, most of the business can stop with it.',
   b_busiest_see: 'That is the lit node. Remember it; part three is about it.',
 
-  // Part two: how it is decided today.
+  // Part two: how it is measured today.
   b_docs_h: 'Where the architecture lives',
   b_docs:
     'Today the architecture lives in documents. Each is written by someone, ' +
@@ -573,12 +573,10 @@ export const copy = {
     'last use case attaches, only that grows it.',
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
-    'Same {n_uc} use cases, wired two ways: one platform doing most of the ' +
-    'work, or specialists. Spreading out moves the shared point. It does not ' +
-    'remove it.',
-  b_diversify_see:
-    'Switch shapes with the toggle on the canvas. Press Next, or tap a row, ' +
-    'to see each entry on the map.',
+    'Same {n_uc} use cases, wired two ways: concentrated on a few shared ' +
+    'platforms, or spread across best of breed specialists.',
+  // Shown under the comparison, where the reader has just read the figures.
+  b_diversify_after: 'Spreading out moves the shared point. It does not remove it.',
   b_diversify_more:
     'Neither shape is right, and the ledger does not pick one. Concentration ' +
     'inside a domain boundary is cheap to reason about. One domain shares ' +
@@ -593,8 +591,8 @@ export const copy = {
     'many vendors. Nor the latency of a process that crosses them. Both ' +
     'belong in the decision record, not in a figure here.',
   // The comparison on the card, and the two shapes' names.
-  shape_left: 'One platform does most',
-  shape_right: 'Specialists',
+  shape_left: 'Concentrated',
+  shape_right: 'Best of breed',
   shapes_row_cost: 'largest shared pool',
   shapes_row_risk: 'a bad month for {sub}',
   shapes_row_exit: 'largest single exit',
@@ -824,6 +822,9 @@ export const copy = {
   poke_lines: 'Tap a line to see what it carries',
   poke_connectors: 'Tap a diamond to see what passes through it',
   poke_flow: 'Tap a line to see where its value lands',
+  hint_rows: 'Tap a row to see it on the map',
+  hint_toggle: 'Switch between the two shapes',
+  hint_entries: 'Tap an entry to play it',
   book_title: 'The ledger, {name}',
   book_row_1: 'Entry one: what it costs',
   book_row_2: 'Entry two: what it risks',

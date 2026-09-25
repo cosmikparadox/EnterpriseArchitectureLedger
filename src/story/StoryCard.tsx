@@ -172,6 +172,7 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
           return <p key={`d${n}.${i}`} className="story-def"><strong>{d.slice(0, at)}</strong>{d.slice(at)}</p>
         })}
         {beat.control && <Controls control={beat.control} estate={estate} figures={figures} />}
+        {stem && c[`b_${stem}_after`] && <p key={`a${n}`} className="intro-line story-after">{fill(c[`b_${stem}_after`]!, figures)}</p>}
         {moreText && (
           <>
             <button className="tour-more" aria-expanded={more} onClick={() => setMore((v) => !v)}>{copy.story_more}</button>
@@ -244,7 +245,7 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
             under the pointer, names the page under it, and takes you there. */}
         <div className="intro-beats story-nav" onMouseLeave={() => setNavAt(null)} aria-label={copy.nav_menu}>
           {CHAPTERS.map((ch) => (
-            <span key={ch.part} className="beat-group">
+            <span key={ch.part} className="beat-group" style={{ flex: `${ch.beats.length} 1 0` }}>
               {ch.beats.map((idx, k) => (
                 <button
                   key={idx} type="button" className={`${idx <= n ? 'on' : ''}${idx === n ? ' here' : ''}`}
