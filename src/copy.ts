@@ -51,15 +51,20 @@ export const copy = {
   // A real ledger would decline to state this number. It never renders outside
   // the element carrying this text.
   option_refusal:
-    'The counterfactual behind this figure is declared, not evidenced. A real ' +
-    'ledger would refuse to state it. It is shown here to make the shape of ' +
-    'the quantity visible, and for no other purpose.',
+    'The alternative behind these two figures is declared, not evidenced. A ' +
+    'real ledger would refuse to state them. They are shown only to make the ' +
+    'shape of the split visible.',
 
   // Canon 9.5.2. The decomposition replaces a broad switching-cost estimate.
   // It is never added to one.
   switching_split:
     'Switching cost splits into two parts that move for different reasons. ' +
     'This is one number divided in two, not two numbers added together.',
+  footprint_chart_aria: 'Metered spend, per-rider rule share and the work of leaving, over 60 months',
+  sw_created: 'Work the commitment created: about USD {v}',
+  sw_given_up: 'Choices given up: about USD {v}',
+  switching_replace: 'The ledger would replace that estimate with two parts, if the alternative were on record:',
+  footprint_no_add: 'The ledger adds nothing to this figure. Its two parts need the alternative on record.',
 
   // Canon 9.2.8 (R23). Shown on screen in view 6, not only in the README.
   basis_prohibited: 'Prohibited by the Ledger paper, 9.2.8, shown as a counter-example.',
@@ -556,20 +561,24 @@ export const copy = {
   b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
   b_exit_h: 'What leaving would cost',
   b_exit:
-    'At that month the work of leaving had already reached about USD {exec}, ' +
-    'unsplit. Migration, rewiring, running two systems for a while.',
+    'At that month the work of leaving had already reached about USD {exec}. ' +
+    'Migration, rewiring, running two systems for a while.',
   b_exit_def: 'Work of leaving: the engineering work to move every use case off a platform.',
   b_exit_see:
     'Month {cursor}: {attached_now} use cases attached, and the work of ' +
     'leaving stands at {exit_now}. Drag the handle either way. No single ' +
     'decision created it.',
   b_exit_more:
-    'That figure is the full work of leaving, an engineering estimate rather ' +
-    'than a measurement. The ledger would split it into execution work and ' +
-    'the value of the choices given up. It declines to split it without ' +
-    'evidence of what the alternative was. See the Ledger paper, 9.5. This ' +
-    'model also hardens the figure by a made-up rate each month. After the ' +
-    'last use case attaches, only that grows it.',
+    'That figure is an engineering estimate of the work to leave today, not ' +
+    'a measurement. It belongs to the platform and is never divided among ' +
+    'the use cases riding it. The ledger would report two figures in its ' +
+    'place. One is how much of this work the commitment created, measured ' +
+    'against the alternative on the table at the time. The other is the ' +
+    'value of the choices it gave up. Both need that alternative on record, ' +
+    'dated. This estate has none, so the ledger reports neither. See the ' +
+    'Ledger paper, 9.5.2 and 9.5.7. This model also hardens the figure by a ' +
+    'made-up rate each month. After the last use case attaches, only that ' +
+    'grows it.',
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
     'Same {n_uc} use cases, wired two ways: concentrated on a few shared ' +
@@ -891,9 +900,10 @@ export const copy = {
   walk_p_leaving_h: 'What leaving would cost',
   walk_p_leaving:
     'The work of leaving today is about USD {exec}: migration, rewiring, ' +
-    'running two systems for a while. The ledger would split that into ' +
-    'execution work and the value of the choices given up. It declines to ' +
-    'split it without a dated decision record, and this estate has none.',
+    'running two systems for a while. It belongs to the platform, not to any ' +
+    'one use case. The ledger would replace it with two figures: work the ' +
+    'commitment created, and choices it gave up. Both need the alternative ' +
+    'on record, dated, and this estate has none.',
   walk_p_when_h: 'When it arrived',
   walk_p_when:
     'Adopted at month {adopted}, ratified as strategic at month {ratified}. ' +
@@ -968,7 +978,7 @@ export const copy = {
   drawing_tap: 'Tap to see what the colours hide',
 
   // Panel notes that used to be typed into the component.
-  panel_exec_note: 'An engineering estimate of the work of leaving, unsplit: migration effort, dual running, retraining.',
+  panel_exec_note: 'An engineering estimate of the work of leaving today: migration effort, dual running, retraining.',
   // View 2's annotation, named for what it is rather than by a label the
   // canon uses for a reading principle.
   c1_annotation: 'Share set by rule',
@@ -1055,9 +1065,13 @@ export const glossary = {
     label: 'Sum of P99s',
     tip: 'Each use case\u2019s bad month added up. It assumes every worst month lands at once, which is the extreme case.',
   },
-  execution_component: {
+  work_of_leaving: {
     label: 'Work of leaving',
-    tip: 'What leaving would take: migration, rewiring, running both for a while. An engineering estimate, not a measurement, shown unsplit.',
+    tip: 'What leaving would take today: migration, rewiring, running both for a while. An engineering estimate, not a measurement.',
+  },
+  execution_component: {
+    label: 'Work the commitment created',
+    tip: 'The work of leaving minus what leaving the alternative would have cost. Needs that alternative on record.',
   },
   integration_node: {
     label: 'Integration node',
@@ -1173,9 +1187,8 @@ export const summary = {
     'By month {ratified}, when {name} was ratified, {n} use cases already ' +
     'depended on it.',
   s4_number:
-    'Leaving would already have taken about USD {exec} of work. The ledger ' +
-    'declines to split that into execution work and an option component ' +
-    'without an evidenced counterfactual.',
+    'Leaving would already have taken about USD {exec} of work. Its two ' +
+    'parts, work created and choices given up, need the alternative on record.',
   s4_head_before:
     'At month {ratified} {name} had not arrived yet. It was adopted in month ' +
     '{adopted}.',

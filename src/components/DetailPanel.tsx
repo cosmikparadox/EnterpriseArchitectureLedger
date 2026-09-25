@@ -2,7 +2,7 @@
 // sections shown or hidden by type.
 
 import { useMemo } from 'react'
-import { copy, fill, summary, type GlossaryKey } from '../copy'
+import { copy, fill, glossary, summary, type GlossaryKey } from '../copy'
 import { Summary } from './Summary'
 import { Term } from './Hint'
 import type { AllocationRule, Estate } from '../model/types'
@@ -172,17 +172,20 @@ export function DetailPanel(props: DetailPanelProps) {
         {show('switching') && (
         <section className={sec('switching')}>
           <h3>{copy.panel_section_switching}</h3>
-          <div className="note">{copy.switching_split}</div>
-          <Row k="execution_component" l="Work of leaving" v={gbpAbout(v.workOfLeaving)} />
+          <Row k="work_of_leaving" l={glossary.work_of_leaving.label} v={`about USD ${gbpAbout(v.workOfLeaving)}`} />
           <div className="note">{copy.panel_exec_note}</div>
           {option && (
-            // Canon 9.5.7 and 9.9. The option component NEVER renders outside
-            // this element. The figure and the refusal are one block, so a
-            // screenshot cannot separate them.
+            // Canon 9.5.2, 9.5.7 and 9.9. The two parts that would replace
+            // the estimate NEVER render outside this element. The figures and
+            // the refusal are one block, so a screenshot cannot separate
+            // them. Neither part is ever added to the work of leaving.
             <div className="refusal">
-              <span className="fig">Option component {gbp(option.value)}</span>
-              {copy.option_refusal}
+              <div className="note">{copy.switching_replace}</div>
+              <span className="fig">{fill(copy.sw_created, { v: gbpAbout(v.executionComponent) })}</span>
+              <span className="fig">{fill(copy.sw_given_up, { v: gbpAbout(option.value) })}</span>
               <div className="note" style={{ marginTop: 6 }}>{copy.option_tip}</div>
+              <div className="note">{copy.switching_split}</div>
+              {copy.option_refusal}
               <WKCurve curve={option.curve} />
             </div>
           )}

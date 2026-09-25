@@ -3,10 +3,11 @@
 // Purpose: show accretion, and show the exit cost that accrues while nobody is
 // looking at it.
 //
-// Canon 9.5.7 and 9.9, and the owner's two constraints: the option component
-// never renders as a bare number, and the ratification sentence quotes the
-// EXECUTION component as its only hard figure. So the chart plots execution
-// only, and the option half appears solely inside the refusal block.
+// Canon 9.5.2, 9.5.7 and 9.9, and the owner's two constraints. The chart and
+// the ratification sentence quote the work of leaving, an engineering
+// estimate, as their only hard figure. The two parts that would replace it,
+// the work the commitment created and the choices given up, appear solely
+// inside the refusal block. Neither is ever added to the work of leaving.
 
 import { useMemo, useState } from 'react'
 import { Graph3D } from '../components/Graph3D'
@@ -18,9 +19,9 @@ import { FootprintChart, type Series } from '../components/FootprintChart'
 import { WKCurve } from '../components/WKCurve'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
-import { gbpAbout, kCommitted, optionComponent, optionEngineFor, wCurve, workOfLeaving, type Index } from '../model/ledger'
+import { executionComponent, gbpAbout, kCommitted, optionComponent, optionEngineFor, wCurve, workOfLeaving, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
-import { copy, summary } from '../copy'
+import { copy, fill, glossary, summary } from '../copy'
 import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
@@ -71,6 +72,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
       // any basis, because canon 9.2.8 requires the shares to sum to the pool.
       perRider: n === 0 ? 0 : platform.fixed_pool_gbp_month / n,
       execution: workOfLeaving(platform, n, months),
+      created: executionComponent(platform, n, months),
       option: engine ? optionComponent(engine, platform, n, months) : 0,
       k: kCommitted(platform, n, months),
       months,
@@ -110,7 +112,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
   // everything to nothing, which read as a glitch. A zero state keeps the
   // controls, the charts and the dimming continuous across adoption.
   const EMPTY = useMemo(() => ({
-    adopted: false, n: 0, subdomains: 0, metered: 0, perRider: 0, execution: 0,
+    adopted: false, n: 0, subdomains: 0, metered: 0, perRider: 0, execution: 0, created: 0,
     option: 0, k: 0, months: 0, attachedIds: new Set<string>(),
   }), [])
   const now = at(cursor) ?? EMPTY
@@ -217,7 +219,9 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 <div className="row"><span className="l">Subdomains</span><span className="v">{now.subdomains}</span></div>
                 <div className="row"><span className="l">Metered spend</span><span className="v">{gbp(now.metered)} /month</span></div>
                 <div className="row"><span className="l">Rule share per rider</span><span className="v">{gbp(now.perRider)} /month</span></div>
-                <div className="row"><span className="l">Work of leaving</span><span className="v">about USD {gbpAbout(now.execution)}</span></div>
+                <div className="row"><span className="l"><Term k="work_of_leaving">{glossary.work_of_leaving.label}</Term></span><span className="v">about USD {gbpAbout(now.execution)}</span></div>
+                {now.adopted && <div className="note">{copy.panel_exec_note}</div>}
+                {now.adopted && <div className="note">{copy.footprint_no_add}</div>}
                 <div className="note">
                   {now.adopted ? copy.footprint_bill_visible : copy.footprint_not_yet}
                 </div>
@@ -232,24 +236,23 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                     of leaving had reached about USD {gbpAbout(atRatified.execution)}. The
                     board ratified a footprint.
                   </div>
-                  <div className="note">
-                    Plus an option component the ledger would refuse to state without an
-                    evidenced counterfactual.
-                  </div>
                 </section>
               )}
 
               {now.adopted && (
               <section>
-                <h3><Term k="execution_component">Switching cost</Term></h3>
-                <div className="note">{copy.switching_split}</div>
-                {/* Canon 9.5.7 and 9.9. The option component appears only here,
-                    inside the same element as the refusal, so a screenshot
-                    cannot separate the figure from the refusal. */}
+                <h3>{copy.panel_section_switching}</h3>
+                {/* Canon 9.5.2, 9.5.7 and 9.9. The two parts that would replace
+                    the estimate appear only here, inside the same element as
+                    the refusal, so a screenshot cannot separate the figures
+                    from the refusal. Neither is added to the work of leaving. */}
                 <div className="refusal">
-                  <span className="fig">Option component at month {cursor}: about USD {gbpAbout(now.option)}</span>
-                  {copy.option_refusal}
+                  <div className="note">{copy.switching_replace}</div>
+                  <span className="fig">{fill(copy.sw_created, { v: gbpAbout(now.created) })}</span>
+                  <span className="fig">{fill(copy.sw_given_up, { v: gbpAbout(now.option) })}</span>
                   <div className="note" style={{ marginTop: 6 }}>{copy.option_tip}</div>
+                  <div className="note">{copy.switching_split}</div>
+                  {copy.option_refusal}
                   {engine && (
                     <WKCurve curve={wCurve(engine, platform, now.n, now.months)} />
                   )}

@@ -225,21 +225,23 @@ export function kCommitted(p: Platform, nRiders: number, monthsSinceAdopted: num
 }
 
 /**
- * Execution component of switching cost. Canon 9.5.2 and the worked example at
- * 9.10, where the execution component is the difference between the committed
- * and reversible switching costs. Deterministic, one-time, an engineering
- * estimate that does not depend on uncertainty.
+ * Execution component of switching cost: the work the commitment created.
+ * Canon 9.5.2 and the worked example at 9.10. The decomposition replaces the
+ * broad estimate with two parts: committed minus reversible, which is this,
+ * plus the option component. Neither part is ever added to the estimate.
+ * Deterministic, one-time, and it needs the alternative on record.
  */
 export function executionComponent(p: Platform, nRiders: number, monthsSinceAdopted: number): number {
   return Math.max(0, kCommitted(p, nRiders, monthsSinceAdopted) - p.exit_k_reversible_gbp)
 }
 
 /**
- * The work of leaving as the tool shows it. Canon 9.5.7: the split of K into
- * an execution part and the value of the choices given up rests on an
- * evidenced counterfactual. Where the counterfactual is not evidenced, the
- * tool declines to split and shows the committed work whole; where it is,
- * the execution component. Nothing here alters either figure.
+ * The work of leaving as the tool shows it: an engineering estimate of the
+ * work to leave today. Canon 9.5.2 and 9.5.7: the ledger would replace this
+ * estimate with committed minus reversible, plus the option component, once
+ * the alternative is on record and dated. Where it is not, the estimate is
+ * shown as it stands and neither part is stated as a position. It belongs to
+ * the platform and is never divided among the use cases riding it.
  */
 export function workOfLeaving(p: Platform, nRiders: number, monthsSinceAdopted: number): number {
   const evidenced: boolean = p.counterfactual_evidenced

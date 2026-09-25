@@ -4,6 +4,8 @@
 // "what it committed you to". They are distinguished by DASH PATTERN as well as
 // tone, so the pair survives greyscale, per spec section 2.
 
+import { copy } from '../copy'
+
 export interface Series {
   label: string
   values: (number | null)[]
@@ -54,7 +56,7 @@ export function FootprintChart({ months, series, cursor, ratified, onCursor, hei
   return (
     <figure style={{ margin: '4px 0 0' }}>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} role="img"
-        aria-label="Metered spend, per-rider rule share and the execution component of leaving, over 60 months">
+        aria-label={copy.footprint_chart_aria}>
         {[0, 0.5, 1].map((f) => (
           <g key={f}>
             <line x1={L} y1={y(max * f)} x2={W - R} y2={y(max * f)} stroke="currentColor" strokeOpacity="0.12" />

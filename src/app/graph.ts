@@ -247,7 +247,7 @@ export interface PlatformView {
   adoptedMonth: number
   kCommitted: number
   executionComponent: number
-  /** What the tool shows as the work of leaving: unsplit where the counterfactual is not evidenced. */
+  /** The work of leaving today, an engineering estimate. Never added to either part. */
   workOfLeaving: number
   counterfactualEvidenced: boolean
   counterfactualNote: string
