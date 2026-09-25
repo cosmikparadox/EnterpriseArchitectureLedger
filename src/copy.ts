@@ -448,7 +448,7 @@ export const copy = {
   pain_1: 'Retire a use case and its share of a shared platform stays, spread over the rest.',
   pain_1_who: 'Lands on the CFO',
   pain_2_h: 'Risk that does not add up',
-  pain_2: 'Add each team\'s worst month and the total comes out too high. A colour cannot say by how much.',
+  pain_2: 'Each team\'s worst month, added up, differs from the group\'s worst month. A colour cannot say which way, or by how much.',
   pain_2_who: 'Lands on the risk owner',
   pain_3_h: 'Lock-in nobody chose',
   pain_3: 'By the time the board sees a platform as a decision, much of the business already depends on it.',
@@ -532,28 +532,36 @@ export const copy = {
   b_together_def: 'Bad month: one so bad that a worse one comes about once in a hundred months.',
   b_together_see:
     'Adding assumes every use case has its worst month in the same month. ' +
-    'They rarely do. Together is the figure to read.',
+    'Here they do not, so adding comes out higher. Together is the figure ' +
+    'to read.',
   b_together_more:
     'Both are a P99: a month worse than this comes about once in a hundred ' +
     'months. The two would match only if every loss moved in lockstep. See ' +
-    'the Ledger paper, 9.8.3.',
+    'the Ledger paper, 9.8.3. With very heavy tails, adding can even come ' +
+    'out lower. See the Ledger paper, 9.3.8.',
   b_rho_h: 'How much they fail together',
   b_rho:
-    'Those figures depend on one input this tool does not measure: how ' +
+    'Those two figures rest on one input this tool does not measure: how ' +
     'strongly platform failures are linked. Move the slider from one end to ' +
     'the other.',
   b_rho_def: 'Dependence: how strongly platforms tend to fail in the same month.',
-  b_rho_see: 'Across the range the {sub} figure ran from about USD {lo} to about USD {hi}. The honest reading is the range.',
+  b_rho_see:
+    'The together figure barely moves until failures are almost fully ' +
+    'linked. The added-up figure falls from about USD {sum_hi} to about USD ' +
+    '{sum_lo}, closing the gap.',
   b_rho_more:
     'The slider is a dependence parameter, rho, from 0 to 1. It runs under a ' +
     'Student t copula with four degrees of freedom. It is a declared input, ' +
-    'not a measurement, and the tool says so. At the left end failures are ' +
-    'uncorrelated, though the extremes still move together. As the slider ' +
-    'moves right, the other platforms those use cases ride go down more ' +
-    'often in the same month. In this model a stopped use case costs the ' +
-    'same however many of its platforms failed. So linking failures means ' +
-    'fewer bad months here, not worse ones. A real estate may differ, ' +
-    'because joint failures can lengthen recovery.',
+    'not a measurement. At the left end failures are uncorrelated, though ' +
+    'the extremes still move together. As it moves right, worst months ' +
+    'start to coincide, so adding comes closer to right. At the right end ' +
+    'the two figures nearly meet. In this model a stopped use case costs the ' +
+    'same however many of its platforms failed. So linked failures mean ' +
+    'fewer loss months, and the together figure falls slightly at the far ' +
+    'right. A real estate may differ, because joint failures can lengthen ' +
+    'recovery. The figures come from fixed runs of 10,000 months each. ' +
+    'Differences under about 6 percent are simulation noise. The picture ' +
+    'shows the idea, not a simulated month.',
   b_grow_h: 'Entry three: leaving. How the footprint grew',
   b_grow:
     'Now the cloud data platform, which {uc} also rides. Watch the months ' +
@@ -872,8 +880,13 @@ export const copy = {
   basis_equal: 'This is the default, an equal split. Change the basis above to see which figures move.',
   basis_same: 'Under {basis} every figure on this node is what it was under an equal split.',
   reach_note:
-    '{direct} interrupted on the failed node. {reached} more reached through ' +
-    'the {platforms} platforms that went down with it at this dependence.',
+    'The picture also takes down the {platforms} platforms these use cases ' +
+    'share most, reaching {reached} more. An illustration of dependence, not ' +
+    'a simulated month.',
+  risk_band_note: 'Across the slider, from the stored runs at rho 0, 0.25, 0.5, 0.75 and 1.',
+  risk_band_sum: 'Added up, across the slider',
+  risk_band_joint: 'Together, across the slider',
+  risk_band_value: 'about USD {lo} to USD {hi}',
   // The explorer's walkthrough: one node, six steps, the same rhythm as the story.
   walk_play: 'Walk me through it',
   walk_close: 'Done',
@@ -1063,7 +1076,7 @@ export const glossary = {
   },
   sum_of_p99: {
     label: 'Sum of P99s',
-    tip: 'Each use case\u2019s bad month added up. It assumes every worst month lands at once, which is the extreme case.',
+    tip: 'Each use case\u2019s bad month, added up, as if every worst month landed at once. A reference point, not a ceiling.',
   },
   work_of_leaving: {
     label: 'Work of leaving',

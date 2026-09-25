@@ -175,3 +175,20 @@ export function storedFrames(estate: Estate): McResult[] {
   const set = precomputedIndex()[estate.provenance.graph_version]
   return set ? set.frames.map((f) => unpackFrame(set, f)).sort((a, b) => a.rho - b.rho) : []
 }
+
+/**
+ * A domain's two bad-month figures at the five fixed points of dependence,
+ * read from the stored runs, with the range each spans. The same on every
+ * device and on every call, whatever the live runs are doing.
+ */
+export function fixedPointRange(estate: Estate, subdomain: string): FixedPointRange | null {
+  const points = storedFrames(estate).map((f) => {
+    const s = f.subdomains.find((x) => x.id === subdomain)
+    return s ? { rho: f.rho, sum: s.sumOfP99s, joint: s.jointP99 } : null
+  }).filter((x): x is FixedPoint => x !== null)
+  if (points.length === 0) return null
+  const sums = points.map((x) => x.sum), joints = points.map((x) => x.joint)
+  return { points, sumLo: Math.min(...sums), sumHi: Math.max(...sums), jointLo: Math.min(...joints), jointHi: Math.max(...joints) }
+}
+export interface FixedPoint { rho: number; sum: number; joint: number }
+export interface FixedPointRange { points: FixedPoint[]; sumLo: number; sumHi: number; jointLo: number; jointHi: number }

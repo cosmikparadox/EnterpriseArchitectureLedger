@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react'
 import { useLedger } from '../app/store'
-import { storedFrame, storedFrames, useMonteCarlo } from '../app/useMonteCarlo'
+import { fixedPointRange, storedFrame, useMonteCarlo } from '../app/useMonteCarlo'
 import { leavingFor } from '../app/graph'
 import { buildIndex, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
 import { gbpAbout, workOfLeaving, type Index } from '../model/ledger'
@@ -32,19 +32,6 @@ export function tourUseCaseFigures(ix: Index, rule: AllocationRule, mc: McResult
   return { name: u.name, platforms: u.edges.length, reported, byRule, metered: reported - byRule, p99, leaving }
 }
 
-/**
- * A domain's added-up bad month at the five fixed points of dependence,
- * read from the stored runs. The same on every device and every call.
- */
-export function addedUpRange(estate: Estate, subdomain: string): { lo: number; hi: number; points: { rho: number; sum: number; joint: number }[] } | null {
-  const points = storedFrames(estate).map((f) => {
-    const s = f.subdomains.find((x) => x.id === subdomain)
-    return s ? { rho: f.rho, sum: s.sumOfP99s, joint: s.jointP99 } : null
-  }).filter((x): x is { rho: number; sum: number; joint: number } => x !== null)
-  if (points.length === 0) return null
-  return { lo: Math.min(...points.map((x) => x.sum)), hi: Math.max(...points.map((x) => x.sum)), points }
-}
-
 export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Record<string, string | number> {
   const rule = useLedger((s) => s.rule)
   const rho = useLedger((s) => s.rho)
@@ -63,7 +50,7 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const subName = concentrated.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
   const sub = left?.subdomains.find((s) => s.id === subdomain) ?? null
   const subRight = right?.subdomains.find((s) => s.id === subdomain) ?? null
-  const range = useMemo(() => addedUpRange(concentrated, subdomain), [concentrated, subdomain])
+  const range = useMemo(() => fixedPointRange(concentrated, subdomain), [concentrated, subdomain])
 
   // Entry one is read on the identity service, for the tour use case.
   const top = ix.platformById.get(IDENTITY_ID)!
@@ -136,8 +123,8 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     sub: subName,
     sum: sub ? gbpAbout(sub.sumOfP99s) : '',
     joint: sub ? gbpAbout(sub.jointP99) : '',
-    sum_lo: range ? gbpAbout(range.lo) : '',
-    sum_hi: range ? gbpAbout(range.hi) : '',
+    sum_lo: range ? gbpAbout(range.sumLo) : '',
+    sum_hi: range ? gbpAbout(range.sumHi) : '',
     ratified,
     attached,
     exec: gbpAbout(exec),

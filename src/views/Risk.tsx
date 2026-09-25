@@ -10,7 +10,7 @@ import { PanelShell } from '../components/PanelShell'
 import { Walkthrough, useWalk } from './Walkthrough'
 import { ExceedanceCurve } from '../components/ExceedanceCurve'
 import { buildGraph } from '../app/graph'
-import { useMonteCarlo } from '../app/useMonteCarlo'
+import { fixedPointRange, useMonteCarlo } from '../app/useMonteCarlo'
 import { reachAt, sampleFailure, type Failure } from '../model/reach'
 import { gbpAbout, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
@@ -95,17 +95,10 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   const subName = estate.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
   const platformStats = mc.result?.platforms.find((p) => p.id === selected) ?? null
 
-  // The band the dependence slider spans, in USD. Spec section 4.3.
-  const [band, setBand] = useState<{ lo: number; hi: number } | null>(null)
-  useEffect(() => {
-    if (!sub) return
-    setBand((b) => {
-      const lo = b ? Math.min(b.lo, sub.jointP99) : sub.jointP99
-      const hi = b ? Math.max(b.hi, sub.jointP99) : sub.jointP99
-      return { lo, hi }
-    })
-  }, [sub])
-  useEffect(() => { setBand(null) }, [subdomain, runs])
+  // What the dependence slider spans, in USD. Spec section 4.3. Read from
+  // the stored runs at the five fixed points, so it is the same on every
+  // device and does not depend on where the reader has dragged the slider.
+  const band = useMemo(() => fixedPointRange(estate, subdomain), [estate, subdomain])
 
   return (
     <>
@@ -249,11 +242,18 @@ export function Risk({ estate, ix, dark }: RiskProps) {
                   <span className="l">Gap at rho {rho.toFixed(2)}</span>
                   <span className="v">{(sub.gap * 100).toFixed(1)} percent</span>
                 </div>
-                {band && band.hi > band.lo && (
-                  <div className="row">
-                    <span className="l">Band spanned by the slider</span>
-                    <span className="v">about USD {gbpAbout(band.hi - band.lo)}</span>
-                  </div>
+                {band && (
+                  <>
+                    <div className="note">{copy.risk_band_note}</div>
+                    <div className="row">
+                      <span className="l">{copy.risk_band_sum}</span>
+                      <span className="v">{fill(copy.risk_band_value, { lo: gbpAbout(band.sumLo), hi: gbpAbout(band.sumHi) })}</span>
+                    </div>
+                    <div className="row">
+                      <span className="l">{copy.risk_band_joint}</span>
+                      <span className="v">{fill(copy.risk_band_value, { lo: gbpAbout(band.jointLo), hi: gbpAbout(band.jointHi) })}</span>
+                    </div>
+                  </>
                 )}
                 <div className="note">{copy.no_total}</div>
               </>
