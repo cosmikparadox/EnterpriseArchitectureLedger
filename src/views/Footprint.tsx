@@ -165,10 +165,8 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
         />
 
         <Legend>
-          <div>Use cases attach in the order they were adopted.</div>
-          <div style={{ marginTop: 4, opacity: 0.85 }}>
-            Faint nodes have not arrived yet at month {cursor}.
-          </div>
+          <div>{copy.fp_legend_order}</div>
+          <div style={{ marginTop: 4, opacity: 0.85 }}>{fill(copy.fp_legend_faint, { cursor })}</div>
         </Legend>
 
         <PanelShell
@@ -207,10 +205,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                   months={MONTHS} series={oneOff} cursor={cursor} ratified={ratified}
                   onCursor={(m) => { setCursor(m); setFocusing(true) }} height={150} unit="USD, one off" scrubberTour="month"
                 />
-                <div className="note">
-                  Two charts, one time axis. The monthly bill and the cost of leaving are not
-                  the same kind of number and do not share a scale.
-                </div>
+                <div className="note">{copy.fp_two_charts}</div>
               </section>
 
               <section>
@@ -231,10 +226,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 <section data-tour="ratify">
                   <h3>Ratified as strategic</h3>
                   <div className="callout">
-                    By the time this platform reached the board, {atRatified.n} use cases in{' '}
-                    {atRatified.subdomains} subdomains already depended on it and the work
-                    of leaving had reached about USD {gbpAbout(atRatified.execution)}. The
-                    board ratified a footprint.
+                    {fill(copy.fp_ratified, { n: atRatified.n, subdomains: atRatified.subdomains, exec: gbpAbout(atRatified.execution) })}
                   </div>
                 </section>
               )}

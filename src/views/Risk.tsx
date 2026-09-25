@@ -150,8 +150,8 @@ export function Risk({ estate, ix, dark }: RiskProps) {
         />
 
         <Legend>
-          <div><span className="glyph">O</span> pulsing ring: the node you failed</div>
-          <div><span className="glyph">#</span> wireframe: use case interrupted</div>
+          <div><span className="glyph">O</span> {copy.rk_legend_ring}</div>
+          <div><span className="glyph">#</span> {copy.rk_legend_wire}</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.copula_note}</div>
         </Legend>
 
@@ -197,10 +197,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
               <div className="row"><span className="l">Subdomains crossed</span><span className="v">{reach?.subdomains.size ?? failure.subdomains.size}</span></div>
               <div className="row"><span className="l">Volume interrupted</span><span className="v">{Math.round(reach?.volume ?? failure.volume).toLocaleString('en-GB')} /month</span></div>
               {reach && reach.platforms.size > 0 && <div className="note">{fill(copy.reach_note, { direct: failure.affected.size, reached: reach.reached, platforms: reach.platforms.size })}</div>}
-              <div className="note">
-                Sampled from each edge's conditional failure probability. Press Fail it again
-                for a different pattern.
-              </div>
+              <div className="note">{copy.rk_sampled}</div>
             </section>
           )}
 

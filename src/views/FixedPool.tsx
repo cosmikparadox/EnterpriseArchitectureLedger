@@ -135,8 +135,8 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
         />
 
         <Legend>
-          <div><span className="glyph">O</span> solid arc: metered, a meter reading</div>
-          <div><span className="glyph">/</span> hatched arc: rule, an allocation</div>
+          <div><span className="glyph">O</span> {copy.fx_legend_solid}</div>
+          <div><span className="glyph">/</span> {copy.fx_legend_hatched}</div>
           <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.view2_hint}</div>
         </Legend>
 
@@ -201,7 +201,7 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
               </section>
 
               <section data-tour="riders">
-                <h3>What each rider is told it costs here</h3>
+                <h3>{copy.fx_told_h}</h3>
                 <div>
                   {riders.map((r) => {
                     const byRule = ruleShare(ix, platform.id, r.uc.id, rule)
@@ -249,15 +249,12 @@ export function FixedPool({ estate: base, dark, rule, setRule }: FixedPoolProps)
                       <span className="v">{(r.c1 * 100).toFixed(1)} percent</span>
                     </div>
                   ))}
-                  <div className="note">
-                    Ranking within one axis is one of the three things that survives when the
-                    total is refused. See the Ledger paper.
-                  </div>
+                  <div className="note">{copy.fx_rank_note}</div>
                 </section>
               )}
             </>
           ) : (
-            <div className="note">Select a platform or integration node.</div>
+            <div className="note">{copy.fx_select}</div>
           )}
         </PanelShell>
         {!inStory && w.walk && ix.platformById.has(w.walk) && (

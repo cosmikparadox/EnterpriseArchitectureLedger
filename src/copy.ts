@@ -60,6 +60,34 @@ export const copy = {
   switching_split:
     'Switching cost splits into two parts that move for different reasons. ' +
     'This is one number divided in two, not two numbers added together.',
+  // Screen prose moved out of the components, audit v0.4 section 12.
+  fp_legend_order: 'Use cases attach in the order they were adopted.',
+  fp_legend_faint: 'Faint nodes have not arrived yet at month {cursor}.',
+  fp_two_charts: 'Two charts, one time axis. The monthly bill and the cost of leaving are different kinds of number. They do not share a scale.',
+  fp_ratified:
+    'By the time this platform reached the board, {n} use cases in ' +
+    '{subdomains} subdomains already depended on it. The work of leaving had ' +
+    'reached about USD {exec}. The board ratified a footprint.',
+  bd_legend_dashed: 'Dashed edges cross a declared boundary.',
+  bd_legend_tap: 'Tap a use case to move it.',
+  bd_pick: 'Tap a use case in the graph, or pick one below.',
+  bd_merge_note: 'Merging moves every use case out of one declared subdomain into another. The graph is untouched.',
+  bd_whose: 'Whose decision becomes whose dependency changes with the lines.',
+  rk_legend_ring: 'pulsing ring: the node you failed',
+  rk_legend_wire: 'wireframe: use case interrupted',
+  rk_sampled: 'Sampled from each edge\'s conditional failure probability. Press Fail it again for a different pattern.',
+  ts_same: 'Same {n_uc} use cases, wired two ways',
+  ts_highest: 'Highest on a single node: {left} at {left_pct} percent on the left, {right} at {right_pct} percent on the right.',
+  ts_next_two: 'Next two on the right: {a} ({a_type}) and {b} ({b_type}).',
+  fx_legend_solid: 'solid arc: metered, a meter reading',
+  fx_legend_hatched: 'hatched arc: rule, an allocation',
+  fx_told_h: 'What each rider is told it costs here',
+  fx_rank_note: 'Ranking within one axis is one of the three things that survives when the total is refused. See the Ledger paper.',
+  fx_select: 'Select a platform or integration node.',
+  ex_hulls: 'Hulls overlap where platforms are shared. The overlap is the point.',
+  ec_sparse: 'Not enough loss events at this setting to draw a curve.',
+  exit_not_yet: 'nothing yet, it had not been adopted',
+  exit_now_value: 'about USD {exec}',
   footprint_chart_aria: 'Metered spend, per-rider rule share and the work of leaving, over 60 months',
   sw_created: 'Work the commitment created: about USD {v}',
   sw_given_up: 'Choices given up: about USD {v}',

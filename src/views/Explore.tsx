@@ -312,9 +312,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           <div><span className="glyph">O</span> platform, size is <Term k="fan_in" /></div>
           <div><span className="glyph" style={{ color: CONNECTOR }}>&#9670;</span> <Term k="integration_node" /></div>
           <div><span className="glyph">.</span> use case, coloured by subdomain</div>
-          <div style={{ marginTop: 4, opacity: 0.85 }}>
-            Hulls overlap where platforms are shared. The overlap is the point.
-          </div>
+          <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.ex_hulls}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
             {estate.subdomains.map((s) => (
               <span key={s.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>

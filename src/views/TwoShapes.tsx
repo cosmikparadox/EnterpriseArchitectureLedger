@@ -305,7 +305,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           tabHint="Two shapes"
         >
           <h2>Concentrated against best of breed</h2>
-          <div className="kind">Same 30 use cases, wired two ways</div>
+          <div className="kind">{fill(copy.ts_same, { n_uc: concentrated.use_cases.length })}</div>
           <Summary
             head={summary.s5_head} number={summary.s5_number} mechanism={summary.s5_mechanism}
             values={{
@@ -339,8 +339,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
                 b={`${(sr.perSubdomain[i]!.ruleProportion * 100).toFixed(1)}%`} />
             ))}
             <div className="note">
-              Highest on a single node: {sl.maxC1.p.name} at {(sl.maxC1.v * 100).toFixed(1)} percent
-              on the left, {sr.maxC1.p.name} at {(sr.maxC1.v * 100).toFixed(1)} percent on the right.
+              {fill(copy.ts_highest, { left: sl.maxC1.p.name, left_pct: (sl.maxC1.v * 100).toFixed(1), right: sr.maxC1.p.name, right_pct: (sr.maxC1.v * 100).toFixed(1) })}
             </div>
           </section>
 
@@ -370,8 +369,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
               a={Math.round(sl.blast[0]!.volume).toLocaleString('en-GB')}
               b={Math.round(sr.blast[0]!.volume).toLocaleString('en-GB')} />
             <div className="note">
-              Next two on the right: {sr.blast[1]!.p.name} ({sr.blast[1]!.p.type}) and{' '}
-              {sr.blast[2]!.p.name} ({sr.blast[2]!.p.type}).
+              {fill(copy.ts_next_two, { a: sr.blast[1]!.p.name, a_type: sr.blast[1]!.p.type, b: sr.blast[2]!.p.name, b_type: sr.blast[2]!.p.type })}
             </div>
           </section>
 

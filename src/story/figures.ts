@@ -2,6 +2,7 @@
 // here, read from the running tool, never typed into the copy deck.
 
 import { useMemo } from 'react'
+import { copy, fill } from '../copy'
 import { useLedger } from '../app/store'
 import { fixedPointRange, storedFrame, useMonteCarlo } from '../app/useMonteCarlo'
 import { leavingFor } from '../app/graph'
@@ -13,8 +14,6 @@ import type { AllocationRule, Estate, UseCase } from '../model/types'
 import type { McResult } from '../model/montecarlo'
 import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN, TOUR_UC } from './script'
 
-/** The month handle sits before the platform was adopted: nothing to leave yet. */
-const PLACEHOLDER_NOT_YET = 'nothing yet, it had not been adopted'
 export const gbp = (n: number) => Math.round(n).toLocaleString('en-GB')
 const BASIS: Record<AllocationRule, string> = { equal: 'equal split', driver: 'driver-proportional', by_volume: 'by volume', by_head: 'by headcount' }
 
@@ -130,7 +129,8 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     exec: gbpAbout(exec),
     cursor,
     attached_now: attachedNow,
-    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `about USD ${gbpAbout(execNow)}` : PLACEHOLDER_NOT_YET,
+    // The month handle before the platform was adopted: nothing to leave yet.
+    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? fill(copy.exit_now_value, { exec: gbpAbout(execNow) }) : copy.exit_not_yet,
     left: sub ? gbpAbout(sub.jointP99) : '',
     right: subRight ? gbpAbout(subRight.jointP99) : '',
     left_top: shapes.l.topName, right_top: shapes.r.topName,

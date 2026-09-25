@@ -6,6 +6,7 @@
 
 import { useMemo } from 'react'
 import type { ExceedancePoint } from '../model/montecarlo'
+import { copy } from '../copy'
 
 const W = 300, H = 170, L = 40, R = 8, T = 8, B = 26
 
@@ -39,7 +40,7 @@ export function ExceedanceCurve({ points, budget, onBudget, label }: ExceedanceC
     return { x, y, pHi, pLo }
   }, [usable])
 
-  if (!geom) return <div className="note">Not enough loss events at this setting to draw a curve.</div>
+  if (!geom) return <div className="note">{copy.ec_sparse}</div>
   const { x, y } = geom
 
   const d = usable.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.loss).toFixed(1)},${y(p.prob).toFixed(1)}`).join('')

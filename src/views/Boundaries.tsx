@@ -173,8 +173,8 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
         />
 
         <Legend>
-          <div>Dashed edges cross a declared boundary.</div>
-          <div style={{ marginTop: 4, opacity: 0.85 }}>Tap a use case to move it.</div>
+          <div>{copy.bd_legend_dashed}</div>
+          <div style={{ marginTop: 4, opacity: 0.85 }}>{copy.bd_legend_tap}</div>
         </Legend>
 
         <PanelShell
@@ -222,7 +222,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
                 </select>
               </>
             ) : (
-              <div className="note">Tap a use case in the graph, or pick one below.</div>
+              <div className="note">{copy.bd_pick}</div>
             )}
             <div style={{ maxHeight: 150, overflow: 'auto', marginTop: 6 }}>
               {estate.use_cases.map((u) => (
@@ -251,10 +251,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
                 if (a && b) merge(a, b)
               }}>Merge</button>
             </div>
-            <div className="note">
-              Merging moves every use case out of one declared subdomain into another. The
-              graph is untouched.
-            </div>
+            <div className="note">{copy.bd_merge_note}</div>
           </section>
 
           <section>
@@ -263,9 +260,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
               <span className="l">Boundary-crossing edges</span>
               <span className="v">{crossingBefore} to {crossing.size}</span>
             </div>
-            <div className="note">
-              Whose decision becomes whose dependency changes with the lines.
-            </div>
+            <div className="note">{copy.bd_whose}</div>
           </section>
 
           <section>
