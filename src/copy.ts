@@ -193,24 +193,27 @@ export const copy = {
 
   b_opener_why_h: 'Why it matters',
   b_opener_why:
-    'Today those three live in three places that never meet: a spreadsheet, ' +
-    'a risk register, and nowhere. So the decision is made on a colour.',
+    'None of the three is new. Cost, risk and the cost of leaving can each ' +
+    'be estimated with methods that already exist.',
   b_opener_why_see:
-    'Nothing is broken. But a colour cannot say who pays for a shared ' +
-    'system, what stops when it does, or what leaving costs.',
+    'But they tend to live in different places, owned by different people, ' +
+    'in different units. So decisions often fall back on a colour.',
   b_opener_why_more:
-    'Part two shows each of the three places and where each one stops. Part ' +
-    'three prices all three on one shared system.',
+    'FinOps meters cloud cost, TBM allocates IT cost by rule, and risk ' +
+    'methods price losses that arrive together. The Ledger paper claims ' +
+    'none of these methods as its own. As a thesis, it tests reading all ' +
+    'three on one unit: a single use case on the shared map. ' +
+    'See the Ledger paper, 9.16.',
   why_cost: 'A spreadsheet',
   why_cost_sub: 'What it costs, by cost centre',
-  why_cost_so: 'The bill is split by a rule, not by use.',
+  why_cost_so: 'Shared costs are often split by a rule, not by use.',
   why_risk: 'A risk register',
   why_risk_sub: 'What it risks: high, medium or low',
-  why_risk_so: 'One outage reaches work nobody priced.',
-  why_exit: 'Nowhere',
+  why_risk_so: 'An outage can reach work that no one priced.',
+  why_exit: 'Rarely written down',
   why_exit_sub: 'What leaving would cost',
-  why_exit_so: 'The business depends on it before anyone decides.',
-  why_colour: 'So the decision is made on a colour.',
+  why_exit_so: 'Dependence can grow before anyone decides.',
+  why_colour: 'So decisions often fall back on a colour.',
 
   b_how_map_h: 'How: a map, not a drawing',
   b_how_map:
@@ -349,8 +352,8 @@ export const copy = {
     'dated, and ageing from the day it is saved.',
   b_docs_see:
     'Six kinds, kept in six places, none the same age. Open one: each is ' +
-    'right about something, and silent on the three questions a decision ' +
-    'needs.',
+    'right about something, and says little about the three questions a ' +
+    'decision needs.',
   b_docs_more:
     'The method calls the whole collection an architecture repository, and ' +
     'it is only as current as its most recent edit. The picture you just ' +

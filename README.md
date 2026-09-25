@@ -2287,3 +2287,20 @@ leaves, how might both see the same estate the same way, then introduces
 the architecture ledger with its three entries, one line on what it is,
 and the owner's sentence beneath. It is a picture of its own, with no card
 over it, like the welcome. Every later beat moves up by one.
+
+### 87. The why beat, humbled to what the canon claims
+
+The why beat said the three numbers live in "a spreadsheet, a risk
+register, and nowhere", and that "the decision is made on a colour". That
+overstated the case. Each of the three can be estimated today, and the
+canon says so plainly: 9.16 claims novelty for no method, and every
+formula belongs to someone else. The beat now says none of the three is
+new; that they tend to live in different places, owned by different
+people, in different units; and that decisions often fall back on a
+colour. More detail names FinOps, TBM and correlated-loss risk methods,
+and says what the paper tests, still as a thesis: reading all three on one
+unit, a single use case on the shared map. The tiles follow: shared costs
+are often split by a rule; an outage can reach work no one priced; the
+cost of leaving is rarely written down, and dependence can grow before
+anyone decides. The documents beat now says each "says little about" the
+three questions rather than being "silent on" them.
