@@ -13,7 +13,7 @@ import { SUBDOMAIN_COLOUR } from '../app/graph'
 import { describeLink, describePlatform, describeSubdomain, describeUseCase } from '../model/describe'
 import type { Estate } from '../model/types'
 import type { Index } from '../model/ledger'
-import { BEATS, LAST_BEAT, PART_COUNTS, PART_LABEL_KEY, WHO, type Beat, type Row } from './script'
+import { CHAPTERS, LAST_BEAT, PART_LABEL_KEY, WHO, beatLabel, type Beat, type Row } from './script'
 import { useStoryFigures } from './figures'
 import { Controls } from './Controls'
 import { stepWithin } from './useStory'
@@ -49,6 +49,7 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
   // peek, heading and buttons only, so the picture gets the screen; the
   // next beat opens it again.
   const [peek, setPeek] = useState(false)
+  const [navAt, setNavAt] = useState<number | null>(null)
   useEffect(() => { setPeek(false) }, [n])
 
   // ---- drag and resize ----
@@ -127,7 +128,7 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
       <div className="ledger-head">{copy.story_ledger_head}</div>
       {beat.rows.map((r) => {
         const spec = ROW_KEY[r]
-        const value = r === 'range' ? `GBP ${figures.lo} to GBP ${figures.hi}` : r === 'moved' ? String(figures.moved_basis) : `GBP ${figures[spec.value]}`
+        const value = r === 'range' ? `USD ${figures.lo} to USD ${figures.hi}` : r === 'moved' ? String(figures.moved_basis) : `USD ${figures[spec.value]}`
         return (
           <div key={r} className="ledger-row">
             <span className="l">{fill(String(copy[spec.label]), figures)}</span>
@@ -218,6 +219,8 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
             <h3>{copy.close_h_not}</h3>
             <p>{copy.close_not}</p>
             <p className="close-caveat">{copy.close_caveat}</p>
+            <h3>{copy.close_h_wip}</h3>
+            <p>{copy.wip} {copy.wip_more}</p>
             <h3>{copy.close_h_read}</h3>
             <p>
               {mediumReady && (
@@ -241,15 +244,30 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
             ? <button className="tour-skip" onClick={() => go(0)}>{copy.story_restart}</button>
             : <button className="tour-skip" onClick={leave}>{copy.story_skip}</button>}
         </div>
-        <div className="intro-beats" aria-hidden="true">
-          {PART_COUNTS.map((count, pi) => (
-            <span key={pi} className="beat-group">
-              {Array.from({ length: count }, (_, i) => {
-                const idx = BEATS.findIndex((b) => b.part === pi + 1) + i
-                return <span key={i} className={idx <= n ? 'on' : ''} />
-              })}
+        {/* The navigator: one bar per page, grouped by chapter. It grows
+            under the pointer, names the page under it, and takes you there. */}
+        <div className="intro-beats story-nav" onMouseLeave={() => setNavAt(null)} aria-label={copy.nav_menu}>
+          {CHAPTERS.map((ch) => (
+            <span key={ch.part} className="beat-group">
+              {ch.beats.map((idx, k) => (
+                <button
+                  key={idx} type="button" className={`${idx <= n ? 'on' : ''}${idx === n ? ' here' : ''}`}
+                  aria-label={`${c[`chapter_${ch.part}`]}, ${beatLabel(idx, c)}, ${fill(copy.nav_page, { k: k + 1, n: ch.beats.length })}`}
+                  onMouseEnter={() => setNavAt(idx)} onFocus={() => setNavAt(idx)} onBlur={() => setNavAt(null)}
+                  onClick={() => { setNavAt(null); setTourStep(idx) }}
+                />
+              ))}
             </span>
           ))}
+          {navAt !== null && (() => {
+            const ch = CHAPTERS.find((x) => x.beats.includes(navAt))!
+            const k = ch.beats.indexOf(navAt)
+            return (
+              <div className="nav-tip" style={{ left: `clamp(90px, ${(navAt / LAST_BEAT) * 100}%, calc(100% - 90px))` }}>
+                <div className="nav-tip-ch">{c[`chapter_${ch.part}`]}</div><div className="nav-tip-h">{beatLabel(navAt, c)}</div><div className="nav-tip-p">{fill(copy.nav_page, { k: k + 1, n: ch.beats.length })}</div>
+              </div>
+            )
+          })()}
         </div>
       </footer>
     </aside>

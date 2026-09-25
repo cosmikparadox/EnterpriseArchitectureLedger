@@ -202,3 +202,16 @@ export function beatAt(n: number | null): Beat | null { return n === null ? null
 export function partOf(n: number | null): Part { return beatAt(n)?.part ?? 0 }
 /** Beats per part, for the progress bars. */
 export const PART_COUNTS: number[] = [1, 2, 3].map((p) => BEATS.filter((b) => b.part === p).length)
+/** The four chapters, prologue first: where each starts and which beats it holds. */
+export const CHAPTERS: { part: Part; start: number; beats: number[] }[] = ([0, 1, 2, 3] as Part[]).map((part) => {
+  const beats = BEATS.map((b, i) => (b.part === part ? i : -1)).filter((i) => i >= 0)
+  return { part, start: beats[0] ?? 0, beats }
+})
+/** A beat's name for the navigator: its heading, or what its picture is. */
+export function beatLabel(i: number, c: Record<string, string>): string {
+  const b = BEATS[i]
+  if (!b) return ''
+  if (b.stem && c[`b_${b.stem}_h`]) return c[`b_${b.stem}_h`]!
+  if (b.stem === 'title') return c.nav_title ?? ''
+  return c[`nav_${b.overlay ?? 'part'}`] ?? ''
+}

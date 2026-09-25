@@ -53,7 +53,7 @@ export interface McResult {
 }
 
 /**
- * Loss exceedance curve. Spec section 4.3: X axis GBP loss on a log scale,
+ * Loss exceedance curve. Spec section 4.3: X axis USD loss on a log scale,
  * Y axis probability of exceeding. Points are taken directly off the sorted
  * sample so the curve is the empirical distribution and not a fit.
  */

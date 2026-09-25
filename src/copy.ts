@@ -168,6 +168,31 @@ export const copy = {
   story_end1_sub: 'Now, how decisions about it get made.',
   story_end2: 'That is how it is decided today.',
   story_end2_sub: 'Now, the ledger.',
+  // The chapter navigator and the menu.
+  // Work in progress: said plainly in the explorer and on the closing card.
+  wip_h: 'Work in progress',
+  wip: 'This is a thesis, not a finding. Every figure here comes from an invented company.',
+  wip_more:
+    'The next step is testing it on real telemetry, which takes an ' +
+    'organisation willing to try. Curious domain and technology leaders are ' +
+    'welcome to use it to stress-test the idea. A public repository for ' +
+    'plugging in your own telemetry and building this view is on the roadmap.',
+  wip_open: 'Read more',
+  wip_hide: 'Hide',
+  chapter_0: 'Prologue',
+  chapter_1: 'The architecture',
+  chapter_2: 'How it is decided today',
+  chapter_3: 'The ledger',
+  chapter_explorer: 'Explorer',
+  chapter_explorer_sub: 'skip the chapters',
+  nav_menu: 'Chapters',
+  nav_page: 'page {k} of {n}',
+  nav_welcome: 'Welcome',
+  nav_intro: 'Harbourline Insurance',
+  nav_title: 'The architecture ledger',
+  nav_reflect: 'A pause',
+  nav_part: 'Chapter opening',
+  nav_end: 'Chapter close',
   part_label_1: 'Part one: the architecture',
   part_label_2: 'Part two: how it is decided today',
   part_label_3: 'Part three: the ledger',
@@ -375,13 +400,14 @@ export const copy = {
     'What it costs is in a finance spreadsheet, by cost centre. What it risks ' +
     'is in a register, high, medium or low. What leaving would cost is ' +
     'rarely written down at all.',
-  // Frameworks are named here by the owner's instruction; products and
-  // vendors still are not.
-  b_silos_see:
-    'FinOps meters cloud cost, but stops at the cloud bill. TBM allocates ' +
-    'every IT cost, but by rule, not by use case. IFRS 17 prices insurance ' +
-    'liabilities by contract group, not by the systems that serve them. None ' +
-    'of the three has a key that reaches a single use case.',
+  // Methods and standards are named here by the owner's instruction;
+  // products and vendors still are not. Each is checked against the canon.
+  b_silos_see: 'Methods exist for all three. Tap a tile to see them, and where each one stops.',
+  b_silos_more:
+    'FinOps, TBM and IFRS 17 on cost. FAIR and correlated-failure models on ' +
+    'risk. Switching-cost economics and real options on leaving. The Ledger ' +
+    'paper builds on several of them and claims none as its own. See 9.3.1, ' +
+    '9.3.9 and 9.5.',
   b_graph_today_h: 'The graph already exists',
   b_graph_today:
     'The system half of that picture is not imaginary. Operations tools ' +
@@ -466,7 +492,7 @@ export const copy = {
     'rule.',
   b_rule_def: 'Rule share: the part of a pool a use case is given by a rule, not a meter.',
   b_rule_see:
-    '{first} is told GBP {before} a month for this platform alone. Part of ' +
+    '{first} is told USD {before} a month for this platform alone. Part of ' +
     'that is the rule.',
   b_rule_more:
     'The rule is an equal split, or a split in proportion to use. The riders ' +
@@ -477,8 +503,8 @@ export const copy = {
     'Watch three more use cases arrive on this node, then add or remove ' +
     'some yourself.',
   b_crowd_see:
-    '{first} did nothing different. Its bill on this platform moved from GBP ' +
-    '{before} to GBP {after}.',
+    '{first} did nothing different. Its bill on this platform moved from USD ' +
+    '{before} to USD {after}.',
   b_crowd_more:
     'A rule share changes only when the rule or the crowd changes. Leaving ' +
     'does not release it: the pool stays and is shared among fewer riders. ' +
@@ -491,7 +517,7 @@ export const copy = {
   b_together_h: 'A bad month, two ways',
   b_together:
     'Price a bad month for {sub} one use case at a time and add them up: ' +
-    'about GBP {sum}. Price the domain together: about GBP {joint}.',
+    'about USD {sum}. Price the domain together: about USD {joint}.',
   b_together_def: 'Bad month: one so bad that a worse one comes about once in a hundred months.',
   b_together_see:
     'Adding assumes every use case has its worst month in the same month. ' +
@@ -506,7 +532,7 @@ export const copy = {
     'strongly platform failures are linked. Move the slider from one end to ' +
     'the other.',
   b_rho_def: 'Dependence: how strongly platforms tend to fail in the same month.',
-  b_rho_see: 'Across the range the {sub} figure ran from about GBP {lo} to about GBP {hi}. The honest reading is the range.',
+  b_rho_see: 'Across the range the {sub} figure ran from about USD {lo} to about USD {hi}. The honest reading is the range.',
   b_rho_more:
     'The slider is a dependence parameter, rho, from 0 to 1. It runs under a ' +
     'Student t copula with four degrees of freedom. It is a declared input, ' +
@@ -524,7 +550,7 @@ export const copy = {
   b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
   b_exit_h: 'What leaving would cost',
   b_exit:
-    'At that month the work of leaving had already reached about GBP {exec}, ' +
+    'At that month the work of leaving had already reached about USD {exec}, ' +
     'unsplit. Migration, rewiring, running two systems for a while.',
   b_exit_def: 'Work of leaving: the engineering work to move every use case off a platform.',
   b_exit_see:
@@ -546,8 +572,8 @@ export const copy = {
   b_diversify_see:
     'The shared point did not disappear. On the left one connector carries ' +
     '{left_riders} use cases. On the right {n_int} connectors each carry ' +
-    'every use case. A bad month for {sub}: about GBP {left} on the left, ' +
-    'about GBP {right} on the right.',
+    'every use case. A bad month for {sub}: about USD {left} on the left, ' +
+    'about USD {right} on the right.',
   b_diversify_more:
     'Neither shape is right, and the ledger does not pick one. Concentration ' +
     'inside a domain boundary is cheap to reason about. One domain shares ' +
@@ -563,24 +589,24 @@ export const copy = {
     'belong in the decision record, not in a figure here.',
   // The three phases of the comparison, on the card under the control.
   shapes_cost:
-    'Cost. One pool of GBP {left_pool} on {left_top}, shared by {left_riders} ' +
-    'use cases. On the right the largest pool is GBP {right_pool} on ' +
+    'Cost. One pool of USD {left_pool} on {left_top}, shared by {left_riders} ' +
+    'use cases. On the right the largest pool is USD {right_pool} on ' +
     '{right_top}, shared by {right_riders}. Rule share of what riders are ' +
     'told: {left_c1} percent on the left, {right_c1} on the right.',
   shapes_risk:
     'Risk. The busiest node fails on each side. Left: {left_aff} use cases ' +
     'stop. Right: {right_aff}, because every use case crosses that connector. ' +
-    'A bad month for {sub}: about GBP {left} against about GBP {right}.',
+    'A bad month for {sub}: about USD {left} against about USD {right}.',
   shapes_exit:
-    'Leaving. The largest single exit is about GBP {left_exec} of work, off ' +
-    '{left_exit}, on the left. On the right, about GBP {right_exec} off ' +
+    'Leaving. The largest single exit is about USD {left_exec} of work, off ' +
+    '{left_exit}, on the left. On the right, about USD {right_exec} off ' +
     '{right_exit}, with more contracts behind it.',
   ctl_shapes_cost: 'Cost',
   ctl_shapes_risk: 'Risk',
   ctl_shapes_exit: 'Leaving',
-  shapes_note_cost: 'Pool GBP {pool}, {riders} riders, rule share {c1} percent',
+  shapes_note_cost: 'Pool USD {pool}, {riders} riders, rule share {c1} percent',
   shapes_note_risk: '{aff} use cases stop',
-  shapes_note_exit: 'Largest exit: {name}, about GBP {exec} of work',
+  shapes_note_exit: 'Largest exit: {name}, about USD {exec} of work',
   b_lines_drawn_h: 'Whose lines decided all of it',
   b_lines_drawn:
     'The domain figures so far, such as a bad month for {sub}, depend on ' +
@@ -615,7 +641,7 @@ export const copy = {
   b_basis:
     'Now change the allocation basis to by headcount, which reads the ' +
     'boundary.',
-  b_basis_see: 'Under {basis}, {moved_basis} figures moved, by up to GBP {moved_max} a month, with no change in usage.',
+  b_basis_see: 'Under {basis}, {moved_basis} figures moved, by up to USD {moved_max} a month, with no change in usage.',
   b_basis_more:
     'The figures that move when a line moves are the ones to trust least. ' +
     'The ledger permits two rules, an equal split and a split in proportion ' +
@@ -643,6 +669,7 @@ export const copy = {
   close_caveat:
     'It prices the choices a commitment removes. It does not yet price the ' +
     'ones a commitment creates. That work is parked on an open problem.',
+  close_h_wip: 'Work in progress',
   close_h_read: 'Read the argument',
   close_read: 'Archived at DOI {doi}.',
   close_read_link: 'Part 1 of the written argument.',
@@ -717,6 +744,7 @@ export const copy = {
     'Money by cost centre. A use case that rides four platforms appears in ' +
     'none of these rows, so its bill is nobody\'s.',
   docs_tap: 'Tap one to see what it looks like.',
+  docs_hint: 'Tap each document to open it',
   docpic_1_tag: 'v7, last edited 14 months ago',
   docpic_1_sub:
     'Nested boxes, one colour per box, scored one to five in a workshop. ' +
@@ -753,27 +781,25 @@ export const copy = {
   silo_risk: 'What it risks',
   silo_risk_sub: 'risk register, high / medium / low',
   silo_exit: 'What leaving would cost',
-  silo_exit_sub: 'rarely recorded',
-  silo_note: 'No line joins them. None names a use case.',
-  // Where the frameworks sit on the stage. Named by the owner's instruction.
-  frames_head: 'Where the frameworks sit',
-  frame_finops: 'FinOps',
-  frame_finops_for: 'Meters cloud cost per unit of work.',
-  frame_finops_stop: 'Stops at the cloud bill.',
-  frame_tbm: 'TBM',
-  frame_tbm_for: 'Allocates every IT cost to a tower and a service.',
-  frame_tbm_stop: 'By rule, not by use case.',
-  frame_ifrs: 'IFRS 17',
-  frame_ifrs_for: 'Prices insurance liabilities by contract group.',
-  frame_ifrs_stop: 'Not by the systems that serve them. No tile here.',
-  frames_none_risk: 'No framework here prices risk per use case.',
-  frames_none_exit: 'No framework here records the cost of leaving.',
+  silo_exit_sub: 'rarely recorded as a figure',
+  silo_tap: 'Tap each tile to see the methods behind it',
+  silo_open: 'Methods',
+  silo_methods_note: 'Each is sound on its own terms. None is keyed to a single use case.',
+  // Three methods under each tile: what each is for, and where it stops.
+  m_cost_1: 'FinOps', m_cost_1_for: 'Meters cloud cost per unit of work.', m_cost_1_stop: 'Stops at the cloud bill.',
+  m_cost_2: 'TBM', m_cost_2_for: 'Allocates every IT cost to a tower and a service.', m_cost_2_stop: 'By rule, not by use case.',
+  m_cost_3: 'IFRS 17', m_cost_3_for: 'For an insurer, allocates directly attributable costs, IT included, to groups of contracts.', m_cost_3_stop: 'By a systematic rule, not by use case.',
+  m_risk_1: 'FAIR', m_risk_1_for: 'Prices a loss as how often it happens times how much it costs.', m_risk_1_stop: 'Per scenario or asset, not per use case.',
+  m_risk_2: 'Correlated-failure models', m_risk_2_for: 'Simulate an outage spreading across a dependency graph.', m_risk_2_stop: 'Per asset, weighted by importance, not per use case.',
+  m_risk_3: 'The risk register', m_risk_3_for: 'Rates each risk high, medium or low.', m_risk_3_stop: 'A judgment, not a price.',
+  m_exit_1: 'Switching-cost economics', m_exit_1_for: 'Counts what moving costs: learning, contracts, compatibility.', m_exit_1_stop: 'Studied per market, rarely recorded per use case.',
+  m_exit_2: 'Real options', m_exit_2_for: 'Values the freedom to switch later.', m_exit_2_stop: 'Rarely applied to architecture, and its inputs are contested.',
+  m_exit_3: 'Engineering estimates', m_exit_3_for: 'Size the work of a migration when one is planned.', m_exit_3_stop: 'Made once, for one move, then filed.',
   silo_ask_head: 'What a decision needs, for one use case',
   silo_ask: 'What it costs. What it risks. What leaving would cost.',
   silo_fail:
-    'Three sources, three vocabularies, no shared key. None reaches the ' +
-    'question in a form a finance director can use, so the colour often ' +
-    'decides.',
+    'Each method is sound on its own terms. None is keyed to a single use ' +
+    'case, so decisions often fall back on a colour.',
 
   // The name on the canvas. Large and centred on the title card; on Next it
   // travels to the top of the canvas and stays there for the intro.
@@ -807,22 +833,22 @@ export const copy = {
   book_row_3: 'Entry three: what leaving would cost',
   book_note: 'Three entries per use case. They do not add.',
   // The book's rows, filled for whatever node is tapped.
-  book_v_cost_p: 'GBP {metered} metered, GBP {pool} by rule',
+  book_v_cost_p: 'USD {metered} metered, USD {pool} by rule',
   book_v_risk_p: '{riders} use cases can stop with it',
-  book_v_exit_p: 'about GBP {exec} of work to leave',
-  book_v_cost_u: 'GBP {reported} a month, all platforms',
+  book_v_exit_p: 'about USD {exec} of work to leave',
+  book_v_cost_u: 'USD {reported} a month, all platforms',
   book_v_risk_u: 'can stop if {worst} does',
   book_v_exit_u: 'stranded by {stranded}',
   badge_meter_head: '{name}, the meter',
   badge_meter_units: '{units} {driver} a month',
-  badge_meter_spend: 'GBP {spend} metered, counted and billed',
+  badge_meter_spend: 'USD {spend} metered, counted and billed',
   badge_pool_head: '{name}, the fixed pool',
-  badge_pool_line: 'GBP {pool} a month, used or not',
+  badge_pool_line: 'USD {pool} a month, used or not',
   badge_pool_sub: 'To be shared among the {riders} use cases riding it.',
   panel_allocated_label: 'Allocated by rule, not billed',
   basis_moved:
     'Changing the basis to {basis} moved {n} of {riders} figures on this ' +
-    'node, the largest by GBP {max} a month. Nothing was used differently.',
+    'node, the largest by USD {max} a month. Nothing was used differently.',
   basis_equal: 'This is the default, an equal split. Change the basis above to see which figures move.',
   basis_same: 'Under {basis} every figure on this node is what it was under an equal split.',
   reach_note:
@@ -842,18 +868,18 @@ export const copy = {
     'Not a figure, but a list of things the company does that stop if it does.',
   walk_p_billed_h: 'How it is billed',
   walk_p_billed:
-    'Two parts. A meter on {driver}, GBP {metered} a month, counted and ' +
-    'billed. And a fixed pool of GBP {pool} a month, licences and the team ' +
+    'Two parts. A meter on {driver}, USD {metered} a month, counted and ' +
+    'billed. And a fixed pool of USD {pool} a month, licences and the team ' +
     'who run it. That is shared out among the riders by a rule: allocated, ' +
     'not billed.',
   walk_p_stops_h: 'When it stops',
   walk_p_stops:
     'Everything riding it is exposed: {riders} use cases across {n_sub} ' +
-    'domains. About {lef} loss events a year, a typical one costing GBP ' +
+    'domains. About {lef} loss events a year, a typical one costing USD ' +
     '{loss}. The wireframe nodes are the ones an outage reached.',
   walk_p_leaving_h: 'What leaving would cost',
   walk_p_leaving:
-    'The work of leaving today is about GBP {exec}: migration, rewiring, ' +
+    'The work of leaving today is about USD {exec}: migration, rewiring, ' +
     'running two systems for a while. The ledger would split that into ' +
     'execution work and the value of the choices given up. It declines to ' +
     'split it without a dated decision record, and this estate has none.',
@@ -873,7 +899,7 @@ export const copy = {
     'cases, which is where every figure below comes from.',
   walk_u_told_h: 'What it is told it costs',
   walk_u_told:
-    'GBP {reported} a month across all its platforms, of which GBP {metered} ' +
+    'USD {reported} a month across all its platforms, of which USD {metered} ' +
     'was read off a meter. ' +
     'The rest is its share of each platform\'s pool under the current rule. ' +
     'It moves when the rule or the crowd moves, though it did nothing different.',
@@ -905,8 +931,8 @@ export const copy = {
     'It depends on {n_edges} platforms: {edge_list}. Take any one away and ' +
     'it cannot run.',
   desc_uc_cost:
-    'Across all its platforms it is told it costs GBP {reported} a month. ' +
-    'GBP {metered} of that is metered. The rest is its share of pools it ' +
+    'Across all its platforms it is told it costs USD {reported} a month. ' +
+    'USD {metered} of that is metered. The rest is its share of pools it ' +
     'does not control.',
   desc_uc_risk:
     'Its biggest exposure is {worst}. When that is down, this is down ' +
@@ -915,7 +941,7 @@ export const copy = {
   desc_ln_what:
     'This line joins {uc} to {platform}. {uc} cannot run without it.',
   desc_ln_flow:
-    'Every month about {units} {driver} cross it, and GBP {spend} goes with ' +
+    'Every month about {units} {driver} cross it, and USD {spend} goes with ' +
     'them. That is the metered part of what {uc} is told it costs here.',
   desc_ln_risk:
     'If {platform} goes down, {uc} goes down with it {pct} times in a hundred.',
@@ -949,7 +975,7 @@ export const copy = {
   desc_pf_rides: 'Among them: {rider_list}.',
   desc_pf_how: 'How it is paid for: {capacity}',
   desc_pf_cost:
-    'It costs GBP {pool} a month whether anyone uses it or not, plus GBP ' +
+    'It costs USD {pool} a month whether anyone uses it or not, plus USD ' +
     '{metered} a month metered by {driver}.',
   desc_pf_rule:
     '{c1} percent of what its riders are told it costs is set by a rule, not ' +
@@ -1084,7 +1110,7 @@ export const summary = {
 
   // View 1, a platform selected.
   s1n_head:
-    '{name} meters GBP {metered} a month and hands out another GBP {pool} ' +
+    '{name} meters USD {metered} a month and hands out another USD {pool} ' +
     'by rule.',
   s1n_number:
     '{riders} use cases split that pool. {c1} percent of what they are told ' +
@@ -1095,10 +1121,10 @@ export const summary = {
 
   // View 1, a use case selected.
   s1u_head:
-    '{name} rides {n_edges} shared nodes and is told it costs GBP {reported} ' +
+    '{name} rides {n_edges} shared nodes and is told it costs USD {reported} ' +
     'a month across all of them.',
   s1u_number:
-    'GBP {metered} of that is metered. The rest is its share of pools it ' +
+    'USD {metered} of that is metered. The rest is its share of pools it ' +
     'does not control.',
   s1u_mechanism:
     'Its number moves when neighbours arrive or leave, without it doing ' +
@@ -1106,13 +1132,13 @@ export const summary = {
 
   // View 2.
   s2_head:
-    'GBP {pool} a month on {name} is shared out by a rule, not a meter.',
+    'USD {pool} a month on {name} is shared out by a rule, not a meter.',
   s2_number_idle:
-    '{first} is told GBP {base} for this platform alone. Add riders and that ' +
+    '{first} is told USD {base} for this platform alone. Add riders and that ' +
     'figure moves, though it uses nothing more.',
   s2_number_moved:
-    'With {added} added, {first} is told GBP {now} for this platform instead ' +
-    'of GBP {base}. It used nothing more.',
+    'With {added} added, {first} is told USD {now} for this platform instead ' +
+    'of USD {base}. It used nothing more.',
   s2_mechanism:
     'A rule share changes only when the rule or the crowd changes. Leaving ' +
     'this node does not release it.',
@@ -1125,8 +1151,8 @@ export const summary = {
     'Fail {name} and {affected} use cases stop, stalling {volume} units of ' +
     'monthly work.',
   s3_number:
-    'A bad month for {sub} looks like about GBP {sum} priced one use case at ' +
-    'a time. Taken together it is about GBP {joint}.',
+    'A bad month for {sub} looks like about USD {sum} priced one use case at ' +
+    'a time. Taken together it is about USD {joint}.',
   s3_mechanism:
     'The first figure assumes every use case has its worst month at once. ' +
     'Priced together, the worst months do not all coincide.',
@@ -1136,7 +1162,7 @@ export const summary = {
     'By month {ratified}, when {name} was ratified, {n} use cases already ' +
     'depended on it.',
   s4_number:
-    'Leaving would already have taken about GBP {exec} of work. The ledger ' +
+    'Leaving would already have taken about USD {exec} of work. The ledger ' +
     'declines to split that into execution work and an option component ' +
     'without an evidenced counterfactual.',
   s4_head_before:
@@ -1153,7 +1179,7 @@ export const summary = {
     'Same {n_uc} use cases, wired two ways. The busiest node carries ' +
     '{left_top} on one side and {right_top} on the other.',
   s5_number:
-    'A bad month for {sub} runs about GBP {left} on one side and about GBP ' +
+    'A bad month for {sub} runs about USD {left} on one side and about USD ' +
     '{right} on the other. Both are at the dependence currently set.',
   s5_mechanism:
     'Splitting the estate did not remove the shared point. It multiplied it ' +
@@ -1169,7 +1195,7 @@ export const summary = {
     'Under {basis}, no reported figure moved, because that basis does not ' +
     'read the lines.',
   s6_number_moved:
-    'Under {basis}, {changed} reported figures moved by up to GBP {max} a ' +
+    'Under {basis}, {changed} reported figures moved by up to USD {max} a ' +
     'month, with no change in usage.',
   s6_mechanism:
     'A boundary decides who shares which pool. Redrawing it moves money on ' +

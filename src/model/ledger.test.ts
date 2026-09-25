@@ -138,7 +138,7 @@ describe('risk axis, non-additivity', () => {
       console.log('  ' + estate.subdomains[i]!.name.padEnd(24) +
         RHOS.map((r) => `${(byRho.get(r)![i]!.gap * 100).toFixed(1)}%`.padStart(10)).join(''))
     }
-    console.log('\n  at rho = 0.50, GBP')
+    console.log('\n  at rho = 0.50, USD')
     for (const g of byRho.get(0.5)!) {
       const name = estate.subdomains.find((s) => s.id === g.id)!.name
       console.log(`  ${name.padEnd(24)} sum of P99s ${Math.round(g.sumOfP99s).toLocaleString('en-GB').padStart(10)}   joint P99 ${Math.round(g.jointP99).toLocaleString('en-GB').padStart(10)}   gap ${(g.gap * 100).toFixed(1)}%`)

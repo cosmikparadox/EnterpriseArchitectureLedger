@@ -1,4 +1,4 @@
-// Loss exceedance curve. Spec section 4.3: X axis GBP loss on a log scale,
+// Loss exceedance curve. Spec section 4.3: X axis USD loss on a log scale,
 // Y axis probability of exceeding, with a movable budget line.
 //
 // Hand-rolled SVG, no chart library. The curve is the empirical distribution
@@ -75,7 +75,7 @@ export function ExceedanceCurve({ points, budget, onBudget, label }: ExceedanceC
         <text x={W - R - 22} y={H - 14} fontSize="8" fill="currentColor" fillOpacity="0.6">
           {fmtGbp(usable[usable.length - 1]!.loss)}
         </text>
-        <text x={L} y={H - 3} fontSize="8" fill="currentColor" fillOpacity="0.6">GBP loss, log scale</text>
+        <text x={L} y={H - 3} fontSize="8" fill="currentColor" fillOpacity="0.6">USD loss, log scale</text>
       </svg>
       <label style={{ display: 'block', fontSize: 11 }}>
         Budget line
@@ -87,7 +87,7 @@ export function ExceedanceCurve({ points, budget, onBudget, label }: ExceedanceC
         />
       </label>
       <figcaption style={{ fontSize: 11.5 }}>
-        Probability of exceeding GBP {budget.toLocaleString('en-GB')}:{' '}
+        Probability of exceeding USD {budget.toLocaleString('en-GB')}:{' '}
         <strong>{(atBudget * 100).toFixed(atBudget < 0.01 ? 2 : 1)} percent</strong>
       </figcaption>
     </figure>

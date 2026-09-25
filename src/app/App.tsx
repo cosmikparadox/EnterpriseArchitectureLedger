@@ -20,6 +20,8 @@ import { Footprint } from '../views/Footprint'
 import { TwoShapes } from '../views/TwoShapes'
 import { Boundaries } from '../views/Boundaries'
 import { StoryCard } from '../story/StoryCard'
+import { ChapterMenu } from '../story/ChapterMenu'
+import { WipNote } from '../components/WipNote'
 import { Overlay } from '../story/Overlay'
 import { useStory } from '../story/useStory'
 import { beatAt, LAST_BEAT } from '../story/script'
@@ -179,6 +181,7 @@ export function App() {
       )}
 
       <main className="main">
+        {tourStep === null && !onLanding && <WipNote />}
         {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
@@ -207,6 +210,7 @@ export function App() {
               </div>
             )}
             <Overlay beat={story.beat} n={story.n} estate={estate} ix={ix} onTap={() => setTourStep(Math.min(LAST_BEAT, (story.n ?? 0) + 1))} />
+            {story.n > 0 && <ChapterMenu n={story.n} />}
             {story.beat.card && <StoryCard beat={story.beat} n={story.n} done={story.done} estate={estate} bestOfBreed={bestOfBreed} ix={ix} />}
           </>
         )}

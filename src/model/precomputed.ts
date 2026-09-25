@@ -8,7 +8,7 @@
 //
 // The frames are stored packed rather than as McResult objects because the full
 // object is 196 KB of JSON per frame and ten frames would dominate the bundle.
-// Packing drops the repeated keys, rounds every GBP figure to the pound, and
+// Packing drops the repeated keys, rounds every USD figure to the dollar, and
 // replaces each exceedance probability with its index into the fixed grid the
 // curve is sampled on. That is 14.9 KB per frame instead of 196 KB.
 //

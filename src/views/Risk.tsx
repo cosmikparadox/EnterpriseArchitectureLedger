@@ -92,7 +92,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   const subName = estate.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
   const platformStats = mc.result?.platforms.find((p) => p.id === selected) ?? null
 
-  // The band the dependence slider spans, in GBP. Spec section 4.3.
+  // The band the dependence slider spans, in USD. Spec section 4.3.
   const [band, setBand] = useState<{ lo: number; hi: number } | null>(null)
   useEffect(() => {
     if (!sub) return
@@ -234,11 +234,11 @@ export function Risk({ estate, ix, dark }: RiskProps) {
               <>
                 <div className="row">
                   <span className="l"><Term k="sum_of_p99">Sum of per-use-case P99 losses</Term></span>
-                  <span className="v">about GBP {gbpAbout(sub.sumOfP99s)}</span>
+                  <span className="v">about USD {gbpAbout(sub.sumOfP99s)}</span>
                 </div>
                 <div className="row">
                   <span className="l"><Term k="joint_p99">P99 of the subdomain&apos;s joint loss</Term></span>
-                  <span className="v">about GBP {gbpAbout(sub.jointP99)}</span>
+                  <span className="v">about USD {gbpAbout(sub.jointP99)}</span>
                 </div>
                 <div className="callout">{copy.view3_nonadd}</div>
                 <div className="row" data-tour="gap">
@@ -248,7 +248,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
                 {band && band.hi > band.lo && (
                   <div className="row">
                     <span className="l">Band spanned by the slider</span>
-                    <span className="v">about GBP {gbpAbout(band.hi - band.lo)}</span>
+                    <span className="v">about USD {gbpAbout(band.hi - band.lo)}</span>
                   </div>
                 )}
                 <div className="note">{copy.no_total}</div>

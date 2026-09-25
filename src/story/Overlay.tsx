@@ -37,13 +37,19 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
   // Part two's documents open one at a time into a drawing of what each
   // looks like. Escape or a tap outside closes it.
   const [openDoc, setOpenDoc] = useState<number | null>(null)
-  useEffect(() => { setOpenDoc(null) }, [n])
+  // The silos' tiles open the same way, into the methods behind each one.
+  const [openSilo, setOpenSilo] = useState<'cost' | 'risk' | 'exit' | null>(null)
+  // What the reader has opened on this beat: until each has been, the
+  // unopened ones pulse and a hint asks for them.
+  const [seen, setSeen] = useState<Set<string>>(new Set())
+  useEffect(() => { setOpenDoc(null); setOpenSilo(null); setSeen(new Set()) }, [n])
+  const openIt = (key: string) => setSeen((prev) => (prev.has(key) ? prev : new Set(prev).add(key)))
   useEffect(() => {
-    if (openDoc === null) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpenDoc(null) } }
+    if (openDoc === null && openSilo === null) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpenDoc(null); setOpenSilo(null) } }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [openDoc])
+  }, [openDoc, openSilo])
 
   if (!beat.overlay) return null
   const [t, sub] = PART_TITLE[beat.part]
@@ -153,8 +159,9 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
       {beat.overlay === 'docs' && (
         <>
           <Fit><div className="ov-centre ov-docs">
+            {seen.size < 6 && <div className="ov-tap-hint">{copy.docs_hint}</div>}
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <button key={i} type="button" className={`ov-doc ov-in d${i}${openDoc === i ? ' ov-doc-open' : ''}`} onClick={() => setOpenDoc(i)} aria-expanded={openDoc === i}>
+              <button key={i} type="button" className={`ov-doc ov-in d${i}${openDoc === i ? ' ov-doc-open' : ''}${seen.has(`d${i}`) ? ' ov-seen' : ' ov-unseen'}`} onClick={() => { setOpenDoc(i); openIt(`d${i}`) }} aria-expanded={openDoc === i}>
                 <strong>{(copy as Record<string, string>)[`doc_${i}`]}</strong>
                 <span>{(copy as Record<string, string>)[`doc_${i}_age`]}</span>
                 <em className="ov-doc-open-hint">{copy.docs_open}</em>
@@ -191,51 +198,60 @@ export function Overlay({ beat, n, estate, ix, onTap }: { beat: Beat; n: number;
         </div></Fit>
       )}
       {beat.overlay === 'silos' && (
-        <Fit><div className="ov-centre">
-          {/* The question at the top, the three sources at the bottom, and a
-              curve from each that draws upward and stops short. Nothing
-              reaches the question: that is the picture. */}
-          <div className="ov-stage">
-            <div className="ov-ask ov-in"><div className="ov-ask-head">{copy.silo_ask_head}</div><strong>{copy.silo_ask}</strong></div>
-            <svg className="ov-curves" viewBox="0 0 760 420" aria-hidden="true">
-              {[127, 380, 633].map((x, i) => {
-                // Cubic from the source's top to just under the question; the
-                // dot marks where the curve gives up, at two thirds of the way.
-                const p0 = [x, 300], p1 = [x, 200], p2 = [380, 200], p3 = [380, 96]
-                const t = 0.66, u = 1 - t
-                const px = u * u * u * p0[0]! + 3 * u * u * t * p1[0]! + 3 * u * t * t * p2[0]! + t * t * t * p3[0]!
-                const py = u * u * u * p0[1]! + 3 * u * u * t * p1[1]! + 3 * u * t * t * p2[1]! + t * t * t * p3[1]!
-                return (
-                  <g key={x} className={`ov-curve c${i + 1}`}>
-                    <path d={`M${p0[0]},${p0[1]} C${p1[0]},${p1[1]} ${p2[0]},${p2[1]} ${p3[0]},${p3[1]}`} pathLength={100} />
-                    <circle cx={px} cy={py} r={4} />
-                  </g>
-                )
-              })}
-            </svg>
-            <div className="ov-silos-row">
-              <div className="ov-silo ov-in d1"><strong>{copy.silo_cost}</strong><span>{copy.silo_cost_sub}</span></div>
-              <div className="ov-silo ov-in d2"><strong>{copy.silo_risk}</strong><span>{copy.silo_risk_sub}</span></div>
-              <div className="ov-silo ov-in d3 ov-missing"><strong>{copy.silo_exit}</strong><span>{copy.silo_exit_sub}</span></div>
-            </div>
-          </div>
-          {/* Where the frameworks sit. Two under the cost tile, each with
-              what it is for and where it stops; one that sits under no
-              tile, because it prices the contracts and not the systems. */}
-          <div className="ov-frames ov-in d4" aria-label={copy.frames_head}>
-            <div className="ov-frames-head">{copy.frames_head}</div>
-            <div className="ov-frames-row">
-              <div className="ov-frame-col">
-                <div className="ov-frame"><strong>{copy.frame_finops}</strong><span>{copy.frame_finops_for}</span><em>{copy.frame_finops_stop}</em></div>
-                <div className="ov-frame"><strong>{copy.frame_tbm}</strong><span>{copy.frame_tbm_for}</span><em>{copy.frame_tbm_stop}</em></div>
+        <>
+          <Fit><div className="ov-centre">
+            {seen.size < 3 && <div className="ov-tap-hint">{copy.silo_tap}</div>}
+            {/* The question at the top, the three places at the foot, and a
+                curve from each that draws upward and stops short of it.
+                Each tile opens into the methods behind it. */}
+            <div className="ov-stage">
+              <div className="ov-ask ov-in"><div className="ov-ask-head">{copy.silo_ask_head}</div><strong>{copy.silo_ask}</strong></div>
+              <svg className="ov-curves" viewBox="0 0 760 90" aria-hidden="true">
+                {[127, 380, 633].map((x, i) => {
+                  const p0 = [x, 88], p1 = [x, 46], p2 = [380, 46], p3 = [380, 4]
+                  const t = 0.66, u = 1 - t
+                  const px = u * u * u * p0[0]! + 3 * u * u * t * p1[0]! + 3 * u * t * t * p2[0]! + t * t * t * p3[0]!
+                  const py = u * u * u * p0[1]! + 3 * u * u * t * p1[1]! + 3 * u * t * t * p2[1]! + t * t * t * p3[1]!
+                  return (
+                    <g key={x} className={`ov-curve c${i + 1}`}>
+                      <path d={`M${p0[0]},${p0[1]} C${p1[0]},${p1[1]} ${p2[0]},${p2[1]} ${p3[0]},${p3[1]}`} pathLength={100} />
+                      <circle cx={px} cy={py} r={4} />
+                    </g>
+                  )
+                })}
+              </svg>
+              <div className="ov-silos-row">
+                {(['cost', 'risk', 'exit'] as const).map((k, i) => (
+                  <button key={k} type="button" className={`ov-silo ov-silo-btn ov-in d${i + 1}${k === 'exit' ? ' ov-missing' : ''}${seen.has(k) ? ' ov-seen' : ' ov-unseen'}`} onClick={() => { setOpenSilo(k); openIt(k) }} aria-expanded={openSilo === k}>
+                    <strong>{copy[`silo_${k}`]}</strong><span>{copy[`silo_${k}_sub`]}</span>
+                    <em className="ov-doc-open-hint">{copy.silo_open}</em>
+                  </button>
+                ))}
               </div>
-              <div className="ov-frame-col ov-frame-none"><span>{copy.frames_none_risk}</span></div>
-              <div className="ov-frame-col ov-frame-none"><span>{copy.frames_none_exit}</span></div>
             </div>
-            <div className="ov-frame ov-frame-loose"><strong>{copy.frame_ifrs}</strong><span>{copy.frame_ifrs_for}</span><em>{copy.frame_ifrs_stop}</em></div>
-          </div>
-          <div className="ov-note ov-in d6">{copy.silo_fail}</div>
-        </div></Fit>
+            <div className="ov-note ov-in d6">{copy.silo_fail}</div>
+          </div></Fit>
+          {openSilo !== null && (
+            <div className="ov-lightbox" onClick={() => setOpenSilo(null)} role="dialog" aria-label={copy[`silo_${openSilo}`]}>
+              <div className="ov-sheet ov-methods" onClick={(e) => e.stopPropagation()}>
+                <button type="button" className="popover-close ov-sheet-close" aria-label="Close" onClick={() => setOpenSilo(null)}>×</button>
+                <div className="ov-methods-head"><strong>{copy[`silo_${openSilo}`]}</strong><span>{copy[`silo_${openSilo}_sub`]}</span></div>
+                <div className="ov-methods-row">
+                  {[1, 2, 3].map((m) => {
+                    const c = copy as Record<string, string>
+                    const key = `m_${openSilo}_${m}`
+                    return (
+                      <div key={m} className={`ov-frame ov-method d${m}`}>
+                        <strong>{c[key]}</strong><span>{c[`${key}_for`]}</span><em>{c[`${key}_stop`]}</em>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="ov-methods-note">{copy.silo_methods_note}</div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

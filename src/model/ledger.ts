@@ -247,9 +247,9 @@ export function workOfLeaving(p: Platform, nRiders: number, monthsSinceAdopted: 
 }
 
 /**
- * A simulated or estimated GBP figure, rounded to two significant figures.
+ * A simulated or estimated USD figure, rounded to two significant figures.
  * A P99 from 10,000 runs moves by more than its last four digits between
- * seeds, and an exit estimate is an estimate; printing either to the pound
+ * seeds, and an exit estimate is an estimate; printing either to the dollar
  * claims a precision the figure does not have. Metered spend, pools and
  * rule shares are exact arithmetic and are not rounded.
  */
@@ -538,9 +538,9 @@ export interface SimOptions {
 }
 
 export interface RunResult {
-  /** Direct loss per platform, GBP. Canon 9.3.1 LM_primary only; see README. */
+  /** Direct loss per platform, USD. Canon 9.3.1 LM_primary only; see README. */
   platformLoss: Map<string, number>
-  /** Business interruption loss per use case, GBP. */
+  /** Business interruption loss per use case, USD. */
   useCaseLoss: Map<string, number>
   /** Within-run sum per subdomain. Canon 9.8.3 makes this the LEGITIMATE sum. */
   subdomainLoss: Map<string, number>

@@ -339,7 +339,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
             <Row l="" a="concentrated" b="best of breed" />
             {concentrated.subdomains.map((s) => {
               const a = p99(mcLeft, s.id), b = p99(mcRight, s.id)
-              return <Row key={s.id} l={s.name} a={a === null ? '...' : `GBP ${gbpAbout(a)}`} b={b === null ? '...' : `GBP ${gbpAbout(b)}`} />
+              return <Row key={s.id} l={s.name} a={a === null ? '...' : `USD ${gbpAbout(a)}`} b={b === null ? '...' : `USD ${gbpAbout(b)}`} />
             })}
             <div className="note">{copy.no_total}</div>
             {mcLeft.offline && mcLeft.snappedRho !== null && (
@@ -368,11 +368,11 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           <section>
             <h3>Work of leaving, largest single</h3>
             <Row l="node" a={sl.exits[0]!.p.name} b={sr.exits[0]!.p.name} />
-            <Row l="work of leaving" a={`about GBP ${gbpAbout(sl.exits[0]!.exec)}`} b={`about GBP ${gbpAbout(sr.exits[0]!.exec)}`} />
+            <Row l="work of leaving" a={`about USD ${gbpAbout(sl.exits[0]!.exec)}`} b={`about USD ${gbpAbout(sr.exits[0]!.exec)}`} />
             <div className="refusal">
               <span className="fig">
-                Sum across integration commitments: about GBP {gbpAbout(sl.integrationExecSum)} left,{' '}
-                about GBP {gbpAbout(sr.integrationExecSum)} right
+                Sum across integration commitments: about USD {gbpAbout(sl.integrationExecSum)} left,{' '}
+                about USD {gbpAbout(sr.integrationExecSum)} right
               </span>
               {copy.option_upper_bound}
             </div>

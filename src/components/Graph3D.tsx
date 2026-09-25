@@ -256,7 +256,7 @@ export function Graph3D(props: Graph3DProps) {
       })
       .linkLabel((l: object) => {
         const k = l as GLink
-        return `${Math.round(k.units).toLocaleString('en-GB')} units, GBP ${Math.round(k.spend).toLocaleString('en-GB')}/month`
+        return `${Math.round(k.units).toLocaleString('en-GB')} units, USD ${Math.round(k.spend).toLocaleString('en-GB')}/month`
       })
       .onLinkClick((l: object) => propsRef.current.onSelectLink(l as GLink))
       .onBackgroundClick((ev: MouseEvent) => clickBehind(ev))

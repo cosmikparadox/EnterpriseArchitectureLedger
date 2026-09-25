@@ -36,7 +36,7 @@ const RISKS: [string, string, number, number][] = [
 ]
 const rating = (l: number, i: number) => (l * i >= 15 ? 'H' : l * i >= 8 ? 'M' : 'L')
 
-const CURRENCIES = ['GBP', 'USD', 'EUR', 'CHF']
+const CURRENCIES = ['USD', 'GBP', 'EUR', 'CHF']
 const BUDGET: [string, string, number, number][] = [
   ['CC-4100', 'Infrastructure', 1240, 1312],
   ['CC-4120', 'Application support', 860, 902],

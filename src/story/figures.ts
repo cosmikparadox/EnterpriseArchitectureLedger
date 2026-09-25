@@ -103,7 +103,7 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     exec: gbpAbout(exec),
     cursor,
     attached_now: attachedNow,
-    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `about GBP ${gbpAbout(execNow)}` : PLACEHOLDER_NOT_YET,
+    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `about USD ${gbpAbout(execNow)}` : PLACEHOLDER_NOT_YET,
     left: sub ? gbpAbout(sub.jointP99) : PLACEHOLDER,
     right: subRight ? gbpAbout(subRight.jointP99) : PLACEHOLDER,
     left_top: shapes.l.topName, right_top: shapes.r.topName,

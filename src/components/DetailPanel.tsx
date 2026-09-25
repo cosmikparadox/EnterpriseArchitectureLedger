@@ -20,7 +20,7 @@ const FORMATS = new Map<number, Intl.NumberFormat>()
 export const gbp = (n: number, dp = 0) => {
   let f = FORMATS.get(dp)
   if (!f) { f = new Intl.NumberFormat('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp }); FORMATS.set(dp, f) }
-  return 'GBP ' + f.format(n)
+  return 'USD ' + f.format(n)
 }
 
 const pct = (n: number, dp = 0) => (n * 100).toFixed(dp) + ' percent'

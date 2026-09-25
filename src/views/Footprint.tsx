@@ -78,8 +78,8 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
   // Two charts on one time axis, not two lines on one y axis.
   //
   // Spec section 4.4 asks for both lines on the same chart. They are not
-  // commensurable: metered spend and the rule share are GBP PER MONTH, while
-  // the execution component is a ONE-OFF GBP figure roughly a hundred times
+  // commensurable: metered spend and the rule share are USD PER MONTH, while
+  // the execution component is a ONE-OFF USD figure roughly a hundred times
   // larger. Plotting them together flattens the monthly pair onto the axis and
   // implies the two can be compared. They share the time axis and the
   // ratification marker instead, and each carries its unit. Recorded as a
@@ -195,11 +195,11 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 <h3>Over 60 months</h3>
                 <FootprintChart
                   months={MONTHS} series={monthly} cursor={cursor} ratified={ratified}
-                  onCursor={setCursor} height={150} showScrubber={false} unit="GBP per month"
+                  onCursor={setCursor} height={150} showScrubber={false} unit="USD per month"
                 />
                 <FootprintChart
                   months={MONTHS} series={oneOff} cursor={cursor} ratified={ratified}
-                  onCursor={(m) => { setCursor(m); setFocusing(true) }} height={150} unit="GBP, one off" scrubberTour="month"
+                  onCursor={(m) => { setCursor(m); setFocusing(true) }} height={150} unit="USD, one off" scrubberTour="month"
                 />
                 <div className="note">
                   Two charts, one time axis. The monthly bill and the cost of leaving are not
@@ -213,7 +213,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                 <div className="row"><span className="l">Subdomains</span><span className="v">{now.subdomains}</span></div>
                 <div className="row"><span className="l">Metered spend</span><span className="v">{gbp(now.metered)} /month</span></div>
                 <div className="row"><span className="l">Rule share per rider</span><span className="v">{gbp(now.perRider)} /month</span></div>
-                <div className="row"><span className="l">Work of leaving</span><span className="v">about GBP {gbpAbout(now.execution)}</span></div>
+                <div className="row"><span className="l">Work of leaving</span><span className="v">about USD {gbpAbout(now.execution)}</span></div>
                 <div className="note">
                   {now.adopted ? copy.footprint_bill_visible : copy.footprint_not_yet}
                 </div>
@@ -225,7 +225,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                   <div className="callout">
                     By the time this platform reached the board, {atRatified.n} use cases in{' '}
                     {atRatified.subdomains} subdomains already depended on it and the work
-                    of leaving had reached about GBP {gbpAbout(atRatified.execution)}. The
+                    of leaving had reached about USD {gbpAbout(atRatified.execution)}. The
                     board ratified a footprint.
                   </div>
                   <div className="note">
@@ -243,7 +243,7 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
                     inside the same element as the refusal, so a screenshot
                     cannot separate the figure from the refusal. */}
                 <div className="refusal">
-                  <span className="fig">Option component at month {cursor}: about GBP {gbpAbout(now.option)}</span>
+                  <span className="fig">Option component at month {cursor}: about USD {gbpAbout(now.option)}</span>
                   {copy.option_refusal}
                   <div className="note" style={{ marginTop: 6 }}>{copy.option_tip}</div>
                   {engine && (

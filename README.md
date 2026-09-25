@@ -1784,6 +1784,20 @@ halves on a landscape phone showed a dot; the inset is zero when it is not
 applied. And under a sheet the wordmark was centred as if the card sat to
 its right, so it ran off the left edge on a tablet.
 
+## Roadmap
+
+- **Test it on real telemetry.** Everything here runs on an invented estate.
+  The thesis stands or falls on a real one, which needs an organisation
+  willing to try.
+- **A public repository to plug in your own telemetry.** A GitHub repository
+  that takes trace data from an estate, builds this graph view, and lets a
+  team declare its own use cases and domains. Not started.
+- **A decision layer on top of the ledger.** A calibrated decision model
+  scoring options against the priorities each side states, with a person
+  deciding. Discussed, not built; the ledger itself stays an instrument.
+- **Pricing the choices a commitment creates.** The open problem the
+  closing card names.
+
 ## Open items, no action
 
 - Displayed P99 figures vary by up to 13 percent across seeds at 10,000
@@ -2322,3 +2336,39 @@ pulsing rings on three nodes of that kind. The memory of that first tap
 is kept in the browser, so a returning reader is not shown it again; if
 storage is blocked, the hint simply returns. The drag hint now also shows
 on the platforms beat.
+
+### 89. Chapters, a navigator, methods behind each tile, dollars, and work in progress
+
+A chapter menu sits in the top left corner during the story. Closed it is
+three lines; opened, the lines fold into a sphere, a platform, and a line
+grows down from it with a coloured stop for each chapter: Prologue, The
+architecture, How it is decided today, The ledger, and Explorer for a
+reader who wants to skip the chapters. The bars under the card's buttons
+are now a navigator. They cover all four chapters, grow under the pointer,
+name the page beneath it with its chapter and its place in it, and take
+the reader there on a click.
+
+The silos beat now says what the canon says. It had claimed no framework
+prices risk per use case or records the cost of leaving; the canon itself
+builds its risk axis on FAIR (9.3.1), names correlated-failure models over
+a dependency graph as prior art (9.3.9), and draws on switching-cost
+economics and real options for leaving (9.5). The stage is now the
+question, short curves that stop short of it, and three tiles close
+beneath. Each tile opens, over a dimmed canvas, into three methods with
+what each is for and where it stops: FinOps, TBM and IFRS 17 under cost,
+since IFRS 17 does allocate directly attributable costs, IT included, to
+groups of contracts; FAIR, correlated-failure models and the risk register
+under risk; switching-cost economics, real options and engineering
+estimates under leaving. Until each tile has been opened, the unopened
+ones breathe and a hint asks for them. The documents beat does the same
+for its six documents.
+
+Displayed figures are now in US dollars. The model's numbers are
+unchanged; only the label moved, since every figure is invented. The
+worked figures in this README remain in pounds, as generated.
+
+The explorer carries a small work-in-progress note: a thesis, not a
+finding, on an invented company; the next step is real telemetry, which
+needs an organisation willing to try; a public repository to plug in
+telemetry is on the roadmap. It folds to a tab that stays. The closing
+card carries the same note.

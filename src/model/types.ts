@@ -23,7 +23,7 @@ export interface Platform {
   driver_unit_cost_gbp: number
   capacity_note: string
   failure_lef: number // loss event frequency per year, base rate
-  failure_loss_lognormal: { mu: number; sigma: number } // direct loss in GBP
+  failure_loss_lognormal: { mu: number; sigma: number } // direct loss in USD
   adopted_month: number // month it landed on the estate, for view 4
 
   // Switching cost inputs. Canon 9.5.2 decomposition, 9.5.5 valuation engine.
