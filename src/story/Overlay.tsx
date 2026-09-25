@@ -11,10 +11,13 @@ import type { Estate } from '../model/types'
 import { c1, type Index } from '../model/ledger'
 import type { Beat, Part } from './script'
 import { DocPicture } from './DocPictures'
-import { SUBDOMAIN_COLOUR, useCaseView } from '../app/graph'
+import { SUBDOMAIN_COLOUR } from '../app/graph'
+import { resultFor } from '../app/useMonteCarlo'
+import { gbpAbout } from '../model/ledger'
 import { describeUseCase } from '../model/describe'
 import { useLedger } from '../app/store'
 import { OPENER_UC } from './script'
+import { tourUseCaseFigures } from './figures'
 import { firstTime } from '../app/hints'
 
 const PART_TITLE: Record<Part, [string, string]> = {
@@ -378,13 +381,15 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
 
   const lit = estate.use_cases.find((u) => u.id === OPENER_UC)
   const litP = new Set(lit?.edges.map((e) => e.platform_id) ?? [])
-  const uv = lit ? useCaseView(ix, lit.id, rule) : null
+  const rho = useLedger((s) => s.rho)
   const d = lit ? describeUseCase(ix, lit.id, rule) : null
+  // The same figures part three quotes for this use case, from the same run.
+  const uv = lit ? tourUseCaseFigures(ix, rule, resultFor(estate, rho)) : null
   const byName = (name: string | undefined) => estate.platforms.find((p) => p.name === name)?.id
   const pathPlatforms = [...litP].sort((a, b) => layout.riders(b) - layout.riders(a))
   const poolAt = pathPlatforms[0]
   const riskAt = byName(d ? String(d.worst) : undefined) ?? pathPlatforms[pathPlatforms.length - 1]
-  const exitAt = byName(uv?.strandedBy[0]) ?? riskAt
+  const exitAt = uv?.leaving?.platformId ?? riskAt
   const focusAt = phase === 0 ? poolAt : phase === 1 ? riskAt : phase === 2 ? exitAt : undefined
   const ridersOfFocus = new Set((focusAt ? ix.ridersOf.get(focusAt) ?? [] : []).map((r) => r.uc.id))
   const NOTES = ['flat_cost_note', 'flat_risk_note', 'flat_exit_note'] as const
@@ -456,8 +461,8 @@ function FlatMap({ estate, ix, entries }: { estate: Estate; ix: Index; entries: 
         <div className="ov-flat-entries">
           {[
             [copy.flat_entry_1, fill(copy.book_v_cost_u, { reported: String(d.reported) })],
-            [copy.flat_entry_2, fill(copy.book_v_risk_u, { worst: String(d.worst) })],
-            [copy.flat_entry_3, fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none })],
+            [copy.flat_entry_2, uv.p99 === null ? '' : fill(copy.book_v_risk_u, { p99: gbpAbout(uv.p99) })],
+            [copy.flat_entry_3, uv.leaving ? fill(copy.book_v_exit_u, { platform: uv.leaving.name, exec: gbpAbout(uv.leaving.exec), riders: uv.leaving.riders }) : ''],
           ].map(([h, v], i) => (
             <button type="button" key={i} className={`ov-flat-entry${i < shown ? ' shown' : ''}${i === phase ? ' active' : ''}${i === shown ? ' ov-unseen' : ''}`} onClick={() => setFlatPhase(i as 0 | 1 | 2)}>
               <span className="book-n">{i + 1}</span><span><strong>{h}</strong><em>{v}</em></span>

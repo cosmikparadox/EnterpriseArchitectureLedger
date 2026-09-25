@@ -13,24 +13,12 @@ import { SUBDOMAIN_COLOUR } from '../app/graph'
 import { describeLink, describePlatform, describeSubdomain, describeUseCase } from '../model/describe'
 import type { Estate } from '../model/types'
 import type { Index } from '../model/ledger'
-import { CHAPTERS, LAST_BEAT, PART_LABEL_KEY, WHO, beatLabel, type Beat, type Row } from './script'
+import { CHAPTERS, LAST_BEAT, PART_LABEL_KEY, ROW_ENTRY, WHO, beatLabel, type Beat } from './script'
 import { useStoryFigures } from './figures'
 import { Controls } from './Controls'
 import { stepWithin } from './useStory'
 
 type CopyMap = Record<string, string>
-const ROW_KEY: Record<Row, { label: keyof typeof copy; value: string }> = {
-  metered: { label: 'row_metered', value: 'spend' },
-  pool: { label: 'row_pool', value: 'pool' },
-  rule_first: { label: 'row_rule_first', value: 'rule_first' },
-  sum: { label: 'row_sum', value: 'sum' },
-  joint: { label: 'row_joint', value: 'joint' },
-  range: { label: 'row_range', value: 'range' },
-  exec: { label: 'row_exec', value: 'exec' },
-  left: { label: 'row_left', value: 'left' },
-  right: { label: 'row_right', value: 'right' },
-  moved: { label: 'row_moved', value: 'moved_basis' },
-}
 
 export interface StoryCardProps { beat: Beat; n: number; done: boolean; estate: Estate; bestOfBreed: Estate; ix: Index }
 
@@ -44,6 +32,9 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
   const c = copy as unknown as CopyMap
   const [more, setMore] = useState(false)
   useEffect(() => { setMore(false) }, [n])
+  // The close shows the three entries; the worked lines wait behind a toggle.
+  const [workings, setWorkings] = useState(false)
+  useEffect(() => { setWorkings(false) }, [n])
   // On a phone the card is a sheet. Tapping its handle pulls it down to a
   // peek, heading and buttons only, so the picture gets the screen; the
   // next beat opens it again.
@@ -122,19 +113,30 @@ export function StoryCard({ beat, n, done, estate, bestOfBreed, ix }: StoryCardP
     return null
   }, [focus, beat.part, ix, rule])
 
+  // The tour use case's page. An entry's line shows from the beat its entry
+  // starts; the worked lines under it show only while the beat is about it.
+  // The close shows the three entries, and the workings on request.
+  const shownRows = (beat.rows ?? []).filter((r) => {
+    const isEntry = r === 'e1' || r === 'e2' || r === 'e3'
+    return isEntry || !beat.closing || workings
+  })
   const rows: ReactNode = beat.rows && beat.rows.length > 0 ? (
     <div className="ledger" data-tour="ledger">
-      <div className="ledger-head">{copy.story_ledger_head}</div>
-      {beat.rows.map((r) => {
-        const spec = ROW_KEY[r]
-        const value = r === 'range' ? `USD ${figures.lo} to USD ${figures.hi}` : r === 'moved' ? String(figures.moved_basis) : `USD ${figures[spec.value]}`
+      <div className="ledger-head">{fill(copy.story_ledger_head, figures)}</div>
+      {shownRows.map((r) => {
+        const entry = r === 'e1' || r === 'e2' || r === 'e3'
         return (
-          <div key={r} className="ledger-row">
-            <span className="l">{fill(String(copy[spec.label]), figures)}</span>
-            <span className="v">{value}</span>
+          <div key={r} className={`ledger-row${entry ? ' entry' : ROW_ENTRY[r] === 0 ? ' boundary' : ' worked'}`}>
+            <span className="l">{fill(c[`row_${r}`] ?? '', figures)}</span>
+            <span className="v">{fill(c[`row_${r}_v`] ?? '', figures)}</span>
           </div>
         )
       })}
+      {beat.closing && (
+        <button type="button" className="tour-more ledger-workings" aria-expanded={workings} onClick={() => setWorkings((v) => !v)}>
+          {workings ? copy.story_workings_hide : copy.story_workings_show}
+        </button>
+      )}
     </div>
   ) : null
 

@@ -774,9 +774,10 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const check = (where: string, label: string, value: string) => { for (const m of value.match(/\d[\d,]*/g) ?? []) { counted++; if (sig(m) > 2) bad.push(`${where} ${label}: ${m}`) } }
   await page.goto('http://localhost:5190/#/tour/40', { waitUntil: 'load' })
   await page.waitForSelector('.ledger-row'); await page.waitForTimeout(2500)
+  await page.locator('.ledger-workings').click()
   for (const row of await page.locator('.ledger-row').all()) {
     const l = (await row.locator('.l').innerText()).trim(); const v = (await row.locator('.v').innerText()).trim()
-    if (/^Bad month|^Dependence range|^Leaving/.test(l)) check('story ledger', l, v)
+    if (/^Entry two|^Entry three|domain|^Data cloud/.test(l)) check('story ledger', l, v)
   }
   await page.goto('http://localhost:5190/#/risk', { waitUntil: 'load' }); await page.waitForTimeout(2500)
   for (const row of await page.locator('.panel .row').all()) {

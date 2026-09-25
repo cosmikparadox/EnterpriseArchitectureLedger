@@ -16,13 +16,25 @@ export const TOUR_SUBDOMAIN = 'claims'
 /** The use case part three moves across a boundary, and where from. */
 export const MOVER_ID = 'uc_broker_quote'
 export const MOVER_TO = 'service'
-/** The use case the opening lights, to show what the ledger reads. */
-export const OPENER_UC = 'uc_claim_settle'
+/** The one use case whose three entries the story fills, start to finish. */
+export const TOUR_UC = 'uc_claim_triage'
+/** The use case the opening lights: the same one, so the prologue and part three agree. */
+export const OPENER_UC = TOUR_UC
 
 export type Part = 0 | 1 | 2 | 3
 export type Overlay = 'welcome' | 'intro' | 'title' | 'why' | 'map' | 'flat' | 'pain' | 'reflect' | 'part' | 'end' | 'docs' | 'matrix' | 'silos' | null
 export type Control = 'fanin' | 'fail' | 'rho' | 'month' | 'basis' | 'move' | 'shapes' | null
-export type Row = 'metered' | 'pool' | 'rule_first' | 'sum' | 'joint' | 'range' | 'exec' | 'left' | 'right' | 'moved'
+/**
+ * The lines on the card's page for the tour use case. e1, e2 and e3 are the
+ * three entries; the rest are worked lines under one of them, and moved is
+ * the boundary line.
+ */
+export type Row = 'e1' | 'e1_node' | 'e1_rule' | 'e1_next' | 'e2' | 'e2_sum' | 'e2_range' | 'e2_shapes' | 'e3' | 'e3_board' | 'moved'
+/** Which entry a line belongs to; 0 for the boundary line. */
+export const ROW_ENTRY: Record<Row, 0 | 1 | 2 | 3> = {
+  e1: 1, e1_node: 1, e1_rule: 1, e1_next: 1, e2: 2, e2_sum: 2, e2_range: 2, e2_shapes: 2, e3: 3, e3_board: 3, moved: 0,
+}
+const ALL_ROWS: Row[] = ['e1', 'e1_node', 'e1_rule', 'e1_next', 'e2', 'e2_sum', 'e2_range', 'e2_shapes', 'e3', 'e3_board', 'moved']
 
 export interface EnterContext { store: LedgerState; timeline: Timeline; reduced: boolean }
 
@@ -104,18 +116,19 @@ export const BEATS: Beat[] = [
   { part: 3, stem: '', view: 1, overlay: 'part', scene: { ...SCENE_NONE, blank: true }, card: false },
   { part: 3, stem: 'why', view: 1, overlay: null, scene: { ...PICTURE }, card: true,
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFlyToId('*') } },
-  // The book opens in the corner and three wires run to it from the node:
-  // the entries are read off the graph, not collected somewhere else.
+  // The book opens in the corner on the tour use case's page, and three
+  // wires run to it from its dot: the entries are read off the graph, not
+  // collected somewhere else.
   { part: 3, stem: 'mine', view: 1, overlay: null, scene: { ...PICTURE, book: true }, card: true,
-    enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 2400 },
-  { part: 3, stem: 'meter', view: 1, overlay: null, scene: { ...PICTURE, badge: 'meter' }, card: true, rows: ['metered'],
+    enter: ({ store }) => { store.setSelectedId(TOUR_UC) }, settleMs: 2400 },
+  { part: 3, stem: 'meter', view: 1, overlay: null, scene: { ...PICTURE, badge: 'meter' }, card: true, rows: ['e1', 'e1_node'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 2400,
     waitFor: (now) => now.selectedId !== null && now.selectedId !== IDENTITY_ID },
-  { part: 3, stem: 'pool', view: 1, overlay: null, scene: { ...PICTURE, badge: 'pool' }, card: true, rows: ['metered', 'pool'],
+  { part: 3, stem: 'pool', view: 1, overlay: null, scene: { ...PICTURE, badge: 'pool' }, card: true, rows: ['e1', 'e1_node'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID) }, settleMs: 1200 },
-  { part: 3, stem: 'rule', view: 2, overlay: null, scene: { ...PICTURE, focus: 'riders' }, card: true, rows: ['metered', 'pool', 'rule_first'],
+  { part: 3, stem: 'rule', view: 2, overlay: null, scene: { ...PICTURE, focus: 'riders' }, card: true, rows: ['e1', 'e1_node', 'e1_rule'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFanInAdded(0) } },
-  { part: 3, stem: 'crowd', view: 2, overlay: null, scene: { ...PICTURE, focus: 'riders' }, card: true, control: 'fanin', rows: ['metered', 'pool', 'rule_first'],
+  { part: 3, stem: 'crowd', view: 2, overlay: null, scene: { ...PICTURE, focus: 'riders' }, card: true, control: 'fanin', rows: ['e1', 'e1_node', 'e1_rule', 'e1_next'],
     // One rider at a time, each with room to arrive, rather than three in a
     // burst that re-laid the whole picture.
     enter: ({ store, timeline, reduced }) => {
@@ -124,7 +137,7 @@ export const BEATS: Beat[] = [
     },
     settleMs: 500 + 1600 + 900,
     waitFor: (now, at) => now.fanInAdded !== at.fanInAdded },
-  { part: 3, stem: 'fail', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'fail', rows: ['metered', 'pool', 'rule_first'],
+  { part: 3, stem: 'fail', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'fail', rows: ['e1', 'e2'],
     enter: ({ store, timeline, reduced }) => {
       store.setSelectedId(IDENTITY_ID); store.setSubdomain(TOUR_SUBDOMAIN)
       timeline.after(900, () => store.failIt(IDENTITY_ID), reduced)
@@ -133,9 +146,9 @@ export const BEATS: Beat[] = [
     waitFor: (now, at) => now.failRequest !== null && now.failRequest.nonce !== at.failRequest?.nonce },
   // The two figures are read on the failure from the beat before. Reached
   // by Back, that failure has been cleared, so it is raised again here.
-  { part: 3, stem: 'together', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint'],
+  { part: 3, stem: 'together', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, rows: ['e1', 'e2', 'e2_sum'],
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setSubdomain(TOUR_SUBDOMAIN); if (!store.failRequest) store.failIt(IDENTITY_ID) } },
-  { part: 3, stem: 'rho', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'rho', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
+  { part: 3, stem: 'rho', view: 3, overlay: null, scene: { ...PICTURE, focus: 'blast' }, card: true, control: 'rho', rows: ['e1', 'e2', 'e2_sum', 'e2_range'],
     enter: ({ store, timeline, reduced }) => {
       store.setSelectedId(IDENTITY_ID); store.setSubdomain(TOUR_SUBDOMAIN); store.setRho(0)
       if (!store.failRequest) store.failIt(IDENTITY_ID)
@@ -146,7 +159,7 @@ export const BEATS: Beat[] = [
     },
     settleMs: 300 + 3200 + 900,
     waitFor: (now, at) => now.rho !== at.rho },
-  { part: 3, stem: 'grow', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range'],
+  { part: 3, stem: 'grow', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, rows: ['e1', 'e2', 'e3'],
     enter: ({ store, timeline, reduced }) => {
       store.setSelectedId(DATA_PLATFORM_ID)
       const marker = store.ratified
@@ -154,7 +167,7 @@ export const BEATS: Beat[] = [
       timeline.after(400, () => { timeline.add(animateValue(0, marker, 3200, (v) => store.setCursor(Math.round(v)), reduced)) }, reduced)
     },
     settleMs: 400 + 3200 },
-  { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, control: 'month', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec'],
+  { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, control: 'month', rows: ['e1', 'e2', 'e3', 'e3_board'],
     enter: ({ store }) => { store.setSelectedId(DATA_PLATFORM_ID); store.setCursor(store.ratified) },
     waitFor: (now, at) => now.cursor !== at.cursor },
   // Two shapes, one at a time: the toggle on the canvas switches between
@@ -162,23 +175,23 @@ export const BEATS: Beat[] = [
   // steps through cost, risk and leaving with Next or a tap on a row.
   { part: 3, stem: 'diversify', view: 5, overlay: null, scene: { ...PICTURE }, card: true, control: 'shapes',
     enter: ({ store }) => { store.setSubdomain(TOUR_SUBDOMAIN); store.setShapesPhase(0); store.setShapesSide('left') } },
-  { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE, focus: 'lines' }, card: true, rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right'],
+  { part: 3, stem: 'lines_drawn', view: 6, overlay: null, scene: { ...PICTURE, focus: 'lines' }, card: true, rows: ['e1', 'e2', 'e3'],
     enter: ({ store }) => { store.setMoves({}); store.setRule('equal'); store.setSelectedId(null) } },
   // The move, in order: the picture ghosts to the use case and its two
   // domains and the camera comes in on it; the ring and the note say what
   // is about to happen; then the line moves and the domain takes it in.
-  { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move', callout: { kind: 'node', id: MOVER_ID, text: '' } }, card: true, control: 'move', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
+  { part: 3, stem: 'move', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move', callout: { kind: 'node', id: MOVER_ID, text: '' } }, card: true, control: 'move', rows: ['e1', 'e2', 'e3', 'moved'],
     enter: ({ store, timeline, reduced }) => {
       store.setRule('equal'); store.setSelectedId(MOVER_ID); store.setFlyToId(`${MOVER_ID}!near`)
       timeline.after(3400, () => store.setMoves({ [MOVER_ID]: MOVER_TO }), reduced)
     },
     settleMs: 3400 + 4500,
     waitFor: (now, at) => JSON.stringify(now.moves) !== JSON.stringify(at.moves) },
-  { part: 3, stem: 'basis', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'basis', rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'],
+  { part: 3, stem: 'basis', view: 6, overlay: null, scene: { ...PICTURE, focus: 'move' }, card: true, control: 'basis', rows: ['e1', 'e2', 'e3', 'moved'],
     enter: ({ store }) => { if (Object.keys(store.moves).length === 0) store.setMoves({ [MOVER_ID]: MOVER_TO }) },
     waitFor: (now, at) => now.rule !== at.rule },
   { part: 3, stem: 'close', view: 6, overlay: null, scene: { ...PICTURE }, card: true, closing: true,
-    rows: ['metered', 'pool', 'rule_first', 'sum', 'joint', 'range', 'exec', 'left', 'right', 'moved'] },
+    rows: ALL_ROWS },
 ]
 
 export const LAST_BEAT = BEATS.length - 1

@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { copy, fill } from '../copy'
 import { describePlatform, describeUseCase } from '../model/describe'
-import { platformView, useCaseView } from '../app/graph'
+import { leavingFor, platformView } from '../app/graph'
 import { useLedger } from '../app/store'
 import { gbpAbout, type Index } from '../model/ledger'
 import type { AllocationRule } from '../model/types'
@@ -63,8 +63,8 @@ export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: Wa
     const d = describeUseCase(ix, id, rule)
     const u = ix.useCaseById.get(id)!
     const names = u.edges.map((e) => ix.platformById.get(e.platform_id)?.name ?? e.platform_id)
-    const uv = useCaseView(ix, id, rule)
-    return { ...d, n_pf: u.edges.length, pf_list: names.join(', '), stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none }
+    const leaving = leavingFor(ix, id)
+    return { ...d, n_pf: u.edges.length, pf_list: names.join(', '), platform: leaving?.name ?? '', exec: leaving ? gbpAbout(leaving.exec) : '', riders: leaving?.riders ?? 0 }
   }, [ix, id, rule, isPlatform, ratified])
 
   // What the canvas shows for each step.

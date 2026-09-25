@@ -1,21 +1,49 @@
 // Live figures for the story card. Every number a beat quotes comes from
 // here, read from the running tool, never typed into the copy deck.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useLedger } from '../app/store'
-import { useMonteCarlo } from '../app/useMonteCarlo'
+import { storedFrame, storedFrames, useMonteCarlo } from '../app/useMonteCarlo'
+import { leavingFor } from '../app/graph'
 import { buildIndex, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
-import { gbpAbout, workOfLeaving } from '../model/ledger'
+import { gbpAbout, workOfLeaving, type Index } from '../model/ledger'
 import { describeEstate } from '../model/describe'
 import { shapeEntry, SHAPES_SEED } from '../model/shapes'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
-import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN } from './script'
+import type { McResult } from '../model/montecarlo'
+import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN, TOUR_UC } from './script'
 
-const PLACEHOLDER = '...'
 /** The month handle sits before the platform was adopted: nothing to leave yet. */
 const PLACEHOLDER_NOT_YET = 'nothing yet, it had not been adopted'
 export const gbp = (n: number) => Math.round(n).toLocaleString('en-GB')
 const BASIS: Record<AllocationRule, string> = { equal: 'equal split', driver: 'driver-proportional', by_volume: 'by volume', by_head: 'by headcount' }
+
+/**
+ * The tour use case's own figures, read from one index and one Monte Carlo
+ * result. The prologue's map, the book and the card all quote these, so the
+ * same use case shows the same figures wherever it appears.
+ */
+export function tourUseCaseFigures(ix: Index, rule: AllocationRule, mc: McResult | null) {
+  const u = ix.useCaseById.get(TOUR_UC)!
+  let reported = 0, byRule = 0
+  for (const e of u.edges) { reported += reportedCost(ix, e.platform_id, u.id, rule); byRule += ruleShare(ix, e.platform_id, u.id, rule) }
+  const p99 = mc?.useCases.find((x) => x.id === u.id)?.p99 ?? null
+  const leaving = leavingFor(ix, u.id, DATA_PLATFORM_ID)
+  return { name: u.name, platforms: u.edges.length, reported, byRule, metered: reported - byRule, p99, leaving }
+}
+
+/**
+ * A domain's added-up bad month at the five fixed points of dependence,
+ * read from the stored runs. The same on every device and every call.
+ */
+export function addedUpRange(estate: Estate, subdomain: string): { lo: number; hi: number; points: { rho: number; sum: number; joint: number }[] } | null {
+  const points = storedFrames(estate).map((f) => {
+    const s = f.subdomains.find((x) => x.id === subdomain)
+    return s ? { rho: f.rho, sum: s.sumOfP99s, joint: s.jointP99 } : null
+  }).filter((x): x is { rho: number; sum: number; joint: number } => x !== null)
+  if (points.length === 0) return null
+  return { lo: Math.min(...points.map((x) => x.sum)), hi: Math.max(...points.map((x) => x.sum)), points }
+}
 
 export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Record<string, string | number> {
   const rule = useLedger((s) => s.rule)
@@ -28,26 +56,28 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const ix = useMemo(() => buildIndex(concentrated), [concentrated])
   const mcLeft = useMonteCarlo(concentrated, rho, 10_000)
   const mcRight = useMonteCarlo(bestOfBreed, rho, 10_000)
+  // The live run if it has landed, the stored frame at the nearest fixed
+  // point if not. Never a placeholder.
+  const left = mcLeft.result ?? storedFrame(concentrated, rho)
+  const right = mcRight.result ?? storedFrame(bestOfBreed, rho)
   const subName = concentrated.subdomains.find((s) => s.id === subdomain)?.name ?? subdomain
-  const sub = mcLeft.result?.subdomains.find((s) => s.id === subdomain) ?? null
-  const subRight = mcRight.result?.subdomains.find((s) => s.id === subdomain) ?? null
+  const sub = left?.subdomains.find((s) => s.id === subdomain) ?? null
+  const subRight = right?.subdomains.find((s) => s.id === subdomain) ?? null
+  const range = useMemo(() => addedUpRange(concentrated, subdomain), [concentrated, subdomain])
 
-  const [band, setBand] = useState<{ lo: number; hi: number } | null>(null)
-  useEffect(() => { setBand(null) }, [subdomain])
-  const jointHere = sub?.jointP99 ?? null
-  useEffect(() => {
-    if (jointHere === null) return
-    setBand((b) => (b ? { lo: Math.min(b.lo, jointHere), hi: Math.max(b.hi, jointHere) } : { lo: jointHere, hi: jointHere }))
-  }, [jointHere])
-
+  // Entry one is read on the identity service, for the tour use case.
   const top = ix.platformById.get(IDENTITY_ID)!
   const spend = meteredSpend(ix, IDENTITY_ID)
   const riders = ix.ridersOf.get(IDENTITY_ID) ?? []
-  const first = riders[0]?.uc ?? null
-  const before = first ? reportedCost(ix, IDENTITY_ID, first.id, rule) : 0
-  const ruleFirst = first ? ruleShare(ix, IDENTITY_ID, first.id, rule) : 0
+  const before = reportedCost(ix, IDENTITY_ID, TOUR_UC, rule)
+  const ruleFirst = ruleShare(ix, IDENTITY_ID, TOUR_UC, rule)
   const withAdded = useMemo(() => withSyntheticRidersIndex(concentrated, IDENTITY_ID, fanInAdded), [concentrated, fanInAdded])
-  const after = first ? reportedCost(withAdded, IDENTITY_ID, first.id, rule) : 0
+  const after = reportedCost(withAdded, IDENTITY_ID, TOUR_UC, rule)
+  // The cost of the next use case on this node: what one more rider adds
+  // to the metered spend. The pool does not move.
+  const withNext = useMemo(() => withSyntheticRidersIndex(concentrated, IDENTITY_ID, fanInAdded + 1), [concentrated, fanInAdded])
+  const nextUc = meteredSpend(withNext, IDENTITY_ID) - meteredSpend(withAdded, IDENTITY_ID)
+  const uc = tourUseCaseFigures(ix, rule, left)
 
   const dataPlatform = ix.platformById.get(DATA_PLATFORM_ID) ?? null
   const attached = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= ratified).length : 0
@@ -86,26 +116,36 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   return {
     ...est,
     name: top.name,
+    node: top.name,
     riders: riders.length,
     spend: gbp(spend),
     pool: gbp(top.fixed_pool_gbp_month),
-    first: first?.name ?? '',
+    uc: uc.name,
+    uc_n_pf: uc.platforms,
+    uc_reported: gbp(uc.reported),
+    uc_metered: gbp(uc.metered),
+    uc_rule: gbp(uc.byRule),
+    uc_p99: uc.p99 === null ? '' : gbpAbout(uc.p99),
+    platform: uc.leaving?.name ?? '',
+    exec_today: uc.leaving ? gbpAbout(uc.leaving.exec) : '',
+    dc_riders: uc.leaving?.riders ?? 0,
+    mc: gbp(nextUc),
     before: gbp(before),
     after: gbp(after),
     rule_first: gbp(ruleFirst),
     sub: subName,
-    sum: sub ? gbpAbout(sub.sumOfP99s) : PLACEHOLDER,
-    joint: sub ? gbpAbout(sub.jointP99) : PLACEHOLDER,
-    lo: band ? gbpAbout(band.lo) : PLACEHOLDER,
-    hi: band ? gbpAbout(band.hi) : PLACEHOLDER,
+    sum: sub ? gbpAbout(sub.sumOfP99s) : '',
+    joint: sub ? gbpAbout(sub.jointP99) : '',
+    sum_lo: range ? gbpAbout(range.lo) : '',
+    sum_hi: range ? gbpAbout(range.hi) : '',
     ratified,
     attached,
     exec: gbpAbout(exec),
     cursor,
     attached_now: attachedNow,
     exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? `about USD ${gbpAbout(execNow)}` : PLACEHOLDER_NOT_YET,
-    left: sub ? gbpAbout(sub.jointP99) : PLACEHOLDER,
-    right: subRight ? gbpAbout(subRight.jointP99) : PLACEHOLDER,
+    left: sub ? gbpAbout(sub.jointP99) : '',
+    right: subRight ? gbpAbout(subRight.jointP99) : '',
     left_top: shapes.l.topName, right_top: shapes.r.topName,
     left_pool: gbp(shapes.l.pool), right_pool: gbp(shapes.r.pool),
     left_riders: shapes.l.riders, right_riders: shapes.r.riders,

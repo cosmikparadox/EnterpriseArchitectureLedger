@@ -311,7 +311,38 @@ export interface UseCaseView {
   perUnitLow: number
   perUnitHigh: number
   perUnitCurrent: number
-  strandedBy: string[]
+  /** The path platform named on the leaving entry. */
+  leaving: Leaving | null
+}
+
+/** A platform on a use case's path, with its work of leaving and its riders. */
+export interface Leaving {
+  platformId: string
+  name: string
+  exec: number
+  riders: number
+}
+
+/** The month the leaving entry is read at: today, in this estate. */
+export const LEAVING_AS_AT = 60
+
+/**
+ * The platform a use case's leaving entry names. The story passes the data
+ * platform it tells the leaving part on, when the use case rides it; anywhere
+ * else it is the path platform with the largest work of leaving today. The
+ * work belongs to the platform and is shared by its riders; it is never
+ * divided among them.
+ */
+export function leavingFor(ix: Index, ucId: string, prefer?: string): Leaving | null {
+  const u = ix.useCaseById.get(ucId)
+  if (!u || u.edges.length === 0) return null
+  const at = (id: string): Leaving => {
+    const p = ix.platformById.get(id)!
+    const n = ix.ridersOf.get(id)?.length ?? 0
+    return { platformId: id, name: p.name, exec: workOfLeaving(p, n, Math.max(0, LEAVING_AS_AT - p.adopted_month)), riders: n }
+  }
+  if (prefer && u.edges.some((e) => e.platform_id === prefer)) return at(prefer)
+  return u.edges.map((e) => at(e.platform_id)).sort((a, b) => b.exec - a.exec || a.platformId.localeCompare(b.platformId))[0]!
 }
 
 const ALL_RULES: AllocationRule[] = ['equal', 'driver', 'by_volume', 'by_head']
@@ -345,8 +376,7 @@ export function useCaseView(ix: Index, id: string, rule: AllocationRule): UseCas
     perUnitLow: Math.min(...across),
     perUnitHigh: Math.max(...across),
     perUnitCurrent: perUnit(rule),
-    // Which platform exits would strand this use case. Spec section 5.2.
-    strandedBy: u.edges.filter((e) => e.conditional_failure_prob >= 0.9).map((e) => ix.platformById.get(e.platform_id)!.name),
+    leaving: leavingFor(ix, u.id),
   }
 }
 

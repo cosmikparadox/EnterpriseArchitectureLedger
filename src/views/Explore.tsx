@@ -16,7 +16,9 @@ import { useLayoutReport } from '../app/layoutReport'
 import { firstTime } from '../app/hints'
 import { MeterBadge, PoolBadge } from '../story/Badges'
 import { Walkthrough, revealFor, type Focus } from './Walkthrough'
-import { platformView, useCaseView } from '../app/graph'
+import { leavingFor, platformView } from '../app/graph'
+import { resultFor } from '../app/useMonteCarlo'
+import { DATA_PLATFORM_ID } from '../story/script'
 import { describeUseCase } from '../model/describe'
 
 const GESTURE_KEY = 'ledger.gesture.seen'
@@ -139,8 +141,10 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     return ids.length ? { ids, text: pokeText.current.get(kind) ? (copy as Record<string, string>)[`poke_${kind}`] ?? '' : '' } : null
   }, [inStory, scene.pokes, poked, ix])
   // The book's rows are read off the graph for whatever node is tapped: a
-  // platform's meter, pool, riders and execution work; a use case's bill,
-  // what it stops with, and what strands it.
+  // platform's meter, pool, riders and work of leaving; a use case's bill,
+  // its own bad month, and the platform it would be hardest to leave, whose
+  // work is shared by its riders and never divided among them.
+  const bookRho = useLedger((s) => s.rho)
   const book = useMemo(() => {
     if (!inStory || !scene.book || !selectedId) return null
     const gbpN = (n: number) => Math.round(n).toLocaleString('en-GB')
@@ -157,12 +161,13 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
       ]
     } else if (ix.useCaseById.has(selectedId)) {
       const d = describeUseCase(ix, selectedId, rule)
-      const uv = useCaseView(ix, selectedId, rule)
+      const p99 = resultFor(estate, bookRho)?.useCases.find((u) => u.id === selectedId)?.p99
+      const leaving = leavingFor(ix, selectedId, DATA_PLATFORM_ID)
       name = String(d.name)
       values = [
         fill(copy.book_v_cost_u, { reported: String(d.reported) }),
-        fill(copy.book_v_risk_u, { worst: String(d.worst) }),
-        fill(copy.book_v_exit_u, { stranded: uv.strandedBy.length > 0 ? uv.strandedBy.join(' or ') : copy.walk_u_none }),
+        p99 === undefined ? '' : fill(copy.book_v_risk_u, { p99: gbpAbout(p99) }),
+        leaving ? fill(copy.book_v_exit_u, { platform: leaving.name, exec: gbpAbout(leaving.exec), riders: leaving.riders }) : '',
       ]
     } else return null
     return {
@@ -171,7 +176,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
       rows: [copy.book_row_1, copy.book_row_2, copy.book_row_3].map((label, i) => ({ label, value: values![i] })),
       note: copy.book_note,
     }
-  }, [inStory, scene.book, selectedId, ix, rule])
+  }, [inStory, scene.book, selectedId, ix, rule, estate, bookRho])
   // The panel is always present outside the story, opening on the estate
   // summary when nothing is picked, so the canvas yields to it whenever it
   // is not collapsed. The story never shows it.

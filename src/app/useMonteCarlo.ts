@@ -151,3 +151,27 @@ export function useMonteCarlo(estate: Estate, rho: number, runs: number, nu = 4,
 
   return state
 }
+
+/**
+ * A figure some screen quotes without running its own worker: the live run
+ * at this dependence if one has landed, otherwise the stored frame at the
+ * nearest fixed point. Never a placeholder. At the five fixed points the
+ * two are the same run, so the story and the prologue agree.
+ */
+export function resultFor(estate: Estate, rho: number, runs = 10_000, nu = 4, seed = 20260905): McResult | null {
+  const hit = cache.get(cacheKey(estate, rho, runs, nu, seed))
+  if (hit) return hit
+  return storedFrame(estate, rho)
+}
+
+/** The stored frame at the fixed point nearest this dependence. */
+export function storedFrame(estate: Estate, rho: number): McResult | null {
+  const set = precomputedIndex()[estate.provenance.graph_version]
+  return set ? unpackFrame(set, nearestFrame(set, rho)) : null
+}
+
+/** The stored frames at all five fixed points, in order of dependence. */
+export function storedFrames(estate: Estate): McResult[] {
+  const set = precomputedIndex()[estate.provenance.graph_version]
+  return set ? set.frames.map((f) => unpackFrame(set, f)).sort((a, b) => a.rho - b.rho) : []
+}

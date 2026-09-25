@@ -374,7 +374,7 @@ export const copy = {
   b_busiest:
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +
     'use cases. If it stops, most of the business can stop with it.',
-  b_busiest_see: 'That is the lit node. Remember it; part three is about it.',
+  b_busiest_see: 'That is the lit node. Part three comes back to it.',
 
   // Part two: how it is measured today.
   b_docs_h: 'Where the architecture lives',
@@ -462,20 +462,20 @@ export const copy = {
     'because they do not add.',
   b_mine_h: 'The blueprint fills the book',
   b_mine:
-    'The graph supplies the start of all three entries for {top}. Who rides ' +
-    'it, how much work they send it, what stops when it stops.',
+    'The graph supplies the start of all three entries for {uc}. Which ' +
+    'systems it rides, how much work it sends them, what stops it.',
   b_mine_see:
     'The rest is declared or estimated, and each entry says which. We fill ' +
-    'all three on {top}, starting with the one that can be measured.',
+    'its three entries in turn, starting with what can be measured.',
   b_mine_more:
     'This is the whole idea in one picture. The graph on the left is mined ' +
-    'from the systems. The book on the right has one page per use case. The ' +
-    'ledger is the wiring between them, and every entry can be traced back ' +
-    'along a wire to the graph.',
+    'from the systems. The book on the right has one page per use case; this ' +
+    'one is {uc}. The ledger is the wiring between them, and every entry can ' +
+    'be traced back along a wire to the graph.',
   b_meter_h: 'Entry one: cost. The meter',
   b_meter:
-    'Start with what can be measured. {top} has a meter that ticks with use: ' +
-    'every login is counted and billed.',
+    'Start with what can be measured. {uc} rides {node}, a shared service ' +
+    'with a meter: every login is counted and billed.',
   b_meter_def: 'Metered: counted as it is used, and billed by the count.',
   b_meter_see:
     'Watch the reading beside the node: the meter is the only part of the ' +
@@ -494,13 +494,12 @@ export const copy = {
     'be shared out.',
   b_rule_h: 'The rule',
   b_rule:
-    'The pool is shared among the {riders} use cases riding the platform by ' +
-    'a rule somebody chose. The rings show it: solid is metered, hatched is ' +
-    'rule.',
+    'The pool is shared among the {riders} use cases riding it, by a rule ' +
+    'somebody chose. The rings show it: solid is metered, hatched is rule.',
   b_rule_def: 'Rule share: the part of a pool a use case is given by a rule, not a meter.',
   b_rule_see:
-    '{first} is told USD {before} a month for this platform alone. Part of ' +
-    'that is the rule.',
+    '{uc} is told USD {before} a month for this node alone. USD {rule_first} ' +
+    'of that is the rule.',
   b_rule_more:
     'The rule is an equal split, or a split in proportion to use. The riders ' +
     'are the use cases riding the platform; their share of the pool is their ' +
@@ -510,7 +509,7 @@ export const copy = {
     'Watch three more use cases arrive on this node, then add or remove ' +
     'some yourself.',
   b_crowd_see:
-    '{first} did nothing different. Its bill on this platform moved from USD ' +
+    '{uc} did nothing different. Its bill on this node moved from USD ' +
     '{before} to USD {after}.',
   b_crowd_more:
     'A rule share changes only when the rule or the crowd changes. Leaving ' +
@@ -552,8 +551,8 @@ export const copy = {
     'because joint failures can lengthen recovery.',
   b_grow_h: 'Entry three: leaving. How the footprint grew',
   b_grow:
-    'Now the cloud data platform. Watch the months run: use cases attach to ' +
-    'it one at a time, each for a good reason.',
+    'Now the cloud data platform, which {uc} also rides. Watch the months ' +
+    'run: use cases attach one at a time, each for a good reason.',
   b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
   b_exit_h: 'What leaving would cost',
   b_exit:
@@ -641,9 +640,7 @@ export const copy = {
     'to use. Neither reads the boundary. The headcount basis is shown as the ' +
     'counter-example. See the Ledger paper, 9.2.8.',
   b_close_h: 'The ledger, closed',
-  b_close:
-    'Three entries on one node, kept apart. No total, because they do not ' +
-    'add.',
+  b_close: 'Three entries for {uc}, kept apart. No total, because they do not add.',
   b_close_see: 'Explore on your own from here. The rail on the left has the six screens.',
   // The closing card's blocks. Text salvaged unchanged from the old tour's
   // last chapter where it existed; the caveat is the owner's sentence, word
@@ -670,17 +667,33 @@ export const copy = {
     'Built with heavy AI assistance, under a written specification and an ' +
     'acceptance suite.',
 
-  story_ledger_head: 'The ledger so far',
-  row_metered: 'Metered, a month',
-  row_pool: 'Fixed pool, a month',
-  row_rule_first: 'Rule share, {first}',
-  row_sum: 'Bad month, {sub}, one at a time',
-  row_joint: 'Bad month, {sub}, together',
-  row_range: 'Dependence range',
-  row_exec: 'Leaving, work of leaving at month {ratified}',
-  row_left: 'Bad month, {sub}, concentrated',
-  row_right: 'Bad month, {sub}, best of breed',
-  row_moved: 'Figures moved under {basis}',
+  // The card's page for the tour use case. Each line names its object:
+  // an entry, a node, the use case or a domain.
+  story_ledger_head: 'The ledger, {uc}',
+  row_e1: 'Entry one, cost',
+  row_e1_v: 'USD {uc_reported} a month across {uc_n_pf} platforms, USD {uc_rule} of it by rule',
+  row_e1_node: '{node}',
+  row_e1_node_v: 'metered USD {spend} a month, fixed pool USD {pool} a month',
+  row_e1_rule: '{uc}',
+  row_e1_rule_v: 'rule share on {node} USD {rule_first}',
+  row_e1_next: '{node}',
+  row_e1_next_v: 'the next use case adds USD {mc} a month',
+  row_e2: 'Entry two, risk',
+  row_e2_v: 'its own bad month, about USD {uc_p99}',
+  row_e2_sum: '{sub} domain',
+  row_e2_sum_v: 'added up USD {sum}, together USD {joint}',
+  row_e2_range: '{sub} domain: added up across the slider',
+  row_e2_range_v: 'USD {sum_lo} to USD {sum_hi}',
+  row_e2_shapes: '{sub} domain',
+  row_e2_shapes_v: 'together: concentrated USD {left}, best of breed USD {right}',
+  row_e3: 'Entry three, leaving',
+  row_e3_v: 'rides {platform}: about USD {exec_today} to leave today, shared by {dc_riders}',
+  row_e3_board: '{platform}',
+  row_e3_board_v: 'about USD {exec} when the board first saw it, month {ratified}',
+  row_moved: 'Boundary',
+  row_moved_v: 'figures moved under {basis}: {moved_basis}',
+  story_workings_show: 'Show workings',
+  story_workings_hide: 'Hide workings',
 
   ctl_fanin: 'Add use cases riding this node',
   ctl_fail: 'Fail it',
@@ -835,8 +848,8 @@ export const copy = {
   book_v_risk_p: '{riders} use cases can stop with it',
   book_v_exit_p: 'about USD {exec} of work to leave',
   book_v_cost_u: 'USD {reported} a month, all platforms',
-  book_v_risk_u: 'can stop if {worst} does',
-  book_v_exit_u: 'stranded by {stranded}',
+  book_v_risk_u: 'about USD {p99} in a bad month',
+  book_v_exit_u: '{platform}: about USD {exec} to leave, shared by {riders}',
   badge_meter_head: '{name}, the meter',
   badge_meter_units: '{units} {driver} a month',
   badge_meter_spend: 'USD {spend} metered, counted and billed',
@@ -901,11 +914,11 @@ export const copy = {
     'was read off a meter. ' +
     'The rest is its share of each platform\'s pool under the current rule. ' +
     'It moves when the rule or the crowd moves, though it did nothing different.',
-  walk_u_none: 'no single platform',
   walk_u_exit_h: 'What would strand it',
   walk_u_exit:
-    'Leaving {stranded} would strand it outright. That is the dependency ' +
-    'the ledger keeps on its page, one line per platform.',
+    'Leaving any of its {n_pf} platforms would strand it. The largest to ' +
+    'leave is {platform}: about USD {exec} of work, shared by {riders} use ' +
+    'cases.',
   intro_callout_usecase: 'Tap a use case',
   intro_callout_platform: 'Tap a platform',
   intro_focus_clear: 'Clear',

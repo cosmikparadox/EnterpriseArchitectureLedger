@@ -2,7 +2,7 @@
 // sections shown or hidden by type.
 
 import { useMemo } from 'react'
-import { copy, summary, type GlossaryKey } from '../copy'
+import { copy, fill, summary, type GlossaryKey } from '../copy'
 import { Summary } from './Summary'
 import { Term } from './Hint'
 import type { AllocationRule, Estate } from '../model/types'
@@ -254,11 +254,11 @@ export function DetailPanel(props: DetailPanelProps) {
         {show('exit') && (
         <section className={sec('exit')}>
           <h3>Exit</h3>
-          <div className="note">
-            {v.strandedBy.length > 0
-              ? 'Leaving any of these would strand this use case: ' + v.strandedBy.join(', ') + '.'
-              : 'No single platform exit would strand this use case outright.'}
-          </div>
+          {v.leaving && (
+            <div className="note">
+              {fill(copy.walk_u_exit, { n_pf: v.edges.length, platform: v.leaving.name, exec: gbpAbout(v.leaving.exec), riders: v.leaving.riders })}
+            </div>
+          )}
         </section>
         )}
       </PanelShell>
