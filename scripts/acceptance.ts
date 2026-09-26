@@ -511,6 +511,8 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   for (let i = 4; i <= 9; i++) { await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(i === 9 ? 1800 : 2200) }
   const busiest = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'The busiest node'
   const selected = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { selectedId: string | null } } }).__ledger?.getState().selectedId)
+  await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1800)
+  const soWhat = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'So what?'
   await page.locator('.story button:has-text("Next")').click(); await page.waitForTimeout(1200)
   const endOne = (await page.locator('.overlay-end').innerText().catch(() => '')).includes('That is the architecture')
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1000)
@@ -524,9 +526,9 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1400)
   const why = (await page.locator('.story h1').innerText().catch(() => '')).trim() === 'Why a ledger'
   const hashAtWhy = await page.evaluate(() => location.hash)
-  const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && stepped && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'identity' && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/26' && errors.length === 0
+  const ok = welcome && blankAtStart && noCardAtStart && railHidden && intro && nameCentred && cardOnTitle && openerOk && stepped && pause && partTitle && fading && nameAtTop && heading && calloutAtOne === 'Tap a domain' && allOwn && entries === 6 && calloutGone && busiest && selected === 'identity' && soWhat && endOne && docs === 6 && matrix && why && hashAtWhy === '#/tour/26' && errors.length === 0
   add('T7 the opening runs welcome, name, part one, domains one by one, and on to the ledger on one card', ok ? 'PASS' : 'FAIL',
-    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced with its card; Next ran why and the three how beats, the third stepping through its three entries one Next at a time, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/26'
+    ok ? 'launched on a grey canvas with a welcome and no card; a tap brought the company and its two people, then the ledger introduced with its card; Next ran why and the three how beats, the third stepping through its three entries one Next at a time, the pause offered continue or leave, and Continue brought the part title; the six domains were mid-fade at 450 ms with the name at the top and the card headed Domains; the marker read "Tap a domain"; all 6 domain centres resolved to their own domain and stayed as entries; the busiest node was lit; So what followed; the end line, six documents, the 96-cell matrix and the ledger opening followed on the same card at #/tour/26'
        : `welcome ${welcome}, blank ${blankAtStart}, no card ${noCardAtStart}, rail hidden ${railHidden}, intro ${intro}, title ${nameCentred}, card on title ${cardOnTitle}, opener ${opener.join('/')}, stepped ${lit.join(',')}, pause ${pause}, part title ${partTitle}, mid-fade ${midFade.map((a) => a.toFixed(2)).join('/')}, name at top ${nameAtTop}, heading ${heading}, callout "${calloutAtOne}", own ${ownHull.length} of ${hulls.length}, entries ${entries}, gone ${calloutGone}, busiest ${busiest}, selected ${selected}, end one ${endOne}, docs ${docs}, matrix ${matrix}, why ${why} at ${hashAtWhy}, errors ${errors.length}`)
   await ctx.close()
 }
@@ -893,7 +895,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   await page.waitForTimeout(1800)
   const missing: string[] = []
   let flatSvg = false
-  for (let n = 0; n <= 40; n++) {
+  for (let n = 0; n <= LAST; n++) {
     await page.evaluate((k) => (window as unknown as { __ledger: { getState: () => { setTourStep: (n: number) => void } } }).__ledger.getState().setTourStep(k), n)
     await page.waitForTimeout(n === 6 ? 1400 : 450)
     const want = BEAT_HEADING[n]
@@ -907,7 +909,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   await ctx.close()
   const ok = missing.length === 0 && errors.length === 0 && flatSvg && dim === '2d'
   add('V3 every beat renders on the flat map', ok ? 'PASS' : 'FAIL',
-    ok ? '41 beats walked in 2D, every heading in place, no page errors, the prologue\'s SVG map unchanged' : `missing ${missing.join(', ') || 'none'}; errors ${errors.slice(0, 2).join(' | ') || 'none'}; flat svg ${flatSvg}; mode ${dim}`)
+    ok ? '42 beats walked in 2D, every heading in place, no page errors, the prologue\'s SVG map unchanged' : `missing ${missing.join(', ') || 'none'}; errors ${errors.slice(0, 2).join(' | ') || 'none'}; flat svg ${flatSvg}; mode ${dim}`)
 }
 
 // ---- V4. Audit v0.5: the switch at 390 px -------------------------------------
