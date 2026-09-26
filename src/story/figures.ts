@@ -6,11 +6,12 @@ import { copy, fill } from '../copy'
 import { useLedger } from '../app/store'
 import { fixedPointRange, storedFrame, useMonteCarlo } from '../app/useMonteCarlo'
 import { buildIndex, meteredSpend, reportedCost, ruleShare, withSyntheticRidersIndex } from '../tour/figuresModel'
+import { attachedAt } from '../model/ledger'
 import { gbpAbout, workOfLeaving } from '../model/ledger'
 import { describeEstate } from '../model/describe'
 import { shapeEntry, SHAPES_SEED } from '../model/shapes'
 import type { AllocationRule, Estate, UseCase } from '../model/types'
-import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN, TOUR_UC } from './script'
+import { IDENTITY_ID, LEAVING_PLATFORM_ID, MOVER_ID, OPENER_UC, TOUR_SUBDOMAIN, TOUR_UC } from './script'
 import { tourUseCaseFigures } from './tourFigures'
 export { tourUseCaseFigures }
 
@@ -51,13 +52,15 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
   const nextUc = meteredSpend(withNext, IDENTITY_ID) - meteredSpend(withAdded, IDENTITY_ID)
   const uc = tourUseCaseFigures(ix, rule, left)
 
-  const dataPlatform = ix.platformById.get(DATA_PLATFORM_ID) ?? null
-  const attached = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= ratified).length : 0
-  const months = dataPlatform ? Math.max(0, ratified - dataPlatform.adopted_month) : 0
-  const exec = dataPlatform ? workOfLeaving(dataPlatform, attached, months) : 0
+  // Entry three's platform. A rider counts as attached from the later of
+  // its own adoption and the platform's.
+  const leavePlatform = ix.platformById.get(LEAVING_PLATFORM_ID) ?? null
+  const attached = leavePlatform ? attachedAt(ix, LEAVING_PLATFORM_ID, ratified).length : 0
+  const months = leavePlatform ? Math.max(0, ratified - leavePlatform.adopted_month) : 0
+  const exec = leavePlatform && ratified >= leavePlatform.adopted_month ? workOfLeaving(leavePlatform, attached, months) : 0
   // The same, at the month under the handle, so the card answers the handle.
-  const attachedNow = dataPlatform ? (ix.ridersOf.get(DATA_PLATFORM_ID) ?? []).filter((r) => r.uc.adopted_month <= cursor).length : 0
-  const execNow = dataPlatform && cursor >= dataPlatform.adopted_month ? workOfLeaving(dataPlatform, attachedNow, Math.max(0, cursor - dataPlatform.adopted_month)) : 0
+  const attachedNow = leavePlatform ? attachedAt(ix, LEAVING_PLATFORM_ID, cursor).length : 0
+  const execNow = leavePlatform && cursor >= leavePlatform.adopted_month ? workOfLeaving(leavePlatform, attachedNow, Math.max(0, cursor - leavePlatform.adopted_month)) : 0
 
   // Boundaries: how many reported figures move under each basis once the
   // moves in the store are applied.
@@ -111,12 +114,13 @@ export function useStoryFigures(concentrated: Estate, bestOfBreed: Estate): Reco
     sum_lo: range ? gbpAbout(range.sumLo) : '',
     sum_hi: range ? gbpAbout(range.sumHi) : '',
     ratified,
+    leave: leavePlatform?.name ?? '',
     attached,
     exec: gbpAbout(exec),
     cursor,
     attached_now: attachedNow,
     // The month handle before the platform was adopted: nothing to leave yet.
-    exit_now: dataPlatform && cursor >= dataPlatform.adopted_month ? fill(copy.exit_now_value, { exec: gbpAbout(execNow) }) : copy.exit_not_yet,
+    exit_now: leavePlatform && cursor >= leavePlatform.adopted_month ? fill(copy.exit_now_value, { exec: gbpAbout(execNow) }) : copy.exit_not_yet,
     left: sub ? gbpAbout(sub.jointP99) : '',
     right: subRight ? gbpAbout(subRight.jointP99) : '',
     left_top: shapes.l.topName, right_top: shapes.r.topName,

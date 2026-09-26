@@ -4,7 +4,7 @@
 
 import { readFileSync } from 'node:fs'
 import {
-  buildIndex, c1, executionComponent, kCommitted, meteredSpend, optionComponent, optionEngineFor,
+  attachedAt, attachMonth, buildIndex, c1, executionComponent, kCommitted, meteredSpend, optionComponent, optionEngineFor,
   reportedCost, ruleShare, workOfLeaving, type Index,
 } from '../src/model/ledger'
 import { simulate } from '../src/model/montecarlo'
@@ -59,16 +59,22 @@ put('Claims added up, five fixed points', fc.map((x) => `${x.rho}:${x.s.sumOfP99
 put('Claims together, five fixed points', fc.map((x) => `${x.rho}:${x.s.jointP99.toFixed(0)}`).join(' '))
 put('Stored frame rho 0.5 equals live: added / together', `${fc[2]!.s.sumOfP99s.toFixed(0)} / ${fc[2]!.s.jointP99.toFixed(0)}`)
 
-const dcRiders = ix.ridersOf.get(dc.id) ?? []
-put('Data cloud: adopted / riders / attached by month 31', `${dc.adopted_month} / ${dcRiders.length} / ${dcRiders.filter((r) => r.uc.adopted_month <= 31).length}`)
-const m31 = 31 - dc.adopted_month, m60 = 60 - dc.adopted_month
-put('Data cloud work of leaving, month 31', workOfLeaving(dc, 16, m31).toFixed(0))
-put('Data cloud work of leaving, month 60', workOfLeaving(dc, 16, m60).toFixed(0))
-put('Data cloud reversible alternative', dc.exit_k_reversible_gbp)
-put('Data cloud work the commitment created, month 31', executionComponent(dc, 16, m31).toFixed(0))
-const opt = (p: typeof dc, n: number, m: number) => optionComponent(optionEngineFor(p, left.option_model), p, n, m)
-put('Data cloud choices given up, month 31', opt(dc, 16, m31).toFixed(0))
-put('Data cloud K committed month 31', kCommitted(dc, 16, m31).toFixed(0))
+// Entry three's platform: Claims administration since v0.6. A rider counts
+// from the later of its adoption and the platform's.
+const leave = P(left, 'Claims administration')
+const lvRiders = ix.ridersOf.get(leave.id) ?? []
+put('Claims administration: adopted / riders / attached by month 31', `${leave.adopted_month} / ${lvRiders.length} / ${attachedAt(ix, leave.id, 31).length}`)
+put('Claims administration: attach months', lvRiders.map((r) => attachMonth(r, leave)).sort((a, b) => a - b).join(' '))
+const m31 = 31 - leave.adopted_month, m60 = 60 - leave.adopted_month
+const nL = lvRiders.length
+put('Claims administration work of leaving, month 31', workOfLeaving(leave, nL, m31).toFixed(0))
+put('Claims administration work of leaving, month 60', workOfLeaving(leave, nL, m60).toFixed(0))
+put('Claims administration reversible alternative', leave.exit_k_reversible_gbp)
+put('Claims administration work the commitment created, month 31', executionComponent(leave, nL, m31).toFixed(0))
+const opt = (p: typeof leave, n: number, m: number) => optionComponent(optionEngineFor(p, left.option_model), p, n, m)
+put('Claims administration choices given up, month 31', opt(leave, nL, m31).toFixed(0))
+put('Claims administration K committed month 31', kCommitted(leave, nL, m31).toFixed(0))
+put('Data cloud: adopted / attached at month 16 / at month 17', `${dc.adopted_month} / ${attachedAt(ix, dc.id, 16).length} / ${attachedAt(ix, dc.id, 17).length}`)
 put('Identity service work of leaving, month 60', workOfLeaving(idn, riders(ix, idn.id), 60 - idn.adopted_month).toFixed(0))
 put('Identity service choices given up, month 60', opt(idn, riders(ix, idn.id), 60 - idn.adopted_month).toFixed(0))
 for (const p of left.platforms) put(`option component month 60: ${p.name}`, opt(p, riders(ix, p.id), Math.max(0, 60 - p.adopted_month)).toFixed(0))

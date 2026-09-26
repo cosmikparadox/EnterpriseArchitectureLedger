@@ -61,7 +61,7 @@ export const copy = {
     'Switching cost splits into two parts that move for different reasons. ' +
     'This is one number divided in two, not two numbers added together.',
   // Screen prose moved out of the components, audit v0.4 section 12.
-  fp_legend_order: 'Use cases attach in the order they were adopted.',
+  fp_legend_order: 'Use cases attach in the order they were adopted, never before the platform itself.',
   fp_legend_faint: 'Faint nodes have not arrived yet at month {cursor}.',
   fp_two_charts: 'Two charts, one time axis. The monthly bill and the cost of leaving are different kinds of number. They do not share a scale.',
   fp_ratified:
@@ -622,7 +622,7 @@ export const copy = {
     'shows the idea, not a simulated month.',
   b_grow_h: 'Entry three: leaving. How the footprint grew',
   b_grow:
-    'Now the cloud data platform, which {uc} also rides. Watch the months ' +
+    'Now {leave}, which {uc} also rides. Watch the months ' +
     'run: use cases attach one at a time, each for a good reason.',
   b_grow_see: 'By month {ratified}, when the board first saw it as a decision, {attached} already depended on it.',
   b_exit_h: 'What leaving would cost',
@@ -644,7 +644,10 @@ export const copy = {
     'dated. This estate has none, so the ledger reports neither. See the ' +
     'Ledger paper, 9.5.2 and 9.5.7. This model also hardens the figure by a ' +
     'made-up rate each month. After the last use case attaches, only that ' +
-    'grows it.',
+    'grows it. The same figure cuts both ways. For a platform that earns its ' +
+    'footprint, it makes the case for ratifying it. For one that grew by ' +
+    'lock-in, it prices the lock-in.',
+  b_exit_after: 'Accretion is not the fault. Ratifying it without this figure is.',
   b_diversify_h: 'Does spreading it out help?',
   b_diversify:
     'Same {n_uc} use cases, wired two ways: concentrated on a few shared ' +

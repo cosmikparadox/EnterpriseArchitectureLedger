@@ -5,7 +5,7 @@ import { leavingFor } from '../app/graph'
 import { reportedCost, ruleShare, type Index } from '../model/ledger'
 import type { McResult } from '../model/montecarlo'
 import type { AllocationRule } from '../model/types'
-import { DATA_PLATFORM_ID, TOUR_UC } from './script'
+import { LEAVING_PLATFORM_ID, TOUR_UC } from './script'
 
 /**
  * The tour use case's own figures, read from one index and one Monte Carlo
@@ -17,7 +17,7 @@ export function tourUseCaseFigures(ix: Index, rule: AllocationRule, mc: McResult
   let reported = 0, byRule = 0
   for (const e of u.edges) { reported += reportedCost(ix, e.platform_id, u.id, rule); byRule += ruleShare(ix, e.platform_id, u.id, rule) }
   const p99 = mc?.useCases.find((x) => x.id === u.id)?.p99 ?? null
-  const leaving = leavingFor(ix, u.id, DATA_PLATFORM_ID)
+  const leaving = leavingFor(ix, u.id, LEAVING_PLATFORM_ID)
   return { name: u.name, platforms: u.edges.length, reported, byRule, metered: reported - byRule, p99, leaving }
 }
 

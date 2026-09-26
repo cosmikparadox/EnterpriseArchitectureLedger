@@ -25,7 +25,7 @@ export function Risk({ estate, ix, dark }: RiskProps) {
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
   // Shared: the tour drives all four of these, and rho is the same slider as
   // the one on view 5.
-  const [selected, setSelected] = usePlatformSelection(estate, 'meridian')
+  const [selected, setSelected] = usePlatformSelection(estate, 'identity')
   const rho = useLedger((s) => s.rho)
   const setRho = useLedger((s) => s.setRho)
   const storedSubdomain = useLedger((s) => s.subdomain)

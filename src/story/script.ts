@@ -11,7 +11,12 @@ import { DEFAULT_RHO, SCENE_ALL, SCENE_NONE, TOUR_STEPS, type LedgerState, type 
 import { animateValue, type Timeline } from '../tour/animate'
 
 export const IDENTITY_ID = 'identity'
-export const DATA_PLATFORM_ID = 'meridian'
+/**
+ * The platform the leaving story is told on: Claims administration, which
+ * the tour use case rides. It was the Data cloud; a lock-in story told about
+ * a real vendor category reads as commentary on that category.
+ */
+export const LEAVING_PLATFORM_ID = 'claims_admin'
 export const TOUR_SUBDOMAIN = 'claims'
 /** The use case part three moves across a boundary, and where from. */
 export const MOVER_ID = 'uc_broker_quote'
@@ -161,14 +166,14 @@ export const BEATS: Beat[] = [
     waitFor: (now, at) => now.rho !== at.rho },
   { part: 3, stem: 'grow', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, rows: ['e1', 'e2', 'e3'],
     enter: ({ store, timeline, reduced }) => {
-      store.setSelectedId(DATA_PLATFORM_ID)
+      store.setSelectedId(LEAVING_PLATFORM_ID)
       const marker = store.ratified
       store.setCursor(0)
       timeline.after(400, () => { timeline.add(animateValue(0, marker, 3200, (v) => store.setCursor(Math.round(v)), reduced)) }, reduced)
     },
     settleMs: 400 + 3200 },
   { part: 3, stem: 'exit', view: 4, overlay: null, scene: { ...PICTURE, focus: 'footprint' }, card: true, control: 'month', rows: ['e1', 'e2', 'e3', 'e3_board'],
-    enter: ({ store }) => { store.setSelectedId(DATA_PLATFORM_ID); store.setCursor(store.ratified) },
+    enter: ({ store }) => { store.setSelectedId(LEAVING_PLATFORM_ID); store.setCursor(store.ratified) },
     waitFor: (now, at) => now.cursor !== at.cursor },
   // Two shapes, one at a time: the toggle on the canvas switches between
   // them, and the card compares the three entries side by side. The reader

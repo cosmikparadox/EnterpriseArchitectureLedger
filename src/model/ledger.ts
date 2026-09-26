@@ -47,6 +47,22 @@ export function buildIndex(estate: Estate): Index {
   return { estate, platformById, subdomainById, useCaseById, ridersOf }
 }
 
+/**
+ * The month a rider attaches to a platform: the later of its use case's
+ * adoption and the platform's own. A use case adopted before the platform
+ * existed cannot have depended on it yet.
+ */
+export function attachMonth(r: Rider, p: Platform): number {
+  return Math.max(r.uc.adopted_month, p.adopted_month)
+}
+
+/** The riders attached to a platform by a given month. */
+export function attachedAt(ix: Index, platformId: string, month: number): Rider[] {
+  const p = ix.platformById.get(platformId)
+  if (!p) return []
+  return (ix.ridersOf.get(platformId) ?? []).filter((r) => attachMonth(r, p) <= month)
+}
+
 // ---------------------------------------------------------------------------
 // Axis one: cost
 // ---------------------------------------------------------------------------

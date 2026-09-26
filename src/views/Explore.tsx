@@ -18,7 +18,7 @@ import { MeterBadge, PoolBadge } from '../story/Badges'
 import { Walkthrough, revealFor, type Focus } from './Walkthrough'
 import { leavingFor, platformView } from '../app/graph'
 import { resultFor } from '../app/useMonteCarlo'
-import { DATA_PLATFORM_ID } from '../story/script'
+import { LEAVING_PLATFORM_ID } from '../story/script'
 import { describeUseCase } from '../model/describe'
 
 const GESTURE_KEY = 'ledger.gesture.seen'
@@ -162,7 +162,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     } else if (ix.useCaseById.has(selectedId)) {
       const d = describeUseCase(ix, selectedId, rule)
       const p99 = resultFor(estate, bookRho)?.useCases.find((u) => u.id === selectedId)?.p99
-      const leaving = leavingFor(ix, selectedId, DATA_PLATFORM_ID)
+      const leaving = leavingFor(ix, selectedId, LEAVING_PLATFORM_ID)
       name = String(d.name)
       values = [
         fill(copy.book_v_cost_u, { reported: String(d.reported) }),

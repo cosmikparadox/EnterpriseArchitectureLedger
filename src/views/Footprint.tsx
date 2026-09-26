@@ -19,7 +19,7 @@ import { FootprintChart, type Series } from '../components/FootprintChart'
 import { WKCurve } from '../components/WKCurve'
 import { gbp } from '../components/DetailPanel'
 import { buildGraph } from '../app/graph'
-import { executionComponent, gbpAbout, kCommitted, optionComponent, optionEngineFor, wCurve, workOfLeaving, type Index } from '../model/ledger'
+import { attachMonth, executionComponent, gbpAbout, kCommitted, optionComponent, optionEngineFor, wCurve, workOfLeaving, type Index } from '../model/ledger'
 import type { Estate } from '../model/types'
 import { copy, fill, glossary, summary } from '../copy'
 import { Summary } from '../components/Summary'
@@ -32,8 +32,9 @@ const MONTHS = Array.from({ length: 61 }, (_, i) => i)
 
 export function Footprint({ estate, ix, dark }: FootprintProps) {
   const data = useMemo(() => buildGraph(estate, ix), [estate, ix])
-  // Spec section 4.4: default the cloud data platform.
-  const [selected, setSelected] = usePlatformSelection(estate, 'meridian')
+  // Spec section 4.4 defaulted the cloud data platform. The leaving story
+  // now runs on Claims administration, so the screen opens on it too.
+  const [selected, setSelected] = usePlatformSelection(estate, 'claims_admin')
   const cursor = useLedger((s) => s.cursor)
   const setCursor = useLedger((s) => s.setCursor)
   const ratified = useLedger((s) => s.ratified)
@@ -54,11 +55,14 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
     return optionEngineFor(platform, estate.option_model)
   }, [platform, estate.option_model])
 
-  /** Everything about the node at a given month. Riders attach in adoption order. */
+  /**
+   * Everything about the node at a given month. A rider attaches at the
+   * later of its own adoption and the platform's, in that order.
+   */
   const at = useMemo(() => (m: number) => {
     if (!platform) return null
     if (m < platform.adopted_month) return null
-    const attached = riders.filter((r) => r.uc.adopted_month <= m)
+    const attached = riders.filter((r) => attachMonth(r, platform) <= m)
     const n = attached.length
     const metered = attached.reduce((a, r) =>
       a + r.uc.volume_per_month * r.edge.driver_units_per_volume_unit * platform.driver_unit_cost_gbp, 0)

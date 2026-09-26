@@ -7,14 +7,14 @@ import { readFileSync } from 'node:fs'
 import * as copyModule from './copy'
 import type { AllocationRule, Estate } from './model/types'
 import {
-  buildIndex, executionComponent, gbpAbout, meteredSpend, optionComponent, optionEngineFor,
+  attachedAt, buildIndex, executionComponent, gbpAbout, meteredSpend, optionComponent, optionEngineFor,
   ruleShare, workOfLeaving,
 } from './model/ledger'
 import { simulate } from './model/montecarlo'
 import { withSyntheticRiders } from './app/graph'
 import { fixedPointRange, storedFrame } from './app/stored'
 import { tourUseCaseFigures } from './story/tourFigures'
-import { DATA_PLATFORM_ID, IDENTITY_ID, MOVER_ID, MOVER_TO, TOUR_SUBDOMAIN, TOUR_UC } from './story/script'
+import { IDENTITY_ID, LEAVING_PLATFORM_ID, MOVER_ID, MOVER_TO, TOUR_SUBDOMAIN, TOUR_UC } from './story/script'
 
 const estate: Estate = JSON.parse(readFileSync('data/estate.json', 'utf8'))
 const ix = buildIndex(estate)
@@ -68,12 +68,12 @@ describe('3. the story figures for the tour use case', () => {
     expect(f.p99).toBe(frame.useCases.find((u) => u.id === TOUR_UC)!.p99)
     expect(gbpAbout(f.p99!)).toBe('59,000')
   })
-  it('entry three is the work of leaving Data cloud today, whole, shared by 16', () => {
-    const dc = ix.platformById.get(DATA_PLATFORM_ID)!
-    expect(f.leaving!.name).toBe('Data cloud')
-    expect(f.leaving!.riders).toBe(16)
-    expect(f.leaving!.exec).toBe(workOfLeaving(dc, 16, 43))
-    expect(gbpAbout(f.leaving!.exec)).toBe('5,400,000')
+  it('entry three is the work of leaving Claims administration today, whole, shared by 6', () => {
+    const ca = ix.platformById.get(LEAVING_PLATFORM_ID)!
+    expect(f.leaving!.name).toBe('Claims administration')
+    expect(f.leaving!.riders).toBe(6)
+    expect(f.leaving!.exec).toBe(workOfLeaving(ca, 6, 60 - ca.adopted_month))
+    expect(gbpAbout(f.leaving!.exec)).toBe('5,300,000')
   })
 })
 
@@ -109,13 +109,21 @@ describe('5. the cost of the next use case', () => {
 })
 
 describe('6. the switching-cost split', () => {
-  const dc = ix.platformById.get(DATA_PLATFORM_ID)!
-  const m31 = 31 - dc.adopted_month
-  const option = optionComponent(optionEngineFor(dc, estate.option_model), dc, 16, m31)
-  it('reads about 3,700,000 whole, and 3,500,000 and 790,000 as the two parts, at month 31', () => {
-    expect(gbpAbout(workOfLeaving(dc, 16, m31))).toBe('3,700,000')
-    expect(gbpAbout(executionComponent(dc, 16, m31))).toBe('3,500,000')
-    expect(gbpAbout(option)).toBe('790,000')
+  const ca = ix.platformById.get(LEAVING_PLATFORM_ID)!
+  const m31 = 31 - ca.adopted_month
+  const option = optionComponent(optionEngineFor(ca, estate.option_model), ca, 6, m31)
+  it('Claims administration: adopted month 6, six riders in Claims and Data, at months 6, 8, 11, 18, 26 and 30', () => {
+    expect(ca.adopted_month).toBe(6)
+    const riders = ix.ridersOf.get(LEAVING_PLATFORM_ID)!
+    expect(riders.map((r) => r.uc.adopted_month).sort((a, b) => a - b)).toEqual([6, 8, 11, 18, 26, 30])
+    expect(new Set(riders.map((r) => r.uc.subdomain))).toEqual(new Set(['claims', 'data']))
+    expect(attachedAt(ix, LEAVING_PLATFORM_ID, 31)).toHaveLength(6)
+  })
+  it('reads about 3,800,000 whole at month 31 and 5,300,000 at month 60; 3,300,000 of it created, 680,000 the option part, at 31', () => {
+    expect(gbpAbout(workOfLeaving(ca, 6, m31))).toBe('3,800,000')
+    expect(gbpAbout(workOfLeaving(ca, 6, 60 - ca.adopted_month))).toBe('5,300,000')
+    expect(gbpAbout(executionComponent(ca, 6, m31))).toBe('3,300,000')
+    expect(gbpAbout(option)).toBe('680,000')
   })
   it('the refusal block quotes both parts, and nothing adds either to the work of leaving', () => {
     for (const file of ['src/components/DetailPanel.tsx', 'src/views/Footprint.tsx']) {
@@ -126,6 +134,14 @@ describe('6. the switching-cost split', () => {
       expect(src).toMatch(/optionComponent|option\.value/)
       expect(src).not.toMatch(/(workOfLeaving|execution|created)\s*\+|\+\s*(now\.|v\.)?(option|created|executionComponent)\b/)
     }
+  })
+})
+
+describe('6b. a rider attaches no earlier than its platform', () => {
+  it('the Data cloud, adopted at month 17, has none attached at month 16 and six at month 17', () => {
+    expect(ix.platformById.get('meridian')!.adopted_month).toBe(17)
+    expect(attachedAt(ix, 'meridian', 16)).toHaveLength(0)
+    expect(attachedAt(ix, 'meridian', 17)).toHaveLength(6)
   })
 })
 
