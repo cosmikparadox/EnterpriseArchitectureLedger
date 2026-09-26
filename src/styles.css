@@ -1770,3 +1770,11 @@ button, input, select { font: inherit; color: inherit; }
 .plug-line { font-size: clamp(15px, 1.6vw, 18px); line-height: 1.55; color: var(--ink-2); margin: 0 auto 6px; max-width: 480px; }
 .plug-note { margin-top: 18px; font-size: 12.5px; color: var(--ink-3); }
 @media (prefers-reduced-motion: reduce) { .plug-art .plug-out, .plug-art .plug-head, .plug-inner { animation: none; } }
+
+/* ---- leaving, acted out: scissors on each severed line ---- */
+.canvas-snips { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.snip-mark { position: absolute; left: 0; top: 0; margin: -13px 0 0 -13px; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; opacity: 0;
+  background: var(--panel); border: 1.5px solid #d05a6a; color: #d05a6a; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+.snip-mark svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; transition: transform 160ms ease; }
+.snip-mark.cut svg { transform: rotate(-18deg) scale(0.92); }

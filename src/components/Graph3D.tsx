@@ -125,6 +125,12 @@ export interface Graph3DProps {
    * warmth is per use case id, 0 to 1; share is per link key, 0 to 1.
    */
   flow?: { warmth: Map<string, number>; share: Map<string, number> } | null
+  /**
+   * Leaving, acted out: the node's lines are snipped, it slides away and
+   * fades, and what rode it is left stranded, in wireframe. A new nonce
+   * replays it; no snip puts everything back.
+   */
+  snip?: { id: string; nonce: number } | null
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -232,6 +238,15 @@ function hull2d(pts: [number, number][]): [number, number][] {
 function billboard(this: THREE.Object3D, _r: THREE.WebGLRenderer, _s: THREE.Scene, cam: THREE.Camera) {
   this.quaternion.copy(cam.quaternion)
   this.updateMatrixWorld()
+}
+
+/** A colour at an opacity, as the line materials read it. Quantised, so few materials are made. */
+const tmpColour = new THREE.Color()
+function withAlpha(colour: string, alpha: number): string {
+  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 20) / 20
+  if (a >= 1) return colour
+  tmpColour.set(colour)
+  return `rgba(${Math.round(tmpColour.r * 255)},${Math.round(tmpColour.g * 255)},${Math.round(tmpColour.b * 255)},${a})`
 }
 
 /** Everything built for one node, so state can be set on it without rebuilding. */
@@ -1368,7 +1383,7 @@ export function Graph3D(props: Graph3DProps) {
     const ghosted = !!f && !f.nodes.has(n.id)
     // A node the wave has not reached yet still stands; it goes to wireframe
     // when the wave arrives, in the loop below.
-    const affected = propsRef.current.affectedUseCases?.has(n.id) === true && (litAt.current.get(n.id) ?? 0) <= performance.now()
+    const affected = (propsRef.current.affectedUseCases?.has(n.id) === true && (litAt.current.get(n.id) ?? 0) <= performance.now()) || snipState.current.stranded.has(n.id)
     const failed = propsRef.current.failedNodeId === n.id
 
     o.mesh.material = affected ? o.wire : o.solid
@@ -1518,6 +1533,13 @@ export function Graph3D(props: Graph3DProps) {
     }
     const focus = props.focus
     const linkColour = (raw: object) => {
+      const base = linkColourBase(raw)
+      const l = raw as GLink
+      const cut = snipState.current
+      if (cut.id && (l.platformId === cut.id || l.ucId === cut.id)) return withAlpha(base, cut.linkAlpha)
+      return base
+    }
+    const linkColourBase = (raw: object) => {
       const l = raw as GLink & { __litAt?: number }
       const key = `${l.ucId}>${l.platformId}`
       if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
@@ -1528,6 +1550,7 @@ export function Graph3D(props: Graph3DProps) {
       return dark ? '#7d848e' : '#9aa0a8'
     }
     g.linkColor(linkColour)
+    linkColourRef.current = linkColour
     const lastLit = Math.max(0, ...litAt.current.values(), ...(g.graphData().links as (GLink & { __litAt?: number })[]).map((l) => l.__litAt ?? 0))
     if (waveRaf.current) cancelAnimationFrame(waveRaf.current)
     if (lastLit > now) {
@@ -1665,6 +1688,112 @@ export function Graph3D(props: Graph3DProps) {
     raf = requestAnimationFrame(tick)
     return () => { cancelAnimationFrame(raf); reportSelectedScreenPos(null) }
   }, [props.selectedId])
+
+  // ---- leaving, acted out ----
+  //
+  // The two shapes' leaving row. Scissors mark each of the node's lines and
+  // the lines fade; the node slides away from the middle of the map and
+  // fades; its riders turn to wireframe with a pulse, stranded. All of it is
+  // undone the moment the snip is taken away.
+  const snipState = useRef({ id: '', linkAlpha: 1, stranded: new Set<string>() })
+  const linkColourRef = useRef<((raw: object) => string) | null>(null)
+  const snipRaf = useRef(0)
+  const snipLayer = useRef<HTMLDivElement | null>(null)
+  const snipKey = props.snip ? `${props.snip.id}#${props.snip.nonce}` : ''
+  useEffect(() => {
+    const g = gRef.current
+    const layer = snipLayer.current
+    const undo = (id: string) => {
+      if (!g || !id) return
+      const n = (g.graphData().nodes as (GNode & Positioned & { __threeObj?: THREE.Object3D })[]).find((x) => x.id === id)
+      n?.__threeObj?.position.set(n.x ?? 0, n.y ?? 0, n.z ?? 0)
+      const o = objs.current.get(id)
+      if (o) { o.solid.opacity = o.fadeTo; if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 }
+    }
+    const snip = propsRef.current.snip
+    if (!g || !snip) {
+      const was = snipState.current.id
+      snipState.current = { id: '', linkAlpha: 1, stranded: new Set() }
+      undo(was)
+      if (layer) layer.innerHTML = ''
+      applyState()
+      return
+    }
+    const nodes = g.graphData().nodes as (GNode & Positioned & { __threeObj?: THREE.Object3D })[]
+    const node = nodes.find((x) => x.id === snip.id)
+    if (!node || node.x === undefined) return
+    const links = (g.graphData().links as GLink[]).filter((l) => l.platformId === snip.id || l.ucId === snip.id)
+    const riders = new Set(links.map((l) => (l.platformId === snip.id ? l.ucId : l.platformId)))
+    undo(snipState.current.id)
+    snipState.current = { id: snip.id, linkAlpha: 1, stranded: new Set() }
+    const reduced = propsRef.current.reducedMotion || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+    // Out, away from the middle of the map, a good way.
+    let r = 0
+    for (const n of nodes) r = Math.max(r, Math.hypot(n.x ?? 0, n.y ?? 0, n.z ?? 0))
+    const flat = modeRef.current === '2d'
+    const dir = new THREE.Vector3(node.x, node.y ?? 0, flat ? 0 : node.z ?? 0)
+    if (dir.lengthSq() < 1) dir.set(1, 0, 0)
+    dir.normalize()
+    const away = Math.max(60, r * 0.7)
+    // A scissor mark on each line.
+    const marks: { el: HTMLDivElement; l: GLink }[] = []
+    if (layer) {
+      layer.innerHTML = ''
+      for (const l of links) {
+        const m = document.createElement('div')
+        m.className = 'snip-mark'
+        m.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/></svg>'
+        layer.appendChild(m)
+        marks.push({ el: m, l })
+      }
+    }
+    const o = objs.current.get(snip.id)
+    const t0 = performance.now()
+    const T = reduced ? { cut: 0, fade: 1, slide: 1, strand: 1, end: 1 } : { cut: 380, fade: 620, slide: 1100, strand: 1300, end: 2300 }
+    const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3))
+    const byId = new Map(nodes.map((n) => [n.id, n]))
+    const place = (el: HTMLElement, l: GLink) => {
+      const a = byId.get(l.ucId), b = byId.get(l.platformId)
+      if (!a || !b) return
+      // The cut sits on the rider's side of the middle, so it reads as a line severed.
+      const p = g.graph2ScreenCoords(((a.x ?? 0) * 0.6 + (b.x ?? 0) * 0.4), ((a.y ?? 0) * 0.6 + (b.y ?? 0) * 0.4), ((a.z ?? 0) * 0.6 + (b.z ?? 0) * 0.4))
+      el.style.transform = `translate(${Math.round(p.x)}px, ${Math.round(p.y)}px)`
+    }
+    let stranded = false
+    const step = () => {
+      const t = performance.now() - t0
+      for (const m of marks) {
+        place(m.el, m.l)
+        m.el.style.opacity = String(t < T.cut ? ease(t / Math.max(1, T.cut)) : t < T.end - 500 ? 1 : Math.max(0, (T.end - t) / 500))
+        m.el.classList.toggle('cut', t >= T.cut)
+      }
+      // The lines let go.
+      snipState.current.linkAlpha = 1 - ease((t - T.cut) / Math.max(1, T.fade))
+      if (linkColourRef.current) g.linkColor(linkColourRef.current)
+      // The node slides away and fades.
+      const k = ease((t - T.cut - 120) / T.slide)
+      node.__threeObj?.position.set((node.x ?? 0) + dir.x * away * k, (node.y ?? 0) + dir.y * away * k, (node.z ?? 0) + dir.z * away * k)
+      if (o) {
+        o.solid.opacity = o.fadeTo * (1 - k)
+        o.mesh.visible = o.solid.opacity > 0.01
+        if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 - k
+        o.halo.visible = false; o.ring.visible = false
+      }
+      // What rode it is stranded.
+      if (!stranded && t >= T.strand) {
+        stranded = true
+        snipState.current.stranded = riders
+        for (const id of riders) { const ro = objs.current.get(id); if (ro) ro.pulseUntil = performance.now() + 600 }
+        for (const n of nodes) { const ro = objs.current.get(n.id); if (ro && riders.has(n.id)) applyNodeState(n, ro, true) }
+      }
+      if (t < T.end) snipRaf.current = requestAnimationFrame(step)
+      else { snipRaf.current = 0; for (const m of marks) m.el.style.opacity = '0' }
+    }
+    if (snipRaf.current) cancelAnimationFrame(snipRaf.current)
+    snipRaf.current = requestAnimationFrame(step)
+    return () => { if (snipRaf.current) cancelAnimationFrame(snipRaf.current); snipRaf.current = 0 }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snipKey])
 
   // ---- things pinned to the canvas ----
   //
@@ -2504,6 +2633,7 @@ export function Graph3D(props: Graph3DProps) {
       {moved && (
         <button type="button" className="canvas-recentre" onClick={recentre} title={copy.recentre_hint}>{copy.recentre}</button>
       )}
+      <div ref={snipLayer} className="canvas-snips" aria-hidden="true" />
       {props.gestureHint && (
         <div ref={gestureEl} className="canvas-gesture" aria-hidden="true">
           <svg className="gesture-orbit" viewBox="0 0 48 48" width="34" height="34">

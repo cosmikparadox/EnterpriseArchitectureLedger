@@ -192,9 +192,11 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         focus: { nodes: new Set([e.topId, ...affected]) },
       }
     }
+    // Leaving, acted out: the exit's lines are snipped, it slides away and
+    // what rode it is stranded. Replayed on every visit and on each side.
     return {
-      selectedId: e.exitId,
       focus: { nodes: new Set([e.exitId, ...e.exitRiders]) },
+      snip: { id: e.exitId, nonce: visit * 10 + (side === 'left' ? 1 : 2) },
     }
   }
   // Each entry into the risk phase replays the wave from the source; a
@@ -202,9 +204,12 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   const riskVisits = useRef(0)
   const riskVisit = useMemo(() => (phase === 1 ? ++riskVisits.current : riskVisits.current), [phase])
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stagedLeft = useMemo(() => staged(left, entries.left, ringLeft, riskVisit), [inStory, phase, left, entries, ringLeft, riskVisit])
+  const leaveVisits = useRef(0)
+  const leaveVisit = useMemo(() => (phase === 2 ? ++leaveVisits.current : leaveVisits.current), [phase])
+  const visitFor = phase === 2 ? leaveVisit : riskVisit
+  const stagedLeft = useMemo(() => staged(left, entries.left, ringLeft, visitFor), [inStory, phase, left, entries, ringLeft, visitFor, side])
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stagedRight = useMemo(() => staged(right, entries.right, ringRight, riskVisit), [inStory, phase, right, entries, ringRight, riskVisit])
+  const stagedRight = useMemo(() => staged(right, entries.right, ringRight, visitFor), [inStory, phase, right, entries, ringRight, visitFor, side])
 
   const subId = useLedger((s) => s.subdomain) ?? 'claims'
   const subName = concentrated.subdomains.find((s) => s.id === subId)?.name ?? subId
