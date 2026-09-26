@@ -2829,3 +2829,41 @@ one retired product name once, so checks 7 and N4 failed on letters no one
 reads. Both now set aside base64 runs of 400 or more characters before
 searching, and check 7 prints how many runs and how much it set aside.
 The rendered-text half of N4 is unchanged.
+
+### 100. The flat map stops rebuilding itself: no lag, no blinking labels
+
+**What was wrong.** The graph library marks its engine running again after
+every change of a line's colour, width or visibility. With its countdown
+already spent, the next frame reports that the engine has stopped. The
+canvas took every such report for a fresh settle. It rebuilt the transit
+map, disposing and recreating all 136 line materials, which made the
+browser compile their shader again. It turned the labels upright and
+back, and repainted every node and domain. The repaint changed a colour,
+which set the whole thing off again, several times a second, on a beat
+where nothing was moving. On a real machine that was the lag, the
+glitching lines and the blinking text. A CPU profile of the flow beat
+showed shader compilation and map building in a window where the
+picture was still.
+
+**What changed.**
+- A settle is only taken after a layout actually ran. The stops the
+  library reports after a colour change are ignored.
+- When the map is rebuilt for a real reason, the new lines are made
+  before the old are disposed, so the compiled shader is kept. The flow
+  dots do the same.
+- Labels are set diagonally for as long as the map is flat, and turn
+  upright only when it leaves 2D, never mid-way.
+- The label thinning runs only when the view or the labels' state
+  changed. A still map costs nothing. A label already showing claims a
+  little less room than one asking to appear, so a small move of the
+  view does not swap two labels back and forth.
+- Only the chosen node's own name is always shown. Its neighbours choose
+  next but give way like the rest, which cleared the pile-up round a busy
+  hub on the rule beat.
+- Type on the flat map is smaller again: 10 px for a use case, 11.5 for
+  a platform. In 3D use case names are back to near their old size.
+
+Measured in the container on the flow beat, with its software renderer:
+frames in five seconds went from 20 to 37, and the canvas's own script
+time fell to under one percent. Nothing was taken out of the picture to
+get there.

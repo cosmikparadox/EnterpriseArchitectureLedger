@@ -359,6 +359,8 @@ export function Graph3D(props: Graph3DProps) {
   /** The reader has moved the camera; a Recentre button offers the way back. */
   const userMoved = useRef(false)
   const [moved, setMoved] = useState(false)
+  /** A layout run has started and its stop is a real settle. */
+  const layoutRun = useRef(false)
   // The node under the pointer, named large beside it.
   const [hover, setHover] = useState<{ id: string; name: string; colour: string | null } | null>(null)
   const lensEl = useRef<HTMLDivElement | null>(null)
@@ -524,6 +526,14 @@ export function Graph3D(props: Graph3DProps) {
     g.onEngineStop(() => {
       // The stop that ends a fold is not a settle: nothing new was laid out.
       if (foldStop.current) { foldStop.current = false; return }
+      // Nor is any stop that no layout run preceded. The library marks its
+      // engine running again after every change of a colour, a width or a
+      // visibility, and with its countdown already spent the next frame
+      // reports a stop. Treating those as settles rebuilt the transit map
+      // and repainted every node several times a second, which is what made
+      // the flat map lag and its labels blink.
+      if (!layoutRun.current) return
+      layoutRun.current = false
       // First layout of this estate: turn it into its canonical frame and
       // pin it. Any later settle records what moved and pins it too.
       settleLayout()
@@ -1086,6 +1096,7 @@ export function Graph3D(props: Graph3DProps) {
       // eighty this used to run at most of a slider step's cost.
       else g.warmupTicks(30).cooldownTicks(0)
       const t0 = performance.now()
+      layoutRun.current = true
       g.graphData({ nodes, links } as unknown as { nodes: object[]; links: object[] })
       if (import.meta.env.DEV) perf('graphData', performance.now() - t0)
       if (pendingFly.current && flyNow(pendingFly.current)) pendingFly.current = null
@@ -1129,6 +1140,7 @@ export function Graph3D(props: Graph3DProps) {
     } else {
       g.warmupTicks(300).cooldownTicks(0)
     }
+    layoutRun.current = true
     g.graphData(props.data as unknown as { nodes: object[]; links: object[] })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.data])
@@ -1356,14 +1368,23 @@ export function Graph3D(props: Graph3DProps) {
         // Hub labels are the only text on that screen and they carry the
         // comparison, so they are set larger than on a screen where everything
         // is named.
-        label.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 3.4 : 4.2
+        label.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 3 : 4.2
         label.position.set(0, r + 3.4, 0)
         label.visible = false
         label.userData.base = label.scale.clone()
         label.userData.th = label.textHeight
         // On the flat map a label keeps one size on screen, whatever the zoom:
         // large enough to read, the busy ones thinned out rather than shrunk.
-        label.userData.px = labelMode === 'hubs' ? 14 : n.kind === 'use_case' ? 11 : 12.5
+        labelEpoch.current++
+        // Built while the map is flat: set as the flat map sets its names,
+        // and sized by the next frame.
+        labelK.current = 0
+        if (modeRef.current === '2d' && !foldOn.current && n.kind === 'use_case') {
+          label.center.set(0, 0.5)
+          ;(label.material as THREE.SpriteMaterial).rotation = Math.PI / 4
+          label.position.set(r * 0.8 + 1, r * 0.8 + 1, 0)
+        }
+        label.userData.px = labelMode === 'hubs' ? 13 : n.kind === 'use_case' ? 10 : 11.5
         label.userData.r = r
         // A label never hides what is behind it: its clear margin used to
         // punch pale bars through the domains.
@@ -1528,12 +1549,16 @@ export function Graph3D(props: Graph3DProps) {
     o.fail.visible = failed
     if (o.ringSprite) o.ringSprite.visible = !dim && !ghosted
     if (o.label) {
+      const was = o.labelWanted
       o.labelWanted = ghosted ? false :
         labelMode === 'all' ? !dim
         : labelMode === 'selected' ? (isSel || isNeighbour)
         : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
         : false
-      o.label.visible = o.labelWanted
+      if (was !== o.labelWanted) labelEpoch.current++
+      // On the flat map the thinning decides what shows; elsewhere the state.
+      if (!(modeRef.current === '2d' && !foldOn.current)) o.label.visible = o.labelWanted
+      else if (!o.labelWanted) o.label.visible = false
     }
   }
 
@@ -1886,7 +1911,10 @@ export function Graph3D(props: Graph3DProps) {
     if (!g || !el) return
     if (!schem.current) { const group = new THREE.Group(); g.scene().add(group); schem.current = { group, lines: [], on: false, fade: 1 } }
     const S = schem.current
-    clearSchematic()
+    // The old lines go only once the new ones exist: disposing every line
+    // material first would drop the shared shader and compile it again.
+    const old = S.lines
+    S.lines = []
     const nodes = g.graphData().nodes as (GNode & Positioned)[]
     const byId = new Map(nodes.map((n) => [n.id, n]))
     const blockers: Blocker[] = nodes.map((n) => [n.x ?? 0, n.y ?? 0, n.val + 2])
@@ -1913,6 +1941,7 @@ export function Graph3D(props: Graph3DProps) {
       S.group.add(line)
       S.lines.push({ link, line, mat, pts, len: routeLength(pts) })
     }
+    for (const e of old) { S.group.remove(e.line); e.line.geometry.dispose(); e.mat.dispose() }
     S.on = true
     S.fade = 1
     S.group.visible = true
@@ -1938,12 +1967,14 @@ export function Graph3D(props: Graph3DProps) {
     }
   }
   /** Stand the map's lines down; with a short fade, the straight lines coming back beneath them. */
-  function dropSchematic(fadeMs = 0) {
+  function dropSchematic(fadeMs = 0, upright = false) {
     const g = gRef.current
     const S = schem.current
     if (!g || !S || !S.on) return
     S.on = false
-    flatLabels(false)
+    // Labels turn upright only when the map is leaving 2D; lines stepping
+    // aside while a use case travels leave the names as they are.
+    if (upright) flatLabels(false)
     if (schemRaf.current) { cancelAnimationFrame(schemRaf.current); schemRaf.current = 0 }
     for (const raw of g.graphData().links as (GLink & { __lineObj?: THREE.Object3D })[]) if (raw.__lineObj && Object.prototype.hasOwnProperty.call(raw.__lineObj, 'raycast')) delete (raw.__lineObj as unknown as Record<string, unknown>).raycast
     g.linkVisibility(linkVisible)
@@ -1967,6 +1998,7 @@ export function Graph3D(props: Graph3DProps) {
   function flatLabels(on: boolean) {
     const g = gRef.current
     if (!g) return
+    labelEpoch.current++
     for (const n of g.graphData().nodes as GNode[]) {
       if (n.kind !== 'use_case') continue
       const l = objs.current.get(n.id)?.label
@@ -2011,7 +2043,9 @@ export function Graph3D(props: Graph3DProps) {
   function startSchemFlow(flow: { warmth: Map<string, number>; share: Map<string, number> }) {
     const S = schem.current
     if (!S) return
-    stopSchemFlow()
+    // The old dots go after the new exist, so their shader is kept.
+    const prevFlow = schemFlow.current
+    schemFlow.current = null
     const dots: Dot[] = []
     const colours: number[] = []
     const c = new THREE.Color()
@@ -2028,13 +2062,14 @@ export function Graph3D(props: Graph3DProps) {
     const geo = new THREE.BufferGeometry()
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(dots.length * 3), 3))
     geo.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3))
-    const mat = new THREE.PointsMaterial({ size: 7, sizeAttenuation: false, vertexColors: true, map: dotTexture(), transparent: true, depthWrite: false, alphaTest: 0.05 })
+    const mat = new THREE.PointsMaterial({ size: 6, sizeAttenuation: false, vertexColors: true, map: dotTexture(), transparent: true, depthWrite: false, alphaTest: 0.05 })
     const points = new THREE.Points(geo, mat)
     points.renderOrder = 6
     points.frustumCulled = false
     points.raycast = () => {}
     S.group.add(points)
     const F = { points, dots, raf: 0 }
+    if (prevFlow) { schemFlow.current = prevFlow; stopSchemFlow() }
     schemFlow.current = F
     const pos = geo.getAttribute('position') as THREE.BufferAttribute
     const step = () => {
@@ -2873,7 +2908,7 @@ export function Graph3D(props: Graph3DProps) {
       setClip(dist)
       labelK.current = ppw
       // A phone shows the whole map small; its labels a touch smaller too.
-      const small = el.clientWidth < 520 ? 0.88 : 1
+      const small = el.clientWidth < 520 ? 0.9 : 1
       for (const o of objs.current.values()) {
         const l = o.label
         const base = l?.userData.base as THREE.Vector3 | undefined
@@ -2886,20 +2921,29 @@ export function Graph3D(props: Graph3DProps) {
   }
   /**
    * On the flat map, labels that would print over each other give way: the
-   * chosen node and its neighbours first, then the platforms, busiest first,
-   * then the use cases. Zooming in makes room and brings them back. Every
+   * chosen node always shows, its neighbours choose next, then the
+   * platforms, busiest first, then the use cases. Zooming in makes room and brings them back. Every
    * name is still there on hover.
    */
   const labelProbe = useRef(new THREE.Vector3())
+  // What the last thinning saw: the view and the labels' state. When neither
+  // has changed there is nothing to recompute, so a still map costs nothing.
+  const labelSig = useRef('')
+  const labelEpoch = useRef(0)
   function declutter(ppw: number) {
     const g = gRef.current
     const el = holder.current
     if (!g || !el) return
+    const cam = g.camera()
     const { selectedId } = propsRef.current
+    const W = el.clientWidth, H = el.clientHeight
+    const e = cam.matrixWorld.elements
+    const sig = `${W}|${H}|${ppw.toFixed(3)}|${e[12].toFixed(1)}|${e[13].toFixed(1)}|${e[14].toFixed(1)}|${selectedId ?? ''}|${labelEpoch.current}`
+    if (sig === labelSig.current) return
+    labelSig.current = sig
     const near = new Set<string>()
     if (selectedId) for (const raw of g.graphData().links as GLink[]) { if (raw.ucId === selectedId) near.add(raw.platformId); if (raw.platformId === selectedId) near.add(raw.ucId) }
-    const cam = g.camera()
-    const W = el.clientWidth, H = el.clientHeight
+    cam.updateMatrixWorld()
     const cand: { l: SpriteText; rank: number; circles: number[] }[] = []
     for (const n of g.graphData().nodes as GNode[]) {
       const o = objs.current.get(n.id)
@@ -2907,13 +2951,17 @@ export function Graph3D(props: Graph3DProps) {
       if (!o || !l) continue
       if (!o.labelWanted) { l.visible = false; continue }
       const rank = n.id === selectedId ? 0 : near.has(n.id) ? 1 : n.kind !== 'use_case' ? 2 + 1 / (1 + (n.riders ?? 0)) : 4
+      l.updateMatrixWorld()
       const v = l.getWorldPosition(labelProbe.current).project(cam)
       const ax = (v.x * 0.5 + 0.5) * W, ay = (0.5 - v.y * 0.5) * H
       const w = l.scale.x * ppw, h = l.scale.y * ppw
       const rot = (l.material as THREE.SpriteMaterial).rotation
       const dx = Math.cos(rot), dy = -Math.sin(rot)
       const sx = ax - dx * w * l.center.x, sy = ay - dy * w * l.center.x
-      const r = h * 0.55, step = h * 0.6
+      // A label already showing claims a little less room than one asking
+      // to appear, so a small move of the view does not swap them back and
+      // forth: that swapping was a blink.
+      const r = h * (l.visible ? 0.5 : 0.6), step = h * 0.6
       const circles: number[] = []
       for (let d = r; d <= w - r + 1e-6 || circles.length === 0; d += step) circles.push(sx + dx * d, sy + dy * d, r)
       cand.push({ l, rank, circles })
@@ -2926,7 +2974,7 @@ export function Graph3D(props: Graph3DProps) {
         const ddx = c.circles[i]! - placed[j]!, ddy = c.circles[i + 1]! - placed[j + 1]!, rr = c.circles[i + 2]! + placed[j + 2]!
         if (ddx * ddx + ddy * ddy < rr * rr) { hit = true; break outer }
       }
-      c.l.visible = !hit || c.rank < 2
+      c.l.visible = !hit || c.rank === 0
       if (c.l.visible) placed.push(...c.circles)
     }
   }
@@ -3020,7 +3068,7 @@ export function Graph3D(props: Graph3DProps) {
     if (camRaf.current) { cancelAnimationFrame(camRaf.current); camRaf.current = 0 }
     const reduced = propsRef.current.reducedMotion || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
     // Leaving the flat map, its lines give way to the straight ones.
-    if (to === '3d') dropSchematic(reduced ? 0 : 220)
+    if (to === '3d') dropSchematic(reduced ? 0 : 220, true)
     prepareFold(to)
     if (reduced || (slowFolds && !forceFold.current)) { crossfade(to); return }
     foldOn.current = true
@@ -3211,7 +3259,7 @@ export function Graph3D(props: Graph3DProps) {
         if (!g || !lay.current) return
         if (foldRaf.current) { cancelAnimationFrame(foldRaf.current); foldRaf.current = 0 }
         if (!foldOn.current) {
-          dropSchematic(0)
+          dropSchematic(0, true)
           prepareFold(kind === 'lift' ? '3d' : '2d')
           fold.current.kind = kind
           if (kind === 'lift') fold.current.total = LIFT_MS
