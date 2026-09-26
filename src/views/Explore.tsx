@@ -259,6 +259,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
           focus={!inStory && walk ? walkFocus : null}
+          selectedLink={inStory ? null : selectedLink}
           flow={flow}
           reducedMotion={reduced}
           stagger={inStory && scene.stagger}

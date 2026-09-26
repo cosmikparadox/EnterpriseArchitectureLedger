@@ -36,6 +36,8 @@ export interface Graph3DProps {
   showHulls: boolean
   labelMode: LabelMode
   selectedId: string | null
+  /** A line the reader tapped. On the transit map it lights in its colour, over the others. */
+  selectedLink?: { ucId: string; platformId: string } | null
   isolatedSubdomain: string | null
   flyToId: string | null
   /**
@@ -246,11 +248,35 @@ function billboard(this: THREE.Object3D, _r: THREE.WebGLRenderer, _s: THREE.Scen
 
 /** A colour at an opacity, as the line materials read it. Quantised, so few materials are made. */
 const tmpColour = new THREE.Color()
+const tmpRGB = { r: 0, g: 0, b: 0 }
+/** A soft round dot, drawn once, for the flow on the transit map. */
+let dotTex: THREE.Texture | null = null
+function dotTexture(): THREE.Texture {
+  if (dotTex) return dotTex
+  const cv = document.createElement('canvas')
+  cv.width = cv.height = 32
+  const ctx = cv.getContext('2d')!
+  const grd = ctx.createRadialGradient(16, 16, 0, 16, 16, 16)
+  // A bright core and a dark rim, so a dot shows on a line of its own colour.
+  grd.addColorStop(0, 'rgba(255,255,255,1)')
+  grd.addColorStop(0.5, 'rgba(255,255,255,1)')
+  grd.addColorStop(0.62, 'rgba(40,40,40,1)')
+  grd.addColorStop(0.8, 'rgba(40,40,40,0.9)')
+  grd.addColorStop(1, 'rgba(40,40,40,0)')
+  ctx.fillStyle = grd
+  ctx.fillRect(0, 0, 32, 32)
+  dotTex = new THREE.CanvasTexture(cv)
+  dotTex.colorSpace = THREE.SRGBColorSpace
+  return dotTex
+}
+
 function withAlpha(colour: string, alpha: number): string {
   const a = Math.round(Math.max(0, Math.min(1, alpha)) * 20) / 20
   if (a >= 1) return colour
-  tmpColour.set(colour)
-  return `rgba(${Math.round(tmpColour.r * 255)},${Math.round(tmpColour.g * 255)},${Math.round(tmpColour.b * 255)},${a})`
+  // Read back in sRGB: the working space is linear, and its raw channels
+  // would come out darker than the colour asked for.
+  tmpColour.set(colour).getRGB(tmpRGB, THREE.SRGBColorSpace)
+  return `rgba(${Math.round(tmpRGB.r * 255)},${Math.round(tmpRGB.g * 255)},${Math.round(tmpRGB.b * 255)},${a})`
 }
 
 /** Everything built for one node, so state can be set on it without rebuilding. */
@@ -439,6 +465,18 @@ export function Graph3D(props: Graph3DProps) {
           return { id: n.id, x: box.left + p.x, y: box.top + p.y }
         })
       }
+      // The transit map's lines: where each route's first leg sits on screen,
+      // so a check can tap a line where no other runs.
+      ;(window as unknown as { __schemLines?: unknown }).__schemLines = () => {
+        const el = holder.current
+        if (!el || !schem.current?.on) return []
+        const box = el.getBoundingClientRect()
+        return schem.current.lines.map((e) => {
+          const p = g.graph2ScreenCoords(e.pts[0]! + (e.pts[2]! - e.pts[0]!) * 0.5, e.pts[1]! + (e.pts[3]! - e.pts[1]!) * 0.5, 0)
+          return { uc: e.link.ucId, platform: e.link.platformId, x: box.left + p.x, y: box.top + p.y, order: e.line.renderOrder, width: e.mat.linewidth, opacity: e.mat.opacity }
+        })
+      }
+      ;(window as unknown as { __schemDots?: unknown }).__schemDots = () => schemFlow.current?.dots.length ?? 0
       ;(window as unknown as { __hullScreen?: unknown }).__hullScreen = () => {
         const el = holder.current
         if (!el) return []
@@ -1599,17 +1637,30 @@ export function Graph3D(props: Graph3DProps) {
       if (cut.id && (l.platformId === cut.id || l.ucId === cut.id)) return withAlpha(base, cut.linkAlpha)
       return base
     }
+    const selLink = props.selectedLink ? `${props.selectedLink.ucId}>${props.selectedLink.platformId}` : null
+    const touches = (l: GLink) => !!selectedId && (l.ucId === selectedId || l.platformId === selectedId)
+    const lineColour = (l: GLink) => SUBDOMAIN_COLOUR[subdomainOf.get(l.ucId) ?? ''] ?? (dark ? '#7d848e' : '#9aa0a8')
     const linkColourBase = (raw: object) => {
       const l = raw as GLink & { __litAt?: number }
       const key = `${l.ucId}>${l.platformId}`
       if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
       if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return dark ? '#2a2f37' : '#dcdcd8'
       if (props.flow) return flowColour(props.flow.warmth.get(l.ucId) ?? 0)
-      if (selectedId && (l.ucId === selectedId || l.platformId === selectedId)) return dark ? '#ffffff' : '#20242b'
+      // On the transit map a chosen line, or a chosen station's lines, keep
+      // their own colour and the rest step back, so a line can be followed
+      // along the track it shares.
+      if (schemOn() && (selLink || selectedId)) return key === selLink || touches(l) ? lineColour(l) : withAlpha(lineColour(l), 0.22)
+      if (key === selLink || touches(l)) return dark ? '#ffffff' : '#20242b'
       if (isolatedSubdomain && !isIn(l.ucId)) return dark ? '#2a2e35' : '#d5d5d2'
       // On the transit map each line takes its domain's colour.
-      if (schemOn()) return SUBDOMAIN_COLOUR[subdomainOf.get(l.ucId) ?? ''] ?? (dark ? '#7d848e' : '#9aa0a8')
+      if (schemOn()) return lineColour(l)
       return dark ? '#7d848e' : '#9aa0a8'
+    }
+    // The lines drawn over the others where tracks are shared.
+    linkRaisedRef.current = (raw: object) => {
+      const l = raw as GLink & { __litAt?: number }
+      const key = `${l.ucId}>${l.platformId}`
+      return key === selLink || touches(l) || (!!props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) || (!!focus && focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))
     }
     g.linkColor(linkColour)
     linkColourRef.current = linkColour
@@ -1643,7 +1694,7 @@ export function Graph3D(props: Graph3DProps) {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
-      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark])
+      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark, props.selectedLink])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
@@ -1689,6 +1740,10 @@ export function Graph3D(props: Graph3DProps) {
     } else {
       g.linkDirectionalParticles(0)
     }
+    // On the transit map the library's particles would run the straight
+    // lines under the map; the map carries its own, along its routes.
+    if (flow && !foldOn.current && schemOn()) startSchemFlow(flow)
+    else stopSchemFlow()
   }
   useEffect(() => {
     const g = gRef.current
@@ -1771,6 +1826,7 @@ export function Graph3D(props: Graph3DProps) {
   type SchemLine = { link: GLink & { __showAt?: number }; line: Line2; mat: LineMaterial; pts: number[]; len: number }
   const schem = useRef<{ group: THREE.Group; lines: SchemLine[]; on: boolean; fade: number } | null>(null)
   const linkWidthRef = useRef<((raw: object) => number) | null>(null)
+  const linkRaisedRef = useRef<((raw: object) => boolean) | null>(null)
   const schemRaf = useRef(0)
   function schemOn(): boolean { return !!schem.current?.on }
   function linkVisible(raw: object): boolean {
@@ -1890,7 +1946,7 @@ export function Graph3D(props: Graph3DProps) {
   function paintSchematic() {
     const S = schem.current
     if (!S || !S.on) return
-    const colourOf = linkColourRef.current, widthOf = linkWidthRef.current
+    const colourOf = linkColourRef.current, widthOf = linkWidthRef.current, raisedOf = linkRaisedRef.current
     const now = performance.now()
     for (const e of S.lines) {
       const c = colourOf ? colourOf(e.link) : '#9aa0a8'
@@ -1898,12 +1954,82 @@ export function Graph3D(props: Graph3DProps) {
       let a = 1
       if (m) { e.mat.color.setRGB(Number(m[1]) / 255, Number(m[2]) / 255, Number(m[3]) / 255, THREE.SRGBColorSpace); a = Number(m[4]) } else e.mat.color.set(c)
       e.mat.opacity = 0.92 * a * S.fade
-      e.mat.linewidth = 1.3 + 1.25 * (widthOf ? widthOf(e.link) : 1)
+      // A raised line sits over shared track and a little wider; a line
+      // stepped back sits under everything.
+      const up = !!raisedOf?.(e.link) && a > 0.5
+      e.mat.linewidth = 1.3 + 1.25 * (widthOf ? widthOf(e.link) : 1) + (up ? 2 : 0)
+      e.line.renderOrder = up ? 4 : a < 0.5 ? 1 : 2
+      e.line.position.z = up ? 0.4 : a < 0.5 ? -0.1 : 0
       e.line.visible = (e.link.__showAt ?? 0) <= now && e.mat.opacity > 0.01
     }
   }
+  /**
+   * The value flow on the transit map: dots that run each route from use case
+   * to platform, as many and as quick as the share of work the line carries,
+   * in the line's flow colour. One set of points, moved each frame.
+   */
+  type Dot = { e: SchemLine; cum: number[]; phase: number; speed: number }
+  const schemFlow = useRef<{ points: THREE.Points; dots: Dot[]; raf: number } | null>(null)
+  function startSchemFlow(flow: { warmth: Map<string, number>; share: Map<string, number> }) {
+    const S = schem.current
+    if (!S) return
+    stopSchemFlow()
+    const dots: Dot[] = []
+    const colours: number[] = []
+    const c = new THREE.Color()
+    for (const e of S.lines) {
+      const key = `${e.link.ucId}>${e.link.platformId}`
+      const share = flow.share.get(key) ?? 0
+      const n = Math.round(1 + 4 * share)
+      const cum = [0]
+      for (let k = 0; k + 3 < e.pts.length; k += 2) cum.push(cum[cum.length - 1]! + Math.hypot(e.pts[k + 2]! - e.pts[k]!, e.pts[k + 3]! - e.pts[k + 1]!))
+      c.set(flowColour(flow.warmth.get(e.link.ucId) ?? 0))
+      // The library's speed is a share of the line per frame; here per second.
+      for (let i = 0; i < n; i++) { dots.push({ e, cum, phase: i / n, speed: (0.004 + 0.006 * share) * 60 }); colours.push(c.r, c.g, c.b) }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(dots.length * 3), 3))
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3))
+    const mat = new THREE.PointsMaterial({ size: 7, sizeAttenuation: false, vertexColors: true, map: dotTexture(), transparent: true, depthWrite: false, alphaTest: 0.05 })
+    const points = new THREE.Points(geo, mat)
+    points.renderOrder = 6
+    points.frustumCulled = false
+    points.raycast = () => {}
+    S.group.add(points)
+    const F = { points, dots, raf: 0 }
+    schemFlow.current = F
+    const pos = geo.getAttribute('position') as THREE.BufferAttribute
+    const step = () => {
+      const t = performance.now() / 1000
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i]!
+        const len = d.cum[d.cum.length - 1]!
+        if (!d.e.line.visible || len <= 0) { pos.setXYZ(i, 1e9, 1e9, 1e9); continue }
+        const at = (((d.phase + d.speed * t) % 1) + 1) % 1 * len
+        let k = 1
+        while (k < d.cum.length - 1 && d.cum[k]! < at) k++
+        const a = d.cum[k - 1]!, b = d.cum[k]!
+        const u = b > a ? (at - a) / (b - a) : 0
+        const j = (k - 1) * 2
+        pos.setXYZ(i, d.e.pts[j]! + (d.e.pts[j + 2]! - d.e.pts[j]!) * u, d.e.pts[j + 1]! + (d.e.pts[j + 3]! - d.e.pts[j + 1]!) * u, 0.8)
+      }
+      pos.needsUpdate = true
+      F.raf = requestAnimationFrame(step)
+    }
+    step()
+  }
+  function stopSchemFlow() {
+    const F = schemFlow.current
+    if (!F) return
+    cancelAnimationFrame(F.raf)
+    F.points.parent?.remove(F.points)
+    F.points.geometry.dispose()
+    ;(F.points.material as THREE.Material).dispose()
+    schemFlow.current = null
+  }
   useEffect(() => () => {
     if (schemRaf.current) cancelAnimationFrame(schemRaf.current)
+    stopSchemFlow()
     clearSchematic()
   }, [])
 
