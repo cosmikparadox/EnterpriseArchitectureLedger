@@ -1855,3 +1855,9 @@ button, input, select { font: inherit; color: inherit; }
 .node-lens-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 @keyframes lens-in { from { opacity: 0; transform: translateX(-50%) scale(0.6); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .node-lens-chip { animation: none; } }
+
+/* The ledger book: picked up anywhere, brought forward over the story card
+   when pressed, lifted a little while it is carried. */
+.canvas-book.book-float { pointer-events: auto; cursor: grab; touch-action: none; user-select: none; transition: box-shadow 160ms ease; }
+.canvas-book.book-float.raised { z-index: 45; box-shadow: 0 16px 40px rgba(0,0,0,0.22); }
+.canvas-book.book-float.dragging { cursor: grabbing; box-shadow: 0 22px 50px rgba(0,0,0,0.28); }

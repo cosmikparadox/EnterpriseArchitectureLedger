@@ -4,7 +4,7 @@
 // are added to its scene directly, because they have to follow the layout as it
 // settles.
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import ForceGraph3D from '3d-force-graph'
 import * as THREE from 'three'
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
@@ -2223,18 +2223,48 @@ export function Graph3D(props: Graph3DProps) {
     return () => stops.forEach((f) => f())
   }, [pokeKey])
 
-  // The book can be picked up by its title and moved off whatever it covers.
+  // The book can be picked up anywhere and moved off whatever it covers.
   // Held as a transform, so the wires, which read its box every frame, follow.
+  // It starts under the story card, right edges aligned, and where the card
+  // is tall it tucks partly beneath it. Pressing any part of it that shows
+  // brings it above the card, the way a window comes forward; pressing
+  // anywhere else lets the card back on top.
   const bookOffset = useRef({ x: 0, y: 0 })
-  useEffect(() => { bookOffset.current = { x: 0, y: 0 }; if (bookEl.current) bookEl.current.style.transform = '' }, [props.book?.id])
+  const [bookUp, setBookUp] = useState(false)
+  useLayoutEffect(() => {
+    bookOffset.current = { x: 0, y: 0 }
+    setBookUp(false)
+    const bx = bookEl.current
+    const hb = holder.current?.getBoundingClientRect()
+    if (!bx) return
+    bx.style.transform = ''
+    bx.style.left = ''; bx.style.top = ''; bx.style.bottom = ''
+    const card = document.querySelector<HTMLElement>('.story')
+    if (!hb || !card || document.documentElement.dataset.storyDock !== 'right') return
+    const c = card.getBoundingClientRect()
+    const w = bx.offsetWidth, h = bx.offsetHeight
+    const left = Math.max(12, Math.min(hb.width - w - 12, c.right - hb.left - w))
+    const top = Math.max(12, Math.min(hb.height - h - 12, c.bottom - hb.top + 14))
+    bx.style.left = `${Math.round(left)}px`
+    bx.style.top = `${Math.round(top)}px`
+    bx.style.bottom = 'auto'
+  }, [props.book?.id])
+  useEffect(() => {
+    if (!bookUp) return
+    const down = (e: PointerEvent) => { if (!bookEl.current?.contains(e.target as Node)) setBookUp(false) }
+    window.addEventListener('pointerdown', down, true)
+    return () => window.removeEventListener('pointerdown', down, true)
+  }, [bookUp])
   const onBookDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const box = bookEl.current
     const hb = holder.current?.getBoundingClientRect()
     if (!box || !hb) return
     e.preventDefault(); e.stopPropagation()
+    setBookUp(true)
     const start = { x: e.clientX, y: e.clientY }, from = { ...bookOffset.current }
     const r0 = box.getBoundingClientRect()
     const base = { left: r0.left - from.x, top: r0.top - from.y }
+    box.classList.add('dragging')
     const move = (ev: PointerEvent) => {
       // Kept on the canvas.
       const x = Math.min(hb.right - r0.width - base.left, Math.max(hb.left - base.left, from.x + ev.clientX - start.x))
@@ -2242,7 +2272,7 @@ export function Graph3D(props: Graph3DProps) {
       bookOffset.current = { x, y }
       box.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`
     }
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    const up = () => { box.classList.remove('dragging'); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
   }
@@ -3253,8 +3283,8 @@ export function Graph3D(props: Graph3DProps) {
           <svg ref={wiresEl} className="canvas-wires" aria-hidden="true">
             {props.book.rows.map((_, i) => <path key={i} className={`wire w${i + 1}`} />)}
           </svg>
-          <div ref={bookEl} className="canvas-book" aria-hidden="true">
-            <div className="book-title book-drag" onPointerDown={onBookDown} title={copy.story_drag}>{props.book.title}</div>
+          <div ref={bookEl} className={`canvas-book book-float${bookUp ? ' raised' : ''}`} aria-hidden="true" onPointerDown={onBookDown} title={copy.story_drag}>
+            <div className="book-title book-drag">{props.book.title}</div>
             {props.book.rows.map((r, i) => <div key={i} className={`book-row ov-in d${i + 1}`}><span className="book-n">{i + 1}</span><span className="book-l">{r.label}{r.value && <span className="book-v">{r.value}</span>}</span><span className="book-rule" /></div>)}
             <div className="book-note ov-in d4">{props.book.note}</div>
           </div>
