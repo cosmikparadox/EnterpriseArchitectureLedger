@@ -2213,7 +2213,61 @@ export function Graph3D(props: Graph3DProps) {
   }
   useEffect(() => follow(calloutEl.current, props.callout), [props.callout])
   const noteEl = useRef<HTMLDivElement | null>(null)
-  useEffect(() => follow(noteEl.current, props.noteAt ? { kind: 'node', id: props.noteAt } : null, true), [props.noteAt, props.note])
+  // A note about one node stands clear of it, so what the node does stays in
+  // view, and a leader line runs from the node to the card. The card parks
+  // in the corner of the free canvas furthest from the node, clear of the
+  // story card and the name at the top, and glides if the node's moves make
+  // another corner much better; the line follows the node every frame.
+  const leaderEl = useRef<SVGSVGElement | null>(null)
+  useEffect(() => {
+    const el = noteEl.current
+    const svg = leaderEl.current
+    const id = props.noteAt
+    if (!el || !svg || !id) return
+    let raf = 0
+    let at: { x: number; y: number } | null = null
+    let pick = -1
+    const tick = () => {
+      raf = requestAnimationFrame(tick)
+      const g = gRef.current
+      const hb = holder.current?.getBoundingClientRect()
+      const n = (g?.graphData().nodes as (GNode & Positioned)[] | undefined)?.find((x) => x.id === id)
+      if (!g || !hb || !n || n.x === undefined) { el.hidden = true; svg.style.visibility = 'hidden'; return }
+      const p = g.graph2ScreenCoords(n.x, n.y ?? 0, n.z ?? 0)
+      // The free canvas: the holder, less the story card where it docks right
+      // and the company name along the top.
+      let right = hb.width
+      const card = document.querySelector<HTMLElement>('.story')
+      if (card && document.documentElement.dataset.storyDock === 'right') right = Math.min(right, card.getBoundingClientRect().left - hb.left - 16)
+      const top = 76, bottom = hb.height - 16, left = 16
+      const w = el.offsetWidth, h = el.offsetHeight
+      const spots = [
+        { x: left, y: top }, { x: right - w, y: top },
+        { x: left, y: bottom - h }, { x: right - w, y: bottom - h },
+        { x: left, y: (top + bottom - h) / 2 }, { x: (left + right - w) / 2, y: bottom - h },
+      ].map((q) => ({ x: Math.max(left, q.x), y: Math.max(top, Math.min(bottom - h, q.y)) }))
+      const gap = (q: { x: number; y: number }) => Math.hypot(Math.max(q.x - p.x, 0, p.x - (q.x + w)), Math.max(q.y - p.y, 0, p.y - (q.y + h)))
+      let best = 0
+      for (let i = 1; i < spots.length; i++) if (gap(spots[i]!) > gap(spots[best]!)) best = i
+      if (pick < 0 || gap(spots[best]!) > gap(spots[pick]!) * 1.35 + 20) pick = best
+      const want = spots[pick]!
+      at = at ? { x: at.x + (want.x - at.x) * 0.1, y: at.y + (want.y - at.y) * 0.1 } : { ...want }
+      el.hidden = false
+      el.style.transform = `translate(${Math.round(at.x)}px, ${Math.round(at.y)}px)`
+      // The line meets the card at the nearest point of its edge.
+      const ex = Math.min(Math.max(p.x, at.x), at.x + w), ey = Math.min(Math.max(p.y, at.y), at.y + h)
+      svg.style.visibility = ''
+      const path = svg.querySelector('path'), dot = svg.querySelector('circle.leader-node'), end = svg.querySelector('circle.leader-end')
+      const horizontal = Math.abs(ex - p.x) >= Math.abs(ey - p.y)
+      const c1 = horizontal ? `${((p.x + ex) / 2).toFixed(1)},${p.y.toFixed(1)}` : `${p.x.toFixed(1)},${((p.y + ey) / 2).toFixed(1)}`
+      const c2 = horizontal ? `${((p.x + ex) / 2).toFixed(1)},${ey.toFixed(1)}` : `${ex.toFixed(1)},${((p.y + ey) / 2).toFixed(1)}`
+      path?.setAttribute('d', `M${p.x.toFixed(1)},${p.y.toFixed(1)} C${c1} ${c2} ${ex.toFixed(1)},${ey.toFixed(1)}`)
+      dot?.setAttribute('cx', p.x.toFixed(1)); dot?.setAttribute('cy', p.y.toFixed(1))
+      end?.setAttribute('cx', ex.toFixed(1)); end?.setAttribute('cy', ey.toFixed(1))
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [props.noteAt])
   useEffect(() => follow(popoverEl.current, props.popover, true), [props.popover])
   const pokeEls = useRef<(HTMLDivElement | null)[]>([])
   const pokeKey = props.pokes?.ids.join(',') ?? ''
@@ -3277,7 +3331,17 @@ export function Graph3D(props: Graph3DProps) {
           {props.pokes.text && <div key={props.pokes.text} className="canvas-poke-hint" aria-hidden="true">{props.pokes.text}</div>}
         </>
       )}
-      {props.note && <div ref={noteEl} className={props.noteAt ? 'canvas-book canvas-note canvas-note-at' : 'canvas-book canvas-note'} aria-hidden="true">{props.note}</div>}
+      {props.note && props.noteAt && (
+        <>
+          <svg ref={leaderEl} className="note-leader" aria-hidden="true">
+            <path />
+            <circle className="leader-node" r="9" />
+            <circle className="leader-end" r="3" />
+          </svg>
+          <div ref={noteEl} className="canvas-note-float" hidden aria-hidden="true">{props.note}</div>
+        </>
+      )}
+      {props.note && !props.noteAt && <div ref={noteEl} className="canvas-book canvas-note" aria-hidden="true">{props.note}</div>}
       {props.book && (
         <>
           <svg ref={wiresEl} className="canvas-wires" aria-hidden="true">
