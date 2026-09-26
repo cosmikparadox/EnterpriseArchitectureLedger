@@ -11,7 +11,19 @@ const rows: { n: string; verdict: 'PASS' | 'FAIL' | 'NOT RUN'; detail: string }[
 const add = (n: string, verdict: 'PASS' | 'FAIL' | 'NOT RUN', detail: string) => rows.push({ n, verdict, detail })
 
 // ---- 7. grep the built bundle -------------------------------------------
-const dist = readFileSync('dist/index.html', 'utf8')
+//
+// Long base64 runs are taken out before any search. The bundle now carries
+// the thesis PDF and a wasm module inside pdf.js as base64, and a run of
+// random letters spells TCO or a product name by chance, which is not
+// writing anyone reads. A run is 400 or more base64 characters with no
+// break; minified code never runs that long without punctuation. How much
+// was set aside is printed with the check.
+const BASE64_RUN = /[A-Za-z0-9+/]{400,}={0,2}/g
+const stripB64 = (t: string) => t.replace(BASE64_RUN, '')
+const distRaw = readFileSync('dist/index.html', 'utf8')
+const dist = stripB64(distRaw)
+const b64Runs = (distRaw.match(BASE64_RUN) ?? [])
+const b64Note = `${b64Runs.length} base64 run(s), ${(b64Runs.reduce((a, r) => a + r.length, 0) / 1024 / 1024).toFixed(2)} MB, set aside`
 const caseSensitive = (dist.match(/TCO/g) ?? []).length
 const phrases = ['total cost', 'true cost', 'snowflake', 'infonomics'].map((p) => ({
   p, n: (dist.toLowerCase().match(new RegExp(p, 'g')) ?? []).length,
@@ -29,7 +41,7 @@ const PRODUCT_WORDS = [
 const builtFiles = ['dist/index.html', 'dist/artifact.html'].filter((f) => existsSync(f))
 const productHits: string[] = []
 for (const f of builtFiles) {
-  const text = readFileSync(f, 'utf8').toLowerCase()
+  const text = stripB64(readFileSync(f, 'utf8')).toLowerCase()
   for (const w of PRODUCT_WORDS) {
     const n = (text.match(new RegExp(`(?<![a-z0-9_])${w.replace(/[/]/g, '\\/')}(?![a-z0-9_])`, 'g')) ?? []).length
     if (n > 0) productHits.push(`${f} ${w} ${n}`)
@@ -39,7 +51,7 @@ const grepTotal = caseSensitive + phrases.reduce((a, b) => a + b.n, 0) + emDash 
 add('7 forbidden strings in the bundle', grepTotal === 0 ? 'PASS' : 'FAIL',
   `TCO ${caseSensitive} (case-sensitive), ` + phrases.map((x) => `"${x.p}" ${x.n}`).join(', ') +
   `, em-dash ${emDash}, en-dash ${enDash}; ${PRODUCT_WORDS.length} product names and old ids across ${builtFiles.join(' and ')}: ` +
-  (productHits.length === 0 ? '0 hits' : productHits.join(', ')))
+  (productHits.length === 0 ? '0 hits' : productHits.join(', ')) + `; ${b64Note}`)
 
 // ---- T5. Three words the writing must not reach for ---------------------
 //
