@@ -615,7 +615,9 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
 
 //
 // The rule is that this page must not link to, mention, or share navigation
-// with any other site of the owner's. Two things are checked: the bundle carries
+// with any other site of the owner's. One exception, asked for by the owner:
+// tab 8 links to the archive record of the papers, so that link, on that
+// page, is allowed and named; any other is a failure. Two things are checked: the bundle carries
 // no mention of the other property (that is the "infonomics" line in check 7),
 // and nothing the page actually renders is a link off this origin.
 //
@@ -627,23 +629,28 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await ctx.newPage()
   const offsiteLinks: string[] = []
-  for (const hash of ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/tour/40']) {
+  const allowed: string[] = []
+  const ARCHIVE = 'https://doi.org/10.5281/zenodo.21863760'
+  const C3_ROUTES = ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/plug', '#/paper', '#/tour/40']
+  for (const hash of C3_ROUTES) {
     await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
     await page.waitForTimeout(hash === '#/' ? 400 : 2000)
     const hrefs = await page.evaluate(() =>
       Array.from(document.querySelectorAll('a[href]')).map((a) => (a as HTMLAnchorElement).href))
     for (const h of hrefs) {
-      if (!h.startsWith('http://localhost:5190')) offsiteLinks.push(`${hash}: ${h}`)
+      if (h.startsWith('http://localhost:5190')) continue
+      if (hash === '#/paper' && h === ARCHIVE) allowed.push(`${hash}: ${h}`)
+      else offsiteLinks.push(`${hash}: ${h}`)
     }
   }
   const bundleHosts = Array.from(new Set(
     (dist.match(/https?:\/\/[a-zA-Z0-9.-]+/g) ?? [])
       .filter((u) => !u.includes('w3.org')),
   ))
-  add('C3 nothing on the page links to another site',
-    offsiteLinks.length === 0 ? 'PASS' : 'FAIL',
+  add('C3 nothing on the page links to another site, bar the archive on tab 8',
+    offsiteLinks.length === 0 && allowed.length === 1 ? 'PASS' : 'FAIL',
     offsiteLinks.length === 0
-      ? `0 offsite links across 8 routes. Bundle mentions ${bundleHosts.length} host(s), none rendered: ${bundleHosts.join(', ')}. All are vendored library internals except example.invalid, which is the unset Medium placeholder and is why the Medium line is not drawn.`
+      ? `0 other offsite links across ${C3_ROUTES.length} routes; the one allowed link: ${allowed.join(', ') || 'MISSING'}. Bundle mentions ${bundleHosts.length} host(s), none rendered: ${bundleHosts.join(', ')}. All are vendored library internals except example.invalid, which is the unset Medium placeholder and is why the Medium line is not drawn.`
       : offsiteLinks.join(' | '))
   await ctx.close()
 }

@@ -2764,3 +2764,61 @@ focused, ghosted, snipped, the value flow) shows on the map's lines, and a
 tap picks a line along its route. The geometry lives in
 `src/components/schematic.ts` with its own tests. The lattice changes
 where nodes sit on the flat map only; no figure, weight or edge changes.
+
+### 99. Round three: readable names, lines you can follow, a slower leaving, and the paper
+
+**Names you can read.** On the flat map every label now keeps one size on
+screen whatever the zoom: 11 px for a use case, 12.5 for a platform, a
+touch smaller on a phone. Where two names would print over each other,
+one gives way, in order: the chosen node and its neighbours, then the
+platforms, busiest first, then the use cases. Zooming in makes room and
+the names come back. This follows the usual map practice of thinning
+labels by priority rather than shrinking them. Hovering any node names it
+large beside the node, in a chip that grows out of the map, with its
+domain's colour for a use case. That replaces the library's small
+tooltip, and works for names the map has thinned out. In 3D use case
+names are a fifth larger than before.
+
+**Lines you can follow.** On the transit map a tapped line, or a chosen
+station's lines, keep their own colour, widen, and are drawn over every
+other line where tracks are shared; the rest step back underneath. In
+the value flow picture the map carries its own moving dots along each
+route, as many and as quick as the work the line carries, with a dark rim
+so a dot shows on a line of its own colour.
+
+**Leaving, slowly.** The two shapes' leaving row plays in three
+movements: the exit and what rides it are marked while the rest steps
+back a little; the scissors cut its lines one at a time; then it slides
+slowly away and fades, and what rode it is stranded. It stays gone until
+the row changes. The camera stays the reader's throughout, in 2D and 3D.
+
+**The line redrawn.** On the move beat the decision card no longer hangs
+under the use case it describes. It parks in the free corner furthest
+from the node, and a dashed leader runs from a ring on the node to the
+card, following the node as it crosses into its new domain.
+
+**The ledger book.** It starts under the story card, right edges
+aligned, tucking partly beneath a tall card. Pressing any part that shows
+brings it forward over the card and carries it; pressing anywhere else
+sends it back.
+
+**The 2D and 3D switch** shows only where there is a graph to fold: not
+on tabs 7 and 8, and not on story beats whose picture covers a blank
+canvas.
+
+**The prologue drawing** has its own lighter ink on a dark canvas and
+settles less far, so it reads as clearly as the map beside it.
+
+**Tab 7** now leads with "Moving beyond theory" and says plainly that the
+ledger needs testing on real companies, not just reading.
+
+**Tab 8, Read the paper.** The canonical thesis, v2.1d, read in place.
+The PDF travels inside the build and pdf.js draws it page by page as the
+pages near the view, with selectable text, a page counter, zoom, and, on
+a dark canvas, light on dark pages that can be switched back to paper.
+pdf.js's parser runs in a classic worker made from its own source,
+because a module worker from a blob will not start from disk or in a
+sandboxed frame. Below the pages is the one link off the site, to the
+archive record, which always resolves to the latest version. Acceptance
+check C3 now allows exactly that link on that page and nothing else. The
+build grows from about 2 MB to about 4 MB.
