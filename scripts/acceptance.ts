@@ -284,11 +284,11 @@ const BEAT_HEADING: Record<number, string> = {
 }
 const NO_CARD = new Set([0, 1, 7, 8, 17, 18, 24, 25])
 // Long enough for each beat's own animations to finish before the card is
-// read: 4 and 6 draw their maps, 26 wires the book, 27 counts the meter, 30 adds riders for 3s, 31 fails after 0.9s, 33 sweeps for about 4s, 34 runs the months for 3.2s.
-const BEAT_SETTLE: Record<number, number> = { 4: 3200, 6: 3000, 26: 3000, 27: 3000, 30: 3600, 31: 2800, 33: 5000, 34: 4200, 36: 11000, 38: 8600 }
+// read: 4 and 6 draw their maps, 27 wires the book, 28 counts the meter, 31 adds riders for 3s, 32 fails after 0.9s, 34 sweeps for about 4s, 35 runs the months for 3.2s.
+const BEAT_SETTLE: Record<number, number> = { 4: 3200, 6: 3000, 27: 3000, 28: 3000, 31: 3600, 32: 2800, 34: 5000, 35: 4200, 37: 11000, 39: 8600 }
 const LAST = 41
 const HOW_GRAPH = 6
-const DIVERSIFY = 36
+const DIVERSIFY = 37
 const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   if (i === 0) await page.locator('.overlay-welcome').click()
   else if (NO_CARD.has(i)) await page.keyboard.press('ArrowRight')
@@ -340,7 +340,7 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   await page.waitForSelector('.story')
   const overlaps: string[] = []
   let measured = 0
-  for (let n = 25; n <= LAST; n++) {
+  for (let n = 26; n <= LAST; n++) {
     await page.waitForTimeout(BEAT_SETTLE[n] ?? 1300)
     const card = await page.locator('.story').boundingBox()
     const pos = await page.evaluate(() => document.documentElement.dataset.selectedScreen ?? null)
