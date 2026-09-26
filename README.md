@@ -2822,3 +2822,10 @@ sandboxed frame. Below the pages is the one link off the site, to the
 archive record, which always resolves to the latest version. Acceptance
 check C3 now allows exactly that link on that page and nothing else. The
 build grows from about 2 MB to about 4 MB.
+
+The bundle now carries the PDF and a wasm module inside pdf.js as base64.
+A long run of random base64 letters happened to spell TCO four times and
+one retired product name once, so checks 7 and N4 failed on letters no one
+reads. Both now set aside base64 runs of 400 or more characters before
+searching, and check 7 prints how many runs and how much it set aside.
+The rendered-text half of N4 is unchanged.
