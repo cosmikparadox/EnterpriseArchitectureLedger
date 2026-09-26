@@ -200,11 +200,13 @@ export function cameraBlend(
   c: number, fov3: number, halfView3: number, halfView2: number,
   target3: [number, number, number], target2: [number, number, number],
   out: { pos: number[]; target: number[]; up: number[]; fov: number; dist: number },
+  /** The tilt's own progress, when it runs on a different clock from the lens. Defaults to c. */
+  tiltC: number = c,
 ): void {
   const fov = Math.exp(Math.log(fov3) * (1 - c) + Math.log(FLAT_FOV) * c)
   const half = halfView3 + (halfView2 - halfView3) * c
   const dist = half / Math.tan((fov * Math.PI) / 360)
-  const tilt = FOLD_READY_TILT * (1 - c)
+  const tilt = FOLD_READY_TILT * (1 - tiltC)
   for (let k = 0; k < 3; k++) out.target[k] = target3[k]! + (target2[k]! - target3[k]!) * c
   out.pos[0] = out.target[0]!
   out.pos[1] = out.target[1]! - dist * Math.sin(tilt)

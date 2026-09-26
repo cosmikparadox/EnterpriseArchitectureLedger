@@ -2135,7 +2135,11 @@ export function Graph3D(props: Graph3DProps) {
     halfView3: 1, halfView2: 1, target2: [0, 0, 0] as [number, number, number], unfoldTarget: [0, 0, 0] as [number, number, number],
     labels: [] as SpriteText[],
     dts: new Float32Array(512), dtCount: 0,
-    hulls: [] as { attr: THREE.BufferAttribute; map: Int32Array }[],
+    hulls: [] as { attr: THREE.BufferAttribute; map: Int32Array; mat: THREE.Material; base: number }[],
+    /** Which motion is running: the origami fold down, or the lift up from the middle. */
+    kind: 'fold' as 'fold' | 'lift',
+    /** For the lift: each node's distance from the middle of the flat map, 0 to 1, and the middle itself. */
+    dist: new Float32Array(0), centre: [0, 0] as [number, number], liftH: 1,
     pointNode: new Int32Array(0), pointOff: new Int8Array(0),
   })
   const qFrom = useRef(new THREE.Quaternion())
@@ -2176,11 +2180,11 @@ export function Graph3D(props: Graph3DProps) {
     }
     F.pointNode = Int32Array.from(pointNode)
     F.pointOff = Int8Array.from(pointOff)
-    const tie = (geom: THREE.BufferGeometry) => {
+    const tie = (geom: THREE.BufferGeometry, mat: THREE.Material) => {
       const attr = geom.getAttribute('position') as THREE.BufferAttribute
       const map = new Int32Array(attr.count)
       for (let v = 0; v < attr.count; v++) map[v] = lookup.get(keyOf(attr.getX(v), attr.getY(v), attr.getZ(v))) ?? -1
-      F.hulls.push({ attr, map })
+      F.hulls.push({ attr, map, mat, base: mat.opacity })
     }
     for (const [sub, pts] of bySub) {
       if (pts.length < 8) continue
@@ -2193,14 +2197,14 @@ export function Graph3D(props: Graph3DProps) {
       hull.frustumCulled = false
       hull.userData.subdomain = sub
       group.add(hull)
-      tie(geom)
+      tie(geom, mat)
       const edges = new THREE.EdgesGeometry(geom, 24)
       const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: HULL_EDGE * alpha, depthWrite: false }))
       wire.frustumCulled = false
       wire.userData.subdomain = sub
       wire.userData.edge = true
       group.add(wire)
-      tie(edges)
+      tie(edges, wire.material as THREE.Material)
     }
   }
 
@@ -2233,7 +2237,122 @@ export function Graph3D(props: Graph3DProps) {
     const o = blendOut.current
     cameraBlend(c, FOV_3D, F.halfView3, F.halfView2, ORIGIN, F.dir === 1 ? F.target2 : F.unfoldTarget, o)
     setCamera({ x: o.pos[0]!, y: o.pos[1]!, z: o.pos[2]! }, { x: o.target[0]!, y: o.target[1]!, z: o.target[2]! }, { x: o.up[0]!, y: o.up[1]!, z: o.up[2]! }, o.fov, o.dist)
+    // As the pieces come down, their shadows close in beneath them.
+    updateShadows(c * c)
   }
+
+  // ---- the lift ----
+  //
+  // Flat to 3D, the other way: as if a hand took the map by its middle and
+  // lifted. The middle rises first; everything further out follows later,
+  // hanging below it and drawn in towards it, the lines taut like strings
+  // while the domains' membranes thin. Each node casts a soft shadow on the
+  // table it left, offset and blurred by its height. The camera stays
+  // overhead for the first part of the lift, so the shadows carry the depth,
+  // then swings up into the fold-ready pose as the nodes settle into place.
+  const LIFT_MS = 1350
+  function applyLift(tau: number) {
+    const F = fold.current
+    const { p3, p2, nodes, dist, centre, liftH } = F
+    const u = Math.min(1, Math.max(0, tau / F.total))
+    const rise = Math.sin(Math.PI * u)
+    for (let i = 0; i < nodes.length; i++) {
+      const d = dist[i]!
+      // Further out starts later: it is pulled up by what it hangs from.
+      const s0 = 0.34 * d
+      const e = easeInOut(Math.min(1, Math.max(0, (u - s0) / (1 - s0))))
+      // Hanging: lower the further from the hand, and drawn in towards it.
+      const hang = liftH * rise * Math.pow(1 - d, 1.3)
+      const pull = rise * 0.16 * d
+      const fx = p2[i * 3]! + (centre[0] - p2[i * 3]!) * pull
+      const fy = p2[i * 3 + 1]! + (centre[1] - p2[i * 3 + 1]!) * pull
+      const n = nodes[i]!
+      n.x = n.fx = fx + (p3[i * 3]! - fx) * e
+      n.y = n.fy = fy + (p3[i * 3 + 1]! - fy) * e
+      n.z = n.fz = p3[i * 3 + 2]! * e + hang
+    }
+    const pn = F.pointNode, po = F.pointOff
+    const membrane = 1 - 0.72 * rise
+    for (const h of F.hulls) {
+      const arr = h.attr.array as Float32Array
+      for (let v = 0; v < h.map.length; v++) {
+        const pi = h.map[v]!
+        if (pi < 0) continue
+        const n = nodes[pn[pi]!]!, o = OFFSETS[po[pi]!]!
+        arr[v * 3] = (n.x ?? 0) + o[0]; arr[v * 3 + 1] = (n.y ?? 0) + o[1]; arr[v * 3 + 2] = (n.z ?? 0) + o[2]
+      }
+      h.attr.needsUpdate = true
+      h.mat.opacity = h.base * membrane
+    }
+    // Perspective arrives first, still looking straight down, so the lifted
+    // middle swells towards the reader; then the camera tilts up into the
+    // fold-ready pose while the nodes settle.
+    const lens = 1 - easeInOut(Math.min(1, Math.max(0, u / 0.45)))
+    const tilt = 1 - easeInOut(Math.min(1, Math.max(0, (u - 0.38) / 0.62)))
+    const o = blendOut.current
+    cameraBlend(lens, FOV_3D, F.halfView3, F.halfView2, ORIGIN, F.unfoldTarget, o, tilt)
+    setCamera({ x: o.pos[0]!, y: o.pos[1]!, z: o.pos[2]! }, { x: o.target[0]!, y: o.target[1]!, z: o.target[2]! }, { x: o.up[0]!, y: o.up[1]!, z: o.up[2]! }, o.fov, o.dist)
+    updateShadows(tilt * tilt)
+  }
+
+  // Soft shadows on the table under the map, one per node, made once and
+  // reused. Only seen while the camera looks down on the table.
+  const shadows = useRef<{ group: THREE.Group; meshes: Map<string, THREE.Mesh>; tex: THREE.Texture; geom: THREE.PlaneGeometry } | null>(null)
+  function shadowFor(id: string): THREE.Mesh {
+    const g = gRef.current
+    if (!shadows.current) {
+      const cv = document.createElement('canvas')
+      cv.width = cv.height = 64
+      const x = cv.getContext('2d')!
+      const grad = x.createRadialGradient(32, 32, 0, 32, 32, 32)
+      grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.55)'); grad.addColorStop(1, 'rgba(0,0,0,0)')
+      x.fillStyle = grad; x.fillRect(0, 0, 64, 64)
+      const group = new THREE.Group()
+      group.renderOrder = -1
+      g.scene().add(group)
+      shadows.current = { group, meshes: new Map(), tex: new THREE.CanvasTexture(cv), geom: new THREE.PlaneGeometry(1, 1) }
+    }
+    const S = shadows.current
+    let m = S.meshes.get(id)
+    if (!m) {
+      m = new THREE.Mesh(S.geom, new THREE.MeshBasicMaterial({ map: S.tex, color: '#000000', transparent: true, opacity: 0, depthWrite: false }))
+      m.raycast = () => {}
+      m.renderOrder = -1
+      S.group.add(m)
+      S.meshes.set(id, m)
+    }
+    return m
+  }
+  function updateShadows(vis: number) {
+    const F = fold.current
+    const H = Math.max(1, F.liftH)
+    const strength = propsRef.current.dark ? 0.55 : 0.3
+    for (const n of F.nodes) {
+      const m = shadowFor(n.id)
+      const h = n.z ?? 0
+      const o = objs.current.get(n.id)
+      const shown = vis > 0.02 && h > -2 && (o?.mesh.visible ?? true)
+      m.visible = shown
+      if (!shown) continue
+      const k = Math.min(1, Math.max(0, h) / H)
+      const size = n.val * 2.8 * (1 + 1.6 * k)
+      m.position.set((n.x ?? 0) + h * 0.22, (n.y ?? 0) - h * 0.3, -6)
+      m.scale.set(size, size, 1)
+      ;(m.material as THREE.MeshBasicMaterial).opacity = strength * vis * (1 - 0.6 * k) * (o ? o.solid.opacity : 1)
+    }
+  }
+  function hideShadows() {
+    if (shadows.current) shadows.current.group.visible = false
+  }
+  function showShadows() {
+    if (shadows.current) shadows.current.group.visible = true
+  }
+  useEffect(() => () => {
+    const S = shadows.current
+    if (!S) return
+    for (const m of S.meshes.values()) (m.material as THREE.Material).dispose()
+    S.geom.dispose(); S.tex.dispose()
+  }, [])
 
   function setLabelOpacity(a: number) {
     for (const l of fold.current.labels) (l.material as THREE.SpriteMaterial).opacity = a
@@ -2302,6 +2421,13 @@ export function Graph3D(props: Graph3DProps) {
       F.unfoldTarget = [t.x, t.y, 0]
       F.halfView2 = cam.position.distanceTo(t) * Math.tan((cam.fov * Math.PI) / 360)
     } else F.unfoldTarget = fr.target2
+    // For the lift: how far each node lies from the middle of the flat map.
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity
+    for (let i = 0; i < nodes.length; i++) { x0 = Math.min(x0, F.p2[i * 3]!); x1 = Math.max(x1, F.p2[i * 3]!); y0 = Math.min(y0, F.p2[i * 3 + 1]!); y1 = Math.max(y1, F.p2[i * 3 + 1]!) }
+    F.centre = [(x0 + x1) / 2, (y0 + y1) / 2]
+    const far = Math.max(1, ...nodes.map((_, i) => Math.hypot(F.p2[i * 3]! - F.centre[0], F.p2[i * 3 + 1]! - F.centre[1])))
+    F.dist = Float32Array.from(nodes.map((_, i) => Math.hypot(F.p2[i * 3]! - F.centre[0], F.p2[i * 3 + 1]! - F.centre[1]) / far))
+    F.liftH = far * 0.7
     F.labels = [...objs.current.values()].flatMap((o) => (o.label ? [o.label] : []))
     for (const l of F.labels) { const base = l.userData.base as THREE.Vector3 | undefined; if (base) l.scale.copy(base) }
     labelK.current = 1
@@ -2337,7 +2463,8 @@ export function Graph3D(props: Graph3DProps) {
     const F = fold.current
     // A tap mid-fold turns it round from where it is. Never a queue, never a jump.
     if (foldOn.current) {
-      const dir = to === '2d' ? 1 : -1
+      // The lift runs towards 3D; the fold runs towards 2D.
+      const dir = F.kind === 'lift' ? (to === '3d' ? 1 : -1) : (to === '2d' ? 1 : -1)
       if (F.phase === 'turn') F.turnDir = dir
       F.dir = dir
       return
@@ -2356,8 +2483,12 @@ export function Graph3D(props: Graph3DProps) {
     // each frame while the fold runs; every node is pinned, so it lays
     // nothing out.
     foldEngine(true)
-    F.dir = to === '2d' ? 1 : -1
-    F.tau = to === '2d' ? 0 : F.total
+    // Down is the origami fold; up is the lift from the middle.
+    F.kind = to === '2d' ? 'fold' : 'lift'
+    if (F.kind === 'lift') F.total = LIFT_MS
+    F.dir = 1
+    F.tau = 0
+    showShadows()
     F.labelT0 = performance.now()
     F.last = performance.now()
     if (to === '2d') {
@@ -2423,9 +2554,15 @@ export function Graph3D(props: Graph3DProps) {
       return
     }
     F.tau = Math.min(F.total, Math.max(0, F.tau + dt * F.dir))
-    applyFold(F.tau)
-    if (F.dir === 1 && F.tau >= F.total) { endFold('2d'); return }
-    if (F.dir === -1 && F.tau <= 0) { endFold('3d'); return }
+    if (F.kind === 'lift') {
+      applyLift(F.tau)
+      if (F.dir === 1 && F.tau >= F.total) { endFold('3d'); return }
+      if (F.dir === -1 && F.tau <= 0) { endFold('2d'); return }
+    } else {
+      applyFold(F.tau)
+      if (F.dir === 1 && F.tau >= F.total) { endFold('2d'); return }
+      if (F.dir === -1 && F.tau <= 0) { endFold('3d'); return }
+    }
     foldRaf.current = requestAnimationFrame(foldStep)
   }
 
@@ -2435,6 +2572,7 @@ export function Graph3D(props: Graph3DProps) {
     // A turn taken back ends where the reader's camera was, not at the pose.
     const unfolded = F.phase === 'fold'
     foldRaf.current = 0
+    hideShadows()
     F.phase = 'idle'
     modeRef.current = to
     foldOn.current = false
@@ -2517,12 +2655,15 @@ export function Graph3D(props: Graph3DProps) {
       p3: () => Object.fromEntries(live3.current),
       p2: () => Object.fromEntries(live2.current),
       /** Hold the fold at a progress, 0 standing to 1 flat, for a still. */
-      hold: (p: number) => {
+      hold: (p: number, kind: 'fold' | 'lift' = 'fold') => {
         const g = gRef.current
         if (!g || !lay.current) return
         if (foldRaf.current) { cancelAnimationFrame(foldRaf.current); foldRaf.current = 0 }
         if (!foldOn.current) {
-          prepareFold('2d')
+          prepareFold(kind === 'lift' ? '3d' : '2d')
+          fold.current.kind = kind
+          if (kind === 'lift') fold.current.total = LIFT_MS
+          showShadows()
           foldOn.current = true
           g.enablePointerInteraction(false)
           applyParticles.current()
@@ -2533,7 +2674,7 @@ export function Graph3D(props: Graph3DProps) {
         fold.current.phase = 'fold'
         fold.current.tau = p * fold.current.total
         setLabelOpacity(p <= 0 ? 1 : 0)
-        applyFold(fold.current.tau)
+        if (fold.current.kind === 'lift') applyLift(fold.current.tau); else applyFold(fold.current.tau)
       },
       release: (to: '2d' | '3d') => { if (foldOn.current) endFold(to) },
       forceFold: (on: boolean) => { forceFold.current = on; if (on) slowFolds = false },
