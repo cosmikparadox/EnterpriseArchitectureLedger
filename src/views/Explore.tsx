@@ -73,6 +73,20 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
     if (!scene.hulls) for (const sd of estate.subdomains) hulls.add(sd.id)
     return { dim, hide, hulls }
   }, [inStory, scene, estate])
+  // The story's rule of focus: a beat that picks a node is about that node,
+  // so the picture keeps it and what it touches and everything else steps
+  // well back. A use case keeps its platforms; a platform keeps its riders.
+  const storyFocus = useMemo(() => {
+    if (!inStory || !selectedId) return null
+    const nodes = new Set<string>([selectedId])
+    const u = ix.useCaseById.get(selectedId)
+    if (u) for (const e of u.edges) nodes.add(e.platform_id)
+    for (const r of ix.ridersOf.get(selectedId) ?? []) nodes.add(r.uc.id)
+    return { nodes }
+  }, [inStory, selectedId, ix])
+  // A beat with the lines up and nothing picked is about the lines: the
+  // names step back so the lines carry it.
+  const quietLabels = inStory && !selectedId && scene.links
   const callout = useMemo(() => {
     if (!inStory || !scene.callout) return null
     if (scene.callout.kind === 'hull' && scene.callout.id === '') {
@@ -258,7 +272,8 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           preferLines={inStory}
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
-          focus={!inStory && walk ? walkFocus : null}
+          focus={inStory ? storyFocus : walk ? walkFocus : null}
+          quietLabels={quietLabels}
           selectedLink={inStory ? null : selectedLink}
           flow={flow}
           reducedMotion={reduced}

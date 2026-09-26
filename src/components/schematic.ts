@@ -11,28 +11,52 @@
 /** The lattice spacing, in world units. */
 export const GRID = 16
 
+/** How far apart stations must stand, and where their names run. */
+export interface SnapOptions {
+  /** Free cells required between two stations, beyond their own clearance. Default 1: neighbours may touch corners. */
+  gap?: number
+  /**
+   * Per node, how many cells its name runs up and to the right at 45
+   * degrees; 0 for none. A station is kept off another's name, and its own
+   * name off other stations, where a spot within a few rings allows it.
+   */
+  labelRun?: Uint8Array
+}
+
 /**
  * Snap flat positions to the lattice. `xy` holds x and y per node; `cells`
  * is each node's clearance in cells (0 for a small station, 1 for a large
  * interchange); `order` is the placing order. A node marked in `fixed` keeps
  * the lattice point it already has. Returns snapped x and y per node.
  */
-export function snapToGrid(xy: Float32Array, cells: Uint8Array, order: number[], fixed?: Uint8Array, grid = GRID): Float32Array {
+export function snapToGrid(xy: Float32Array, cells: Uint8Array, order: number[], fixed?: Uint8Array, grid = GRID, opts: SnapOptions = {}): Float32Array {
   const n = cells.length
+  const gap = opts.gap ?? 1
+  const runs = opts.labelRun
   const out = new Float32Array(n * 2)
-  const placed: { cx: number; cy: number; r: number }[] = []
-  const free = (cx: number, cy: number, r: number) => placed.every((p) => Math.max(Math.abs(cx - p.cx), Math.abs(cy - p.cy)) >= r + p.r + 1)
+  const placed: { cx: number; cy: number; r: number; run: number }[] = []
+  const free = (cx: number, cy: number, r: number) => placed.every((p) => Math.max(Math.abs(cx - p.cx), Math.abs(cy - p.cy)) >= r + p.r + gap)
+  // Clear of names: no placed station on this one's name, and this one not
+  // on any placed station's name.
+  const clearOfNames = (cx: number, cy: number, r: number, run: number) => {
+    for (const p of placed) {
+      for (let k = 1; k <= run; k++) if (Math.max(Math.abs(cx + k - p.cx), Math.abs(cy + k - p.cy)) <= p.r) return false
+      for (let k = 1; k <= p.run; k++) if (Math.max(Math.abs(p.cx + k - cx), Math.abs(p.cy + k - cy)) <= r) return false
+    }
+    return true
+  }
   if (fixed) for (let i = 0; i < n; i++) if (fixed[i]) {
     const cx = Math.round(xy[i * 2]! / grid), cy = Math.round(xy[i * 2 + 1]! / grid)
-    placed.push({ cx, cy, r: cells[i]! })
+    placed.push({ cx, cy, r: cells[i]!, run: runs?.[i] ?? 0 })
     out[i * 2] = cx * grid; out[i * 2 + 1] = cy * grid
   }
   for (const i of order) {
     if (fixed?.[i]) continue
     const tx = xy[i * 2]! / grid, ty = xy[i * 2 + 1]! / grid
-    const r = cells[i]!
-    let best: [number, number] | null = null
-    for (let ring = 0; ring < 60 && !best; ring++) {
+    const r = cells[i]!, run = runs?.[i] ?? 0
+    let best: [number, number] | null = null, bestRing = -1
+    let tidy: [number, number] | null = null
+    for (let ring = 0; ring < 60 && !(tidy || (best && ring > bestRing + 3)); ring++) {
       const x0 = Math.round(tx), y0 = Math.round(ty)
       const cand: [number, number, number][] = []
       for (let dx = -ring; dx <= ring; dx++) for (let dy = -ring; dy <= ring; dy++) {
@@ -41,10 +65,14 @@ export function snapToGrid(xy: Float32Array, cells: Uint8Array, order: number[],
         cand.push([cx, cy, Math.hypot(cx - tx, cy - ty)])
       }
       cand.sort((a, b) => a[2] - b[2] || a[0] - b[0] || a[1] - b[1])
-      for (const [cx, cy] of cand) if (free(cx, cy, r)) { best = [cx, cy]; break }
+      for (const [cx, cy] of cand) {
+        if (!free(cx, cy, r)) continue
+        if (!best) { best = [cx, cy]; bestRing = ring }
+        if (!runs || clearOfNames(cx, cy, r, run)) { tidy = [cx, cy]; break }
+      }
     }
-    const [cx, cy] = best ?? [Math.round(tx), Math.round(ty)]
-    placed.push({ cx, cy, r })
+    const [cx, cy] = tidy ?? best ?? [Math.round(tx), Math.round(ty)]
+    placed.push({ cx, cy, r, run })
     out[i * 2] = cx * grid; out[i * 2 + 1] = cy * grid
   }
   return out

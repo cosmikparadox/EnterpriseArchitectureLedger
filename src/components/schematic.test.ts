@@ -28,6 +28,30 @@ describe('the lattice', () => {
   })
 })
 
+describe('the lattice, spaced for names', () => {
+  // Four small stations dropped in a tight diagonal, each with a name that
+  // runs two cells up and to the right.
+  const xy = new Float32Array([0, 0, 16, 16, 32, 32, 48, 48])
+  const cells = new Uint8Array([0, 0, 0, 0])
+  const out = snapToGrid(xy, cells, [0, 1, 2, 3], undefined, GRID, { gap: 2, labelRun: new Uint8Array([2, 2, 2, 2]) })
+  const at = (i: number) => [out[i * 2]! / GRID, out[i * 2 + 1]! / GRID] as const
+  it('keeps a free cell between any two stations', () => {
+    for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+      const [a, b] = [at(i), at(j)]
+      expect(Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]))).toBeGreaterThanOrEqual(2)
+    }
+  })
+  it('keeps every station off every other station\'s name', () => {
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) if (i !== j) for (let k = 1; k <= 2; k++) {
+      const [a, b] = [at(i), at(j)]
+      expect(a[0] + k === b[0] && a[1] + k === b[1]).toBe(false)
+    }
+  })
+  it('leaves the default spacing as it was', () => {
+    expect(snapToGrid(xy, cells, [0, 1, 2, 3])).toEqual(snapToGrid(xy, cells, [0, 1, 2, 3], undefined, GRID, {}))
+  })
+})
+
 describe('the lines', () => {
   it('draws a straight or exactly diagonal line with no bend', () => {
     expect(route([0, 0], [64, 0])).toEqual([0, 0, 64, 0])

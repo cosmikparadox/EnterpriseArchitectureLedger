@@ -7,7 +7,7 @@
 // rule D and canon 9.8.3.
 
 import type React from 'react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { firstTime } from '../app/hints'
 import { Graph3D } from '../components/Graph3D'
 import { Hint, Term, ViewName } from '../components/Hint'
@@ -174,8 +174,43 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   }
   const ringLeft = useMemo(() => nodeRingFor(left), [left])
   const ringRight = useMemo(() => nodeRingFor(right), [right])
+  // The reader's own cut: any platform or any line, on either shape. In the
+  // story it takes over the leaving row; outside it, it is the whole game.
+  type Pick = { side: 'left' | 'right'; nonce: number; id: string; link?: { ucId: string; platformId: string } }
+  const [pick, setPick] = useState<Pick | null>(null)
+  const pickNonce = useRef(0)
+  const setShapesPhase = useLedger((s) => s.setShapesPhase)
+  // Leaving the leaving row, or the beat, lets the default cut play next time.
+  useEffect(() => { if (inStory && phase !== 2) setPick(null) }, [inStory, phase])
+  const cutNode = (shapeSide: 'left' | 'right', shape: Shape) => (id: string) => {
+    if (!shape.ix.platformById.has(id)) return
+    if (inStory) setShapesPhase(2)
+    setPick({ side: shapeSide, nonce: ++pickNonce.current, id })
+  }
+  const cutLink = (shapeSide: 'left' | 'right') => (l: { ucId: string; platformId: string }) => {
+    if (inStory) setShapesPhase(2)
+    setPick({ side: shapeSide, nonce: ++pickNonce.current, id: l.platformId, link: { ucId: l.ucId, platformId: l.platformId } })
+  }
+  const pickNote = (shapeSide: 'left' | 'right', shape: Shape) => {
+    const pk = pick && pick.side === shapeSide ? pick : null
+    if (!pk) return (inStory ? phase === 2 : true) ? <div className="decision snip-note"><div className="decision-line">{copy.snip_hint}</div></div> : null
+    const p = shape.ix.platformById.get(pk.id)
+    if (!p) return null
+    const line = pk.link
+      ? fill(copy.snip_link, { uc: shape.ix.useCaseById.get(pk.link.ucId)?.name ?? '', platform: p.name })
+      : (() => { const n = shape.ix.ridersOf.get(p.id)?.length ?? 0; return fill(copy.snip_node, { name: p.name, n, exec: gbpAbout(workOfLeaving(p, n, AS_AT - p.adopted_month)) }) })()
+    return <div className="decision snip-note"><div className="decision-uc">{line}</div><div className="decision-line">{copy.snip_again}</div></div>
+  }
+  const pickStage = (shapeSide: 'left' | 'right', shape: Shape) => {
+    const pk = pick && pick.side === shapeSide ? pick : null
+    if (!pk) return null
+    const riders = pk.link ? [pk.link.ucId] : (shape.ix.ridersOf.get(pk.id) ?? []).map((r) => r.uc.id)
+    return { focus: { nodes: new Set([pk.id, ...riders]), soft: true }, snip: { id: pk.id, nonce: pk.nonce, link: pk.link } }
+  }
   const staged = (shape: Shape, e: ShapeEntry, ring: (n: GNode) => { meteredFrac: number } | null, visit: number) => {
-    if (!inStory) return {}
+    const shapeSide = shape === left ? 'left' : 'right'
+    const own = pickStage(shapeSide, shape)
+    if (!inStory) return own ?? {}
     const riders = (id: string) => (shape.ix.ridersOf.get(id) ?? []).map((r) => r.uc.id)
     if (phase === 0) return {
       nodeRing: ring,
@@ -192,6 +227,7 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         focus: { nodes: new Set([e.topId, ...affected]) },
       }
     }
+    if (own) return own
     // Leaving, acted out: the exit and what rides it hold their colour while
     // the rest steps back a little; its lines are snipped one by one; it
     // slides slowly away and what rode it is stranded. Replayed on every
@@ -209,9 +245,9 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
   const leaveVisits = useRef(0)
   const leaveVisit = useMemo(() => (phase === 2 ? ++leaveVisits.current : leaveVisits.current), [phase])
   const visitFor = phase === 2 ? leaveVisit : riskVisit
-  const stagedLeft = useMemo(() => staged(left, entries.left, ringLeft, visitFor), [inStory, phase, left, entries, ringLeft, visitFor, side])
+  const stagedLeft = useMemo(() => staged(left, entries.left, ringLeft, visitFor), [inStory, phase, left, entries, ringLeft, visitFor, side, pick])
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stagedRight = useMemo(() => staged(right, entries.right, ringRight, visitFor), [inStory, phase, right, entries, ringRight, visitFor, side])
+  const stagedRight = useMemo(() => staged(right, entries.right, ringRight, visitFor), [inStory, phase, right, entries, ringRight, visitFor, side, pick])
 
   const subId = useLedger((s) => s.subdomain) ?? 'claims'
   const subName = concentrated.subdomains.find((s) => s.id === subId)?.name ?? subId
@@ -285,7 +321,8 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           <Graph3D
             data={leftData} dark={dark} showHulls={false} labelMode="hubs"
             selectedId={null} isolatedSubdomain={null} flyToId={null}
-            onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
+            onSelectNode={cutNode('left', left)} onSelectLink={cutLink('left')} onBackground={() => setPick(null)}
+            note={pickNote('left', left)}
             {...stagedLeft}
           />
         </div>
@@ -300,7 +337,8 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
           <Graph3D
             data={rightData} dark={dark} showHulls={false} labelMode="hubs"
             selectedId={null} isolatedSubdomain={null} flyToId={null}
-            onSelectNode={() => {}} onSelectLink={() => {}} onBackground={() => {}}
+            onSelectNode={cutNode('right', right)} onSelectLink={cutLink('right')} onBackground={() => setPick(null)}
+            note={pickNote('right', right)}
             {...stagedRight}
           />
         </div>

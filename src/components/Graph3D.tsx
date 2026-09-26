@@ -97,6 +97,11 @@ export interface Graph3DProps {
   pokes?: { ids: string[]; text: string } | null
   /** In the story, a tap near a line takes it before a domain does. */
   preferLines?: boolean
+  /**
+   * The picture is about its lines, not its names: every label not in the
+   * focus steps back so the lines carry the beat.
+   */
+  quietLabels?: boolean
   /** The viewer dragged the canvas: the hint has done its job. */
   onGesture?: () => void
   /**
@@ -137,7 +142,11 @@ export interface Graph3DProps {
    * fades, and what rode it is left stranded, in wireframe. A new nonce
    * replays it; no snip puts everything back.
    */
-  snip?: { id: string; nonce: number } | null
+  /**
+   * The leaving act. With `link`, only that one line is cut and the use case
+   * on it is stranded; without, the node goes and every line it had.
+   */
+  snip?: { id: string; nonce: number; link?: { ucId: string; platformId: string } } | null
 }
 
 /** Nodes the layout must not push to the rim. Spec section 12: pin the identity
@@ -159,7 +168,7 @@ const hullBlend = (alpha: number): THREE.Blending => (alpha > 1 ? THREE.NormalBl
 /** Strength of the pull that keeps each part of the business in its sector. */
 const SECTOR_PULL = 0.1
 /** What a node outside the focus fades to: a trace, so the shape of the estate stays. */
-const GHOST = 0.2
+const GHOST = 0.14
 /** The value flow gradient: inside the company, an outside counterparty, a customer. */
 const FLOW_COOL = new THREE.Color('#4a7bb5')
 const FLOW_WARM = new THREE.Color('#f2a541')
@@ -291,6 +300,8 @@ interface NodeObjs {
   label: SpriteText | null
   /** Whether the state wants the label shown; on the flat map, room decides. */
   labelWanted?: boolean
+  /** How strongly the label reads, from the hierarchy: 1 in focus, less out of it. */
+  labelAlpha?: number
   ringSprite: THREE.Sprite | null
   colour: string
   /** Opacity tween: where it started, where it is going, and when it began. */
@@ -1161,7 +1172,12 @@ export function Graph3D(props: Graph3DProps) {
       if (ka === 0) return (B.riders ?? 0) - (A.riders ?? 0) || A.id.localeCompare(B.id)
       return domains.indexOf(A.subdomain ?? '') - domains.indexOf(B.subdomain ?? '') || A.id.localeCompare(B.id)
     })
-    const out = snapToGrid(arr, cells, order, fx)
+    // A clear cell between any two stations, and each use case's name, which
+    // runs up and to the right, kept clear of other stations where a spot a
+    // few rings out allows it. The length is the name's, at the flat map's
+    // usual scale: about eight characters to a diagonal cell.
+    const runs = new Uint8Array(list.map((m) => (m.kind === 'use_case' ? Math.min(4, Math.ceil(m.name.length / 8)) : 0)))
+    const out = snapToGrid(arr, cells, order, fx, undefined, { gap: 2, labelRun: runs })
     return new Map(list.map((m, i) => [m.id, [out[i * 2]!, out[i * 2 + 1]!] as [number, number]]))
   }
 
@@ -1369,6 +1385,14 @@ export function Graph3D(props: Graph3DProps) {
         // comparison, so they are set larger than on a screen where everything
         // is named.
         label.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 3 : 4.2
+        // A halo in the canvas colour round every letter, as a printed map
+        // sets its names: a line passing under a name breaks around it
+        // rather than striking through it.
+        label.strokeWidth = 3
+        label.strokeColor = dark ? '#0f1114' : '#ececea'
+        // Room either side for the halo; the type exports padding as a number
+        // though the library takes [x, y].
+        ;(label as unknown as { padding: number[] }).padding = [1.6, 0.3]
         label.position.set(0, r + 3.4, 0)
         label.visible = false
         label.userData.base = label.scale.clone()
@@ -1379,10 +1403,14 @@ export function Graph3D(props: Graph3DProps) {
         // Built while the map is flat: set as the flat map sets its names,
         // and sized by the next frame.
         labelK.current = 0
-        if (modeRef.current === '2d' && !foldOn.current && n.kind === 'use_case') {
-          label.center.set(0, 0.5)
-          ;(label.material as THREE.SpriteMaterial).rotation = Math.PI / 4
-          label.position.set(r * 0.8 + 1, r * 0.8 + 1, 0)
+        if (modeRef.current === '2d' && !foldOn.current) {
+          label.renderOrder = 20
+          ;(label.material as THREE.SpriteMaterial).depthTest = false
+          if (n.kind === 'use_case') {
+            label.center.set(0, 0.5)
+            ;(label.material as THREE.SpriteMaterial).rotation = Math.PI / 4
+            label.position.set(r * 0.8 + 1, r * 0.8 + 1, 0)
+          }
         }
         label.userData.px = labelMode === 'hubs' ? 13 : n.kind === 'use_case' ? 10 : 11.5
         label.userData.r = r
@@ -1513,6 +1541,11 @@ export function Graph3D(props: Graph3DProps) {
     dimmed: (n: GNode) => boolean
   }>({ neighbours: new Set(), dimmed: () => false })
 
+  /** A label's opacity: the fold's fade times the hierarchy's weight. */
+  const paintLabel = (o: NodeObjs) => {
+    if (!o.label) return
+    ;(o.label.material as THREE.SpriteMaterial).opacity = labelFade.current * (o.labelAlpha ?? 1)
+  }
   const applyNodeState = (n: GNode, o: NodeObjs, instant: boolean) => {
     const { labelMode, selectedId } = propsRef.current
     const { neighbours, dimmed } = stateCtx.current
@@ -1528,7 +1561,7 @@ export function Graph3D(props: Graph3DProps) {
     // A snipped exit belongs to the snip while it leaves, and stays gone
     // after, whatever else repaints the picture.
     const sn = snipState.current
-    if (sn.id === n.id && (sn.phase === 'go' || sn.gone)) {
+    if (sn.id === n.id && !sn.only && (sn.phase === 'go' || sn.gone)) {
       if (sn.gone) { o.solid.opacity = 0; o.mesh.visible = false; o.halo.visible = false; o.ring.visible = false; o.labelWanted = false; if (o.label) o.label.visible = false }
       return
     }
@@ -1556,6 +1589,15 @@ export function Graph3D(props: Graph3DProps) {
         : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
         : false
       if (was !== o.labelWanted) labelEpoch.current++
+      // The hierarchy. In focus, chosen, or next to the chosen node: full.
+      // A choice made elsewhere: the rest step well back. Nothing chosen:
+      // platforms nearly full, use cases quieter, and on a beat about the
+      // lines every name outside the focus steps back again.
+      const inFocus = !!f && f.nodes.has(n.id)
+      const uc = n.kind === 'use_case'
+      let a = inFocus || isSel || isNeighbour ? 1 : selectedId ? (uc ? 0.3 : 0.5) : uc ? 0.62 : 0.9
+      if (propsRef.current.quietLabels && !inFocus && !isSel) a *= 0.45
+      if (o.labelAlpha !== a) { o.labelAlpha = a; paintLabel(o); labelEpoch.current++ }
       // On the flat map the thinning decides what shows; elsewhere the state.
       if (!(modeRef.current === '2d' && !foldOn.current)) o.label.visible = o.labelWanted
       else if (!o.labelWanted) o.label.visible = false
@@ -1690,7 +1732,7 @@ export function Graph3D(props: Graph3DProps) {
       const base = linkColourBase(raw)
       const l = raw as GLink
       const cut = snipState.current
-      if (cut.id && (l.platformId === cut.id || l.ucId === cut.id)) {
+      if (cut.id && (cut.only ? `${l.ucId}>${l.platformId}` === cut.only : l.platformId === cut.id || l.ucId === cut.id)) {
         // Marked: the lines about to go stand out. Then each line, once cut,
         // hangs slack, and all of them fade as the node leaves.
         const hot = schemOn() ? base : dark ? '#e7eaef' : '#2b3038'
@@ -1705,7 +1747,7 @@ export function Graph3D(props: Graph3DProps) {
       const l = raw as GLink & { __litAt?: number }
       const key = `${l.ucId}>${l.platformId}`
       if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
-      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return focus.soft ? (schemOn() ? withAlpha(lineColour(l), 0.4) : dark ? '#3c424b' : '#c6c8cb') : dark ? '#2a2f37' : '#dcdcd8'
+      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return focus.soft ? (schemOn() ? withAlpha(lineColour(l), 0.4) : dark ? '#3c424b' : '#c6c8cb') : dark ? '#1f2329' : '#e1e1de'
       if (props.flow) return flowColour(props.flow.warmth.get(l.ucId) ?? 0)
       // On the transit map a chosen line, or a chosen station's lines, keep
       // their own colour and the rest step back, so a line can be followed
@@ -1755,7 +1797,7 @@ export function Graph3D(props: Graph3DProps) {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
-      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark, props.selectedLink])
+      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark, props.selectedLink, props.quietLabels])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
@@ -2008,6 +2050,14 @@ export function Graph3D(props: Graph3DProps) {
       if (on) { l.center.set(0, 0.5); mat.rotation = Math.PI / 4; l.position.set(r * 0.8 + 1, r * 0.8 + 1, 0) }
       else { l.center.set(0.5, 0.5); mat.rotation = 0; l.position.set(0, r + 3.4, 0) }
     }
+    // On the flat map every name is drawn after the lines and over them, its
+    // halo clearing a path; in 3D names sit in depth with everything else.
+    for (const o of objs.current.values()) {
+      const l = o.label
+      if (!l) continue
+      l.renderOrder = on ? 20 : 0
+      ;(l.material as THREE.SpriteMaterial).depthTest = !on
+    }
     // Off the map, every label the state wants is back; the map thins them.
     if (!on) for (const o of objs.current.values()) if (o.label) o.label.visible = !!o.labelWanted
   }
@@ -2117,11 +2167,11 @@ export function Graph3D(props: Graph3DProps) {
   // the reader's throughout. All of it is undone the moment the snip is
   // taken away.
   type SnipPhase = 'mark' | 'cut' | 'go'
-  const snipState = useRef<{ id: string; phase: SnipPhase; cut: Set<string>; fade: number; stranded: Set<string>; gone?: boolean }>({ id: '', phase: 'go', cut: new Set(), fade: 0, stranded: new Set() })
+  const snipState = useRef<{ id: string; phase: SnipPhase; cut: Set<string>; fade: number; stranded: Set<string>; gone?: boolean; only?: string }>({ id: '', phase: 'go', cut: new Set(), fade: 0, stranded: new Set() })
   const linkColourRef = useRef<((raw: object) => string) | null>(null)
   const snipRaf = useRef(0)
   const snipLayer = useRef<HTMLDivElement | null>(null)
-  const snipKey = props.snip ? `${props.snip.id}#${props.snip.nonce}` : ''
+  const snipKey = props.snip ? `${props.snip.id}#${props.snip.nonce}#${props.snip.link ? `${props.snip.link.ucId}>${props.snip.link.platformId}` : ''}` : ''
   useEffect(() => {
     const g = gRef.current
     const layer = snipLayer.current
@@ -2130,7 +2180,7 @@ export function Graph3D(props: Graph3DProps) {
       const n = (g.graphData().nodes as (GNode & Positioned & { __threeObj?: THREE.Object3D })[]).find((x) => x.id === id)
       n?.__threeObj?.position.set(n.x ?? 0, n.y ?? 0, n.z ?? 0)
       const o = objs.current.get(id)
-      if (o) { o.solid.opacity = o.fadeTo; o.mesh.visible = true; if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 }
+      if (o) { o.solid.opacity = o.fadeTo; o.mesh.visible = true; paintLabel(o) }
     }
     const snip = propsRef.current.snip
     if (!g || !snip) {
@@ -2144,11 +2194,13 @@ export function Graph3D(props: Graph3DProps) {
     const nodes = g.graphData().nodes as (GNode & Positioned & { __threeObj?: THREE.Object3D })[]
     const node = nodes.find((x) => x.id === snip.id)
     if (!node || node.x === undefined) return
-    const links = (g.graphData().links as GLink[]).filter((l) => l.platformId === snip.id || l.ucId === snip.id)
-    const riders = new Set(links.map((l) => (l.platformId === snip.id ? l.ucId : l.platformId)))
+    // One line, or every line of the node.
+    const only = snip.link ? `${snip.link.ucId}>${snip.link.platformId}` : undefined
+    const links = (g.graphData().links as GLink[]).filter((l) => (only ? `${l.ucId}>${l.platformId}` === only : l.platformId === snip.id || l.ucId === snip.id))
+    const riders = only ? new Set([snip.link!.ucId]) : new Set(links.map((l) => (l.platformId === snip.id ? l.ucId : l.platformId)))
     const prev = snipState.current.id
     undo(prev)
-    snipState.current = { id: snip.id, phase: 'mark', cut: new Set(), fade: 0, stranded: new Set() }
+    snipState.current = { id: snip.id, phase: 'mark', cut: new Set(), fade: 0, stranded: new Set(), only }
     // A replay, or a new exit: both nodes take their state afresh.
     for (const id of new Set([prev, snip.id])) { const pn = nodes.find((x) => x.id === id), po = objs.current.get(id); if (pn && po) applyNodeState(pn, po, true) }
     const reduced = propsRef.current.reducedMotion || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -2196,7 +2248,7 @@ export function Graph3D(props: Graph3DProps) {
       const t = performance.now() - t0
       const S = snipState.current
       // One: marked. The exit pulses; its lines stand out.
-      if (o) o.halo.visible = t < cutsEnd && Math.floor(t / 320) % 2 === 0
+      if (o && !only) o.halo.visible = t < cutsEnd && Math.floor(t / 320) % 2 === 0
       // Two: cut, one line at a time.
       let changed = false
       for (const m of marks) {
@@ -2213,11 +2265,11 @@ export function Graph3D(props: Graph3DProps) {
       const k = easeInOut((t - cutsEnd) / T.slide)
       if (k > 0 || S.fade !== 0) { S.fade = ease((t - cutsEnd) / (T.slide * 0.8)); changed = true }
       if (changed) repaint()
-      node.__threeObj?.position.set((node.x ?? 0) + dir.x * away * k, (node.y ?? 0) + dir.y * away * k, (node.z ?? 0) + dir.z * away * k)
-      if (o && k > 0) {
+      if (!only) node.__threeObj?.position.set((node.x ?? 0) + dir.x * away * k, (node.y ?? 0) + dir.y * away * k, (node.z ?? 0) + dir.z * away * k)
+      if (o && k > 0 && !only) {
         o.solid.opacity = o.fadeTo * (1 - k)
         o.mesh.visible = o.solid.opacity > 0.01
-        if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 - k
+        if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = (1 - k) * (o.labelAlpha ?? 1)
         o.halo.visible = false; o.ring.visible = false
       }
       // What rode it is stranded, soon after it starts to leave.
@@ -2231,8 +2283,7 @@ export function Graph3D(props: Graph3DProps) {
       else {
         snipRaf.current = 0
         for (const m of marks) m.el.style.opacity = '0'
-        S.gone = true
-        if (o) applyNodeState(node, o, true)
+        if (!only) { S.gone = true; if (o) applyNodeState(node, o, true) }
       }
     }
     if (snipRaf.current) cancelAnimationFrame(snipRaf.current)
@@ -2884,8 +2935,12 @@ export function Graph3D(props: Graph3DProps) {
     S.geom.dispose(); S.tex.dispose()
   }, [])
 
+  // The fold fades every label out and back; the hierarchy sets how strongly
+  // each reads. The two multiply, so neither overwrites the other.
+  const labelFade = useRef(1)
   function setLabelOpacity(a: number) {
-    for (const l of fold.current.labels) (l.material as THREE.SpriteMaterial).opacity = a
+    labelFade.current = a
+    for (const o of objs.current.values()) paintLabel(o)
   }
 
   /** Flat, labels keep their size on screen whatever the zoom. */
@@ -2950,7 +3005,9 @@ export function Graph3D(props: Graph3DProps) {
       const l = o?.label
       if (!o || !l) continue
       if (!o.labelWanted) { l.visible = false; continue }
-      const rank = n.id === selectedId ? 0 : near.has(n.id) ? 1 : n.kind !== 'use_case' ? 2 + 1 / (1 + (n.riders ?? 0)) : 4
+      // The hierarchy decides who gives way: a name the beat is about outranks
+      // one it has stepped back.
+      const rank = (n.id === selectedId ? 0 : near.has(n.id) ? 1 : n.kind !== 'use_case' ? 2 + 1 / (1 + (n.riders ?? 0)) : 4) + (1 - (o.labelAlpha ?? 1)) * 3
       l.updateMatrixWorld()
       const v = l.getWorldPosition(labelProbe.current).project(cam)
       const ax = (v.x * 0.5 + 0.5) * W, ay = (0.5 - v.y * 0.5) * H

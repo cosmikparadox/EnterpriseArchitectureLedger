@@ -25,6 +25,7 @@ import { copy, fill, glossary, summary } from '../copy'
 import { Summary } from '../components/Summary'
 import { useLedger } from '../app/store'
 import { usePlatformSelection } from '../app/selection'
+import { ExitBadge } from '../story/Badges'
 
 export interface FootprintProps { estate: Estate; ix: Index; dark: boolean }
 
@@ -163,6 +164,13 @@ export function Footprint({ estate, ix, dark }: FootprintProps) {
           dimNodes={dimNodes}
           hideLinksOf={dimNodes}
           focus={w.focus ?? focus}
+          // While the month is the thing being moved, the work of leaving at
+          // that month sits beside the platform and grows with the handle.
+          popover={platform && now.adopted && focus ? {
+            kind: 'node',
+            id: platform.id,
+            content: <ExitBadge name={platform.name} exec={gbpAbout(now.execution)} share={now.execution / Math.max(1, at(60)?.execution ?? 1)} m={cursor} n={now.n} all={riders.length} />,
+          } : null}
           onSelectNode={(id) => { if (ix.platformById.has(id)) { setSelected(id); setCollapsed(false); setFocusing(false) } }}
           onSelectLink={() => {}}
           onBackground={() => {}}

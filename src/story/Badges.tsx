@@ -35,6 +35,24 @@ export function MeterBadge({ ix, id, reduced }: { ix: Index; id: string; reduced
   )
 }
 
+/**
+ * The work of leaving at the month under the handle, beside the platform.
+ * The bar fills towards the month 60 figure, so the handle still visibly
+ * does something after the last use case has attached: time alone grows it.
+ */
+export function ExitBadge({ name, exec, share, m, n, all }: { name: string; exec: string; share: number; m: number; n: number; all: number }) {
+  const v = { name, exec, m, n, all }
+  return (
+    <div className="badge badge-exit" data-tour="badge">
+      <div className="badge-head">{fill(copy.badge_exit_head, v)}</div>
+      <div className="badge-big">{fill(copy.badge_exit_line, v)}</div>
+      <div className="badge-bar" aria-hidden="true"><span style={{ width: `${Math.round(Math.max(0, Math.min(1, share)) * 100)}%` }} /></div>
+      <div className="badge-line">{fill(copy.badge_exit_sub, v)}</div>
+      {n === all && all > 0 && <div className="badge-line">{copy.badge_exit_after}</div>}
+    </div>
+  )
+}
+
 export function PoolBadge({ ix, id }: { ix: Index; id: string }) {
   const p = ix.platformById.get(id)
   const riders = ix.ridersOf.get(id) ?? []

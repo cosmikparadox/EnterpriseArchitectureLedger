@@ -115,13 +115,13 @@ export function WhatsNext() {
             ))}
           </ol>
         </div>
-        <p className="next-nodates">{copy.next_nodates}</p>
 
         <section className="next-intent" aria-labelledby="next-intent-h">
           <h2 id="next-intent-h">{copy.next_intent_h}</h2>
-          <p>{copy.next_intent_1} {copy.next_intent_2}</p>
-          <p>{copy.next_intent_3} {copy.next_intent_4}</p>
-          <p>{copy.next_intent_5} {copy.next_intent_6}</p>
+          <p>{copy.next_intent_1}</p>
+          <p>{copy.next_intent_2}</p>
+          <p>{copy.next_intent_3}</p>
+          <p>{copy.next_intent_4}</p>
           {CONTACT_URL && (
             <>
               <a className="next-contact" href={CONTACT_URL} target="_blank" rel="noopener noreferrer">{copy.next_contact}</a>
