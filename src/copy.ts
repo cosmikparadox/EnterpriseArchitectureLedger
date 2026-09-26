@@ -459,6 +459,18 @@ export const copy = {
     'derives nothing from it but the picture: no revenue figure, no value ' +
     'score. Those do not add, and the ledger refuses them. What the picture ' +
     'does show is where customer-facing work concentrates.',
+  b_sowhat_h: 'So what?',
+  b_sowhat: 'A tangle of systems becomes a graph, mined from what those systems actually do. And a graph can be read.',
+  b_sowhat_see: 'It shows where cost pools, where one failure spreads, and what leaving would strand. Those are the questions a CFO asks before releasing funds.',
+  b_sowhat_more:
+    'Read per use case, within a declared business domain, the graph carries ' +
+    'three measurements. Metered cost, monetary risk, and the cost of changing ' +
+    'course. They are measurements, not a verdict, and they do not add up to one ' +
+    'number. Part two shows how these decisions get made today. Part three ' +
+    'measures all three.',
+  pin_cost: 'Cost pools here',
+  pin_risk: 'A failure spreads from here',
+  pin_exit: 'Leaving strands these',
   b_busiest_h: 'The busiest node',
   b_busiest:
     'Look at what that leaves. {top} is touched by {top_riders} of the {n_uc} ' +

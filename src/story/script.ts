@@ -90,16 +90,21 @@ export const BEATS: Beat[] = [
   // ---- part 1: the architecture ----
   { part: 1, stem: 'domains', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, hint: true, callout: { kind: 'hull', id: '', text: '' } },
     card: true, enter: ({ store }) => { store.setSelectedId(null); store.setShowHulls(true) } },
-  { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, hint: true, pokes: 'useCases' }, card: true },
-  { part: 1, stem: 'platforms', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, hint: true, pokes: 'platforms' }, card: true },
-  { part: 1, stem: 'lines', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, links: true, pokes: 'lines' }, card: true },
-  { part: 1, stem: 'connectors', view: 1, overlay: null, scene: { ...PICTURE, stagger: true, pokes: 'connectors' }, card: true },
+  { part: 1, stem: 'usecases', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, hint: true, pokes: 'useCases', layer: 'useCases' }, card: true },
+  { part: 1, stem: 'platforms', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, hint: true, pokes: 'platforms', layer: 'platforms' }, card: true },
+  { part: 1, stem: 'lines', view: 1, overlay: null, scene: { ...SCENE_NONE, hulls: true, useCases: true, platforms: true, links: true, pokes: 'lines', layer: 'lines' }, card: true },
+  { part: 1, stem: 'connectors', view: 1, overlay: null, scene: { ...PICTURE, stagger: true, pokes: 'connectors', layer: 'connectors', play: 'connectors' }, card: true },
   // The value flow: every line tinted by where its work's value lands and
   // widened by how much work it carries, with the flow running along it.
-  { part: 1, stem: 'flow', view: 1, overlay: null, scene: { ...PICTURE, flow: true, pokes: 'flow' }, card: true,
+  { part: 1, stem: 'flow', view: 1, overlay: null, scene: { ...PICTURE, flow: true, pokes: 'flow', layer: 'lines' }, card: true,
     enter: ({ store }) => { store.setSelectedId(null) } },
   { part: 1, stem: 'busiest', view: 1, overlay: null, scene: { ...PICTURE }, card: true,
     enter: ({ store }) => { store.setSelectedId(IDENTITY_ID); store.setFlyToId(IDENTITY_ID) } },
+  // So what? The whole graph, no names, and the three readings it gives
+  // pinned where they come from: cost where it pools, a failure spreading,
+  // and what leaving would strand. What part three then measures.
+  { part: 1, stem: 'sowhat', view: 1, overlay: null, scene: { ...PICTURE, labels: false, play: 'sowhat' }, card: true,
+    enter: ({ store }) => { store.setSelectedId(null); store.setFlyToId('*') } },
   { part: 1, stem: '', view: 1, overlay: 'end', scene: { ...SCENE_NONE, blank: true }, card: false,
     enter: ({ store }) => { store.setSelectedId(null) } },
 
@@ -110,7 +115,7 @@ export const BEATS: Beat[] = [
   { part: 2, stem: 'silos', view: 1, overlay: 'silos', scene: { ...SCENE_NONE, blank: true }, card: true },
   // The camera is still where part one left it, close on the busiest node.
   // The graph comes back wide and slowly: the whole picture, not a corner.
-  { part: 2, stem: 'graph_today', view: 1, overlay: null, scene: { ...PICTURE, stagger: false }, card: true,
+  { part: 2, stem: 'graph_today', view: 1, overlay: null, scene: { ...PICTURE, stagger: false, labels: false }, card: true,
     enter: ({ store }) => { store.setSelectedId(null); store.setFlyToId('*') } },
   // What deciding on a colour costs, and who it lands on.
   { part: 2, stem: 'pain', view: 1, overlay: 'pain', scene: { ...SCENE_NONE, blank: true }, card: true,
@@ -203,7 +208,7 @@ export const LAST_BEAT = BEATS.length - 1
 /** Whom each card's step matters to most: the architects, the CFO, or both. */
 export const WHO: Record<string, 'arch' | 'cfo' | 'both'> = {
   opener_why: 'both', how_map: 'arch', how_work: 'both', how_graph: 'both',
-  domains: 'arch', usecases: 'both', platforms: 'arch', lines: 'arch', connectors: 'arch', flow: 'both', busiest: 'both',
+  domains: 'arch', usecases: 'both', platforms: 'arch', lines: 'arch', connectors: 'arch', flow: 'both', busiest: 'both', sowhat: 'cfo',
   docs: 'arch', matrix: 'both', silos: 'cfo', graph_today: 'arch', pain: 'both',
   why: 'both', mine: 'arch', meter: 'cfo', pool: 'cfo', rule: 'cfo', crowd: 'cfo',
   fail: 'both', together: 'cfo', rho: 'both', grow: 'arch', exit: 'both', diversify: 'arch',

@@ -2974,3 +2974,55 @@ the leaving row; tapping the background puts everything back.
 
 **What's next.** The line about dates is gone, and the intent is in the
 owner's own words.
+
+### 103. One rule for the canvas: what is being explained is brightest; and a So what beat
+
+**The rule.** Whatever a beat or a control is explaining reads at full
+strength, and what is out of scope steps back. It is applied by the
+renderer, not beat by beat:
+- *Layers.* Part one builds the picture a layer at a time. The layer a beat
+  adds (use cases, platforms, lines, connectors, the flow) reads full and the
+  layers before it step back.
+- *Focus.* A beat that picks a node keeps it and what it touches; the rest,
+  names and lines included, steps well back.
+- *Panels.* On the Boundaries screen, hovering or picking a use case in the
+  panel, or merging two domains, focuses the canvas on what is involved.
+  The dashed boundary lines, which the canvas draws itself, now follow the
+  focus too. Tapping the background releases it.
+- *Names.* Structure beats (So what, The graph already exists) show no
+  names at all. Elsewhere names keep the hierarchy of entry 102, a touch
+  brighter than before.
+
+**Connectors, in four steps.** The graph dims to the four connectors alone;
+they pop into view one after another; their lines grow out of them,
+shortest first (drawn on, on the flat map); then everything reached through
+them lights, the full scope of the graph in relation to the connectors.
+
+**So what?** A new beat closes part one, before the part two title. The
+whole graph, no names. Three readings arrive one after another, pinned
+where they come from: cost pools at the identity service, a failure
+spreads from the integration hub, and leaving Claims administration
+strands what rides it. The card says what the graph is for, in the canon's
+terms: mined from what the systems do, read per use case, three
+measurements that do not add up, the questions a CFO asks before releasing
+funds. The tour now has 42 beats; the acceptance script's beat numbers
+from 16 on moved up by one.
+
+**A failure, flowing.** Each line a failure reaches fills with red from its
+upstream end, the end nearer the failed node, at one steady speed, with a
+bright bead leading it, like fluid pushed down a pipe. The fill lands when
+the line turns lit. It follows the transit routes on the flat map and runs
+straight in 3D, in the tour and on the Risk screen alike. One overlay per
+line, built once, one loop that stops when every fill has landed.
+
+**Cutting, visibly.** When a line is cut, its base line gives way to two
+pieces drawn over everything: the stub on the use case's side draws back
+into it, and the severed piece sags at the cut and then travels away with
+the leaving platform, fading, as the prologue shows it. Cutting a single
+line sends its piece drifting off the map. The pieces move by their anchor
+alone; nothing is rebuilt per frame.
+
+**Cost.** Profiled in the container during the heaviest of these, the
+canvas's own script stays under one percent of the frame budget (0.2
+percent during a failure, 0.5 percent during a cut), idle stays at zero,
+and new shaders compile once, not per frame.

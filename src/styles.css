@@ -1929,3 +1929,15 @@ button, input, select { font: inherit; color: inherit; }
 .canvas-note .snip-note .decision-uc { margin-top: 0; font-weight: 600; }
 /* The two shapes' cut note sits clear of the work in progress pill. */
 .half .canvas-note { bottom: 58px; }
+
+/* A reading pinned beside a node: a chip that sits just above and right. */
+.canvas-pin { position: absolute; left: 0; top: 0; z-index: 7; pointer-events: none; will-change: transform; }
+.canvas-pin-chip { position: absolute; left: 12px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: 5px 10px 5px 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,0.16);
+  font-size: 12.5px; font-weight: 600; color: var(--ink); animation: pin-in 420ms cubic-bezier(.2,.8,.2,1); }
+.canvas-pin-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+.pin-cost .canvas-pin-dot { background: var(--who-cfo); }
+.pin-risk .canvas-pin-dot { background: #d05a6a; }
+.pin-exit .canvas-pin-dot { background: var(--who-arch); }
+@keyframes pin-in { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .canvas-pin-chip { animation: none; } }

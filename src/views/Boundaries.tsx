@@ -119,6 +119,26 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
     const hulls = new Set<string>([mover.subdomain, moverTo ?? mover.subdomain])
     return { nodes, hulls }
   }, [storyMove, mover, moverTo])
+  // Outside the story the same rule holds: whatever the panel is pointing
+  // at is what the canvas shows, and the rest steps back. A use case under
+  // the pointer or picked keeps itself, its platforms and its domains; a
+  // merge keeps the merged domain and everything in it.
+  const [hoverUc, setHoverUc] = useState<string | null>(null)
+  const [lastMerge, setLastMerge] = useState<string | null>(null)
+  const freeFocus = useMemo(() => {
+    if (inStory) return null
+    const ucId = hoverUc ?? (pickedUc ? pickedUc.id : null)
+    const u = ucId ? estate.use_cases.find((x) => x.id === ucId) : null
+    if (u) {
+      const orig = base.use_cases.find((x) => x.id === u.id)
+      return { nodes: new Set<string>([u.id, ...u.edges.map((e) => e.platform_id)]), hulls: new Set<string>([u.subdomain, orig?.subdomain ?? u.subdomain]) }
+    }
+    if (lastMerge) {
+      const ucs = estate.use_cases.filter((x) => x.subdomain === lastMerge)
+      return { nodes: new Set<string>([...ucs.map((x) => x.id), ...ucs.flatMap((x) => x.edges.map((e) => e.platform_id))]), hulls: new Set<string>([lastMerge]) }
+    }
+    return null
+  }, [inStory, hoverUc, pickedUc, lastMerge, estate, base])
   const dashed = useMemo(() => storyMove && mover ? new Set([...crossing].filter((k) => k.startsWith(`${mover.id}>`))) : crossing, [storyMove, mover, crossing])
   const subName = (id: string) => base.subdomains.find((s) => s.id === id)?.name ?? id
   // The note says what has been decided before the line moves, and what
@@ -146,7 +166,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
         <h1>Ledger Explorer</h1>
         <ViewName n={6}>Boundaries</ViewName>
         <span data-tour="basis"><RuleSelect rule={rule} setRule={setRule} /></span>
-        <button className="ctl" onClick={() => { setMoved({}); setPicked(null) }} disabled={moves === 0}>
+        <button className="ctl" onClick={() => { setMoved({}); setPicked(null); setLastMerge(null) }} disabled={moves === 0}>
           Reset boundaries
         </button>
         <span className="sub">{moves} use case{moves === 1 ? '' : 's'} moved</span>
@@ -163,13 +183,13 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
           flyToId={inStory ? flyToId : null}
           dashedLinks={dashed}
           dashedFaint={inStory}
-          focus={w.focus ?? focus}
+          focus={w.focus ?? focus ?? freeFocus}
           callout={callout}
           note={decision}
           noteAt={storyMove && mover ? mover.id : null}
           onSelectNode={(id) => { if (ixAfter.useCaseById.has(id)) { setPicked(id); setCollapsed(false) } }}
           onSelectLink={() => {}}
-          onBackground={() => {}}
+          onBackground={() => { if (!inStory) { setPicked(null); setLastMerge(null) } }}
         />
 
         <Legend>
@@ -229,7 +249,9 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
             <div style={{ maxHeight: 150, overflow: 'auto', marginTop: 6 }}>
               {estate.use_cases.map((u) => (
                 <button key={u.id} className="ctl" aria-pressed={picked === u.id}
-                  onClick={() => setPicked(u.id)}
+                  onClick={() => { setPicked(u.id); setLastMerge(null) }}
+                  onMouseEnter={() => setHoverUc(u.id)} onMouseLeave={() => setHoverUc(null)}
+                  onFocus={() => setHoverUc(u.id)} onBlur={() => setHoverUc(null)}
                   style={{ display: 'block', width: '100%', textAlign: 'left', marginBottom: 2 }}>
                   {u.name}
                 </button>
@@ -250,7 +272,7 @@ export function Boundaries({ estate: base, dark, rule, setRule }: BoundariesProp
               <button className="ctl" onClick={() => {
                 const a = (document.getElementById('merge-from') as HTMLSelectElement | null)?.value
                 const b = (document.getElementById('merge-into') as HTMLSelectElement | null)?.value
-                if (a && b) merge(a, b)
+                if (a && b) { merge(a, b); setPicked(null); setLastMerge(b) }
               }}>Merge</button>
             </div>
             <div className="note">{copy.bd_merge_note}</div>

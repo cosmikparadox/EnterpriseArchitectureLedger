@@ -18,7 +18,8 @@ import { MeterBadge, PoolBadge } from '../story/Badges'
 import { Walkthrough, revealFor, type Focus } from './Walkthrough'
 import { leavingFor, platformView } from '../app/graph'
 import { resultFor } from '../app/useMonteCarlo'
-import { LEAVING_PLATFORM_ID } from '../story/script'
+import { IDENTITY_ID, LEAVING_PLATFORM_ID } from '../story/script'
+import { reachAt, sampleFailure } from '../model/reach'
 import { describeUseCase } from '../model/describe'
 
 const GESTURE_KEY = 'ledger.gesture.seen'
@@ -87,6 +88,63 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
   // A beat with the lines up and nothing picked is about the lines: the
   // names step back so the lines carry it.
   const quietLabels = inStory && !selectedId && scene.links
+
+  // Sequenced beats. A clock steps the picture through its stages; with less
+  // motion asked for, it lands on the last stage at once.
+  const [seq, setSeq] = useState(0)
+  const play = inStory ? scene.play : null
+  useEffect(() => {
+    setSeq(0)
+    if (!play) return
+    const marks = play === 'connectors' ? [700, 1500, 3600] : [900, 2800, 5000]
+    if (reduced) { setSeq(marks.length); return }
+    const ts = marks.map((ms, i) => setTimeout(() => setSeq(i + 1), ms))
+    return () => ts.forEach(clearTimeout)
+  }, [play, tourStep, reduced])
+  // Connectors: the graph dims to the connectors alone; they pop; their
+  // lines grow out of them; then everything reached through them lights.
+  const conn = useMemo(() => {
+    const ids = estate.platforms.filter((p) => p.type === 'integration').map((p) => p.id)
+    const riders = new Set(ids.flatMap((id) => (ix.ridersOf.get(id) ?? []).map((r) => r.uc.id)))
+    const reached = new Set([...riders].flatMap((u) => ix.useCaseById.get(u)!.edges.map((e) => e.platform_id)))
+    return { ids, riders, reached }
+  }, [estate, ix])
+  // So what: the three readings, one after another, on the whole graph.
+  const sowhatWave = useMemo(() => {
+    if (play !== 'sowhat') return null
+    const f = sampleFailure(ix, 'conduit', 7)
+    // No dependence: only what rides the failed node goes, so the picture stays clean.
+    return f ? { failure: f, reach: reachAt(ix, f, 0, 0xc0de) } : null
+  }, [play, ix])
+  const playProps = useMemo(() => {
+    if (play === 'connectors') {
+      const { ids, riders, reached } = conn
+      const nodes = seq >= 3 ? new Set([...ids, ...riders, ...reached]) : seq >= 2 ? new Set([...ids, ...riders]) : new Set(ids)
+      return {
+        focus: { nodes },
+        hide: seq < 2 ? ids : [],
+        sprout: seq >= 2 ? ids : null,
+        pop: seq >= 1 ? { ids, nonce: tourStep ?? 0 } : null,
+      }
+    }
+    if (play === 'sowhat') {
+      const pins: { id: string; text: string; tone: 'cost' | 'risk' | 'exit' }[] = []
+      if (seq >= 1) pins.push({ id: IDENTITY_ID, text: copy.pin_cost, tone: 'cost' })
+      if (seq >= 2) pins.push({ id: 'conduit', text: copy.pin_risk, tone: 'risk' })
+      if (seq >= 3) pins.push({ id: LEAVING_PLATFORM_ID, text: copy.pin_exit, tone: 'exit' })
+      const w = seq >= 2 ? sowhatWave : null
+      return {
+        pins,
+        pop: seq >= 1 ? { ids: seq >= 3 ? [LEAVING_PLATFORM_ID] : seq >= 2 ? ['conduit'] : [IDENTITY_ID], nonce: seq } : null,
+        failedNodeId: w ? 'conduit' : null,
+        affectedUseCases: w ? new Set([...w.reach.affected, ...w.reach.platforms]) : undefined,
+        litLinks: w ? w.reach.litLinks : undefined,
+        wave: w ? { from: 'conduit', nonce: 7000 + w.reach.platforms.size, hop: w.reach.hop } : null,
+      }
+    }
+    return null
+  }, [play, seq, conn, sowhatWave, tourStep])
+  const hideSet = useMemo(() => (playProps?.hide?.length ? new Set([...storySets.hide, ...playProps.hide]) : storySets.hide), [playProps, storySets])
   const callout = useMemo(() => {
     if (!inStory || !scene.callout) return null
     if (scene.callout.kind === 'hull' && scene.callout.id === '') {
@@ -264,7 +322,7 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           flyToId={flyTo}
           onSettle={onSettle}
           dimNodes={inStory ? storySets.dim : undefined}
-          hideLinksOf={inStory ? storySets.hide : undefined}
+          hideLinksOf={inStory ? hideSet : undefined}
           dimHulls={inStory ? storySets.hulls : undefined}
           callout={callout}
           gestureHint={gestureHint}
@@ -272,8 +330,14 @@ export function Explore({ estate, ix, rule, dark }: ExploreProps) {
           preferLines={inStory}
           onGesture={() => { markGesture(); setTimeout(() => setDragged(true), 700) }}
           book={book}
-          focus={inStory ? storyFocus : walk ? walkFocus : null}
+          focus={inStory ? playProps?.focus ?? storyFocus : walk ? walkFocus : null}
           quietLabels={quietLabels}
+          hideLabels={inStory && !scene.labels}
+          layer={inStory ? scene.layer : null}
+          sprout={playProps?.sprout ?? null}
+          pop={playProps?.pop ?? null}
+          pins={playProps?.pins ?? null}
+          {...(playProps && 'wave' in playProps ? { failedNodeId: playProps.failedNodeId, affectedUseCases: playProps.affectedUseCases, litLinks: playProps.litLinks, wave: playProps.wave } : {})}
           selectedLink={inStory ? null : selectedLink}
           flow={flow}
           reducedMotion={reduced}

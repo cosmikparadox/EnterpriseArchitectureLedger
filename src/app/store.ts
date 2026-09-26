@@ -30,7 +30,7 @@ export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
  * part two shows how it is decided today, part three builds the ledger on
  * the busiest node and closes. The last beat is 40; script.ts holds them.
  */
-export const TOUR_STEPS = 40
+export const TOUR_STEPS = 41
 /** The first beat of the third part, where the numbers start. Kept for the router. */
 export const FIRST_LEDGER_CHAPTER = 25
 
@@ -62,10 +62,16 @@ export interface Scene {
   flow: boolean
   /** Rings on a few nodes of one kind, and a tap hint, until the reader has tapped one. */
   pokes: PokeKind | null
+  /** Names on the picture. Off where the beat is about structure, not names. */
+  labels: boolean
+  /** The layer a beat builds: it reads full strength, the earlier ones step back. */
+  layer: 'useCases' | 'platforms' | 'lines' | 'connectors' | null
+  /** A sequence the canvas plays through on this beat. */
+  play: 'connectors' | 'sowhat' | null
 }
 
-export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null, flow: false, pokes: null }
-export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false, focus: null, flow: false, pokes: null }
+export const SCENE_ALL: Scene = { blank: false, hulls: true, useCases: true, platforms: true, links: true, connectors: true, stagger: false, callout: null, hint: false, badge: null, book: false, focus: null, flow: false, pokes: null, labels: true, layer: null, play: null }
+export const SCENE_NONE: Scene = { blank: false, hulls: false, useCases: false, platforms: false, links: false, connectors: false, stagger: true, callout: null, hint: false, badge: null, book: false, focus: null, flow: false, pokes: null, labels: true, layer: null, play: null }
 
 /**
  * A request to fail a platform, raised from anywhere. The nonce is what makes

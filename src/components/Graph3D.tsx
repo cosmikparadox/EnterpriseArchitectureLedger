@@ -102,6 +102,19 @@ export interface Graph3DProps {
    * focus steps back so the lines carry the beat.
    */
   quietLabels?: boolean
+  /** No names at all: the beat is about the picture's structure. */
+  hideLabels?: boolean
+  /**
+   * The layer a beat is building. It reads at full strength and every other
+   * layer steps back, so what is being explained is the brightest thing.
+   */
+  layer?: 'useCases' | 'platforms' | 'lines' | 'connectors' | null
+  /** Lines touching these nodes arrive one after another, shortest first, as if growing out of them. */
+  sprout?: string[] | null
+  /** Nodes that pop into view, one after another, when the nonce changes. */
+  pop?: { ids: string[]; nonce: number } | null
+  /** Short readings pinned beside nodes. */
+  pins?: { id: string; text: string; tone?: 'cost' | 'risk' | 'exit' }[] | null
   /** The viewer dragged the canvas: the hint has done its job. */
   onGesture?: () => void
   /**
@@ -278,6 +291,13 @@ function dotTexture(): THREE.Texture {
   dotTex = new THREE.CanvasTexture(cv)
   dotTex.colorSpace = THREE.SRGBColorSpace
   return dotTex
+}
+
+/** A colour at a fraction of its own strength, whether or not it already carries an alpha. */
+function fadeColour(colour: string, k: number): string {
+  const m = /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/.exec(colour)
+  if (m) return `rgba(${m[1]},${m[2]},${m[3]},${Math.round(Number(m[4]) * k * 20) / 20})`
+  return withAlpha(colour, k)
 }
 
 function withAlpha(colour: string, alpha: number): string {
@@ -1571,7 +1591,10 @@ export function Graph3D(props: Graph3DProps) {
     // has dimmed is still there, faintly, because the sharing is the lesson.
     // A layer arriving comes in one node at a time when the scene asks for
     // it: each node in the same pass starts a little after the last.
-    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : ghosted ? (propsRef.current.focus?.soft ? 0.5 : GHOST) : dim ? 0.12 : 1
+    const layer = propsRef.current.layer
+    const kindLayer = n.kind === 'use_case' ? 'useCases' : n.kind === 'integration' ? 'connectors' : 'platforms'
+    const layerK = !layer || layer === kindLayer ? 1 : 0.4
+    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : ghosted ? (propsRef.current.focus?.soft ? 0.5 : GHOST) : dim ? 0.12 : layerK
     const wasHidden = o.fadeTo === 0
     const delay = !instant && wasHidden && target > 0 && propsRef.current.stagger ? Math.min(1400, arriving.current++ * 45) : 0
     fadeTo(o, target, instant, delay)
@@ -1583,7 +1606,7 @@ export function Graph3D(props: Graph3DProps) {
     if (o.ringSprite) o.ringSprite.visible = !dim && !ghosted
     if (o.label) {
       const was = o.labelWanted
-      o.labelWanted = ghosted ? false :
+      o.labelWanted = ghosted || propsRef.current.hideLabels ? false :
         labelMode === 'all' ? !dim
         : labelMode === 'selected' ? (isSel || isNeighbour)
         : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
@@ -1595,8 +1618,8 @@ export function Graph3D(props: Graph3DProps) {
       // lines every name outside the focus steps back again.
       const inFocus = !!f && f.nodes.has(n.id)
       const uc = n.kind === 'use_case'
-      let a = inFocus || isSel || isNeighbour ? 1 : selectedId ? (uc ? 0.3 : 0.5) : uc ? 0.62 : 0.9
-      if (propsRef.current.quietLabels && !inFocus && !isSel) a *= 0.45
+      let a = inFocus || isSel || isNeighbour ? 1 : selectedId ? (uc ? 0.38 : 0.58) : uc ? 0.72 : 0.94
+      if (propsRef.current.quietLabels && !inFocus && !isSel) a *= 0.55
       if (o.labelAlpha !== a) { o.labelAlpha = a; paintLabel(o); labelEpoch.current++ }
       // On the flat map the thinning decides what shows; elsewhere the state.
       if (!(modeRef.current === '2d' && !foldOn.current)) o.label.visible = o.labelWanted
@@ -1656,7 +1679,7 @@ export function Graph3D(props: Graph3DProps) {
         : data.nodes.some((n) => n.kind === 'use_case' && n.subdomain === sub && !dimmed(n))
       const fh = props.focus?.hulls
       // A domain the beat is about is drawn stronger, not just left alone.
-      const target = !arrived ? 0 : fh && !fh.has(sub) ? 0.35 : fh ? HULL_EMPHASIS : 1
+      const target = (!arrived ? 0 : fh && !fh.has(sub) ? 0.35 : fh ? HULL_EMPHASIS : 1) * (props.layer ? 0.5 : 1)
       const a = hullAlpha.current.get(sub) ?? { cur: target, from: target, to: target, t0: 0 }
       if (!hullAlpha.current.has(sub)) hullAlpha.current.set(sub, a)
       if (a.to !== target) {
@@ -1675,6 +1698,8 @@ export function Graph3D(props: Graph3DProps) {
     const hidden = (l: GLink) => !!(h && (h.has(l.ucId) || h.has(l.platformId)))
     const now = performance.now()
     let order = 0
+    const sproutFrom = new Set(props.sprout ?? [])
+    const sprouting: GLink[] = []
     for (const raw of g.graphData().links as object[]) {
       const l = raw as GLink & { __showAt?: number }
       const key = `${l.ucId}>${l.platformId}`
@@ -1682,6 +1707,15 @@ export function Graph3D(props: Graph3DProps) {
       if (linkShown.current.has(key)) { l.__showAt = 0; continue }
       linkShown.current.add(key)
       l.__showAt = props.stagger && !propsRef.current.reducedMotion ? now + Math.min(1600, order++ * 14) : 0
+      if (sproutFrom.has(l.ucId) || sproutFrom.has(l.platformId)) sprouting.push(l)
+    }
+    // Lines growing out of the sprout nodes: shortest first, a beat apart,
+    // so they read as branching outwards rather than switching on.
+    if (sprouting.length && !propsRef.current.reducedMotion) {
+      const pos = new Map((g.graphData().nodes as (GNode & Positioned)[]).map((n) => [n.id, n]))
+      const len = (l: GLink) => { const a = pos.get(l.ucId), b = pos.get(l.platformId); return a && b ? Math.hypot((a.x ?? 0) - (b.x ?? 0), (a.y ?? 0) - (b.y ?? 0), (a.z ?? 0) - (b.z ?? 0)) : 0 }
+      sprouting.sort((a, b) => len(a) - len(b))
+      sprouting.forEach((l, i) => { (l as GLink & { __showAt?: number }).__showAt = now + 120 + Math.min(2200, i * 70) })
     }
     // Under the transit map the library's straight lines stand down; the
     // map's own lines take their visibility from the same reveal times.
@@ -1723,20 +1757,24 @@ export function Graph3D(props: Graph3DProps) {
         const o = objs.current.get(id)
         if (o) { o.lit = false; o.pulseUntil = 0 }
       }
+      syncFluid(wave.from, fresh)
     } else if (!wave) {
       litAt.current.clear()
       for (const raw of g.graphData().links as object[]) (raw as GLink & { __litAt?: number }).__litAt = 0
+      clearFluid()
     }
     const focus = props.focus
     const linkColour = (raw: object) => {
-      const base = linkColourBase(raw)
+      const raw0 = linkColourBase(raw)
+      // A beat building another layer: the lines step back behind it.
+      const base = props.layer && props.layer !== 'lines' && !(focus && focus.nodes.has((raw as GLink).ucId) && focus.nodes.has((raw as GLink).platformId)) ? fadeColour(raw0, 0.35) : raw0
       const l = raw as GLink
       const cut = snipState.current
       if (cut.id && (cut.only ? `${l.ucId}>${l.platformId}` === cut.only : l.platformId === cut.id || l.ucId === cut.id)) {
-        // Marked: the lines about to go stand out. Then each line, once cut,
-        // hangs slack, and all of them fade as the node leaves.
+        // Marked: the lines about to go stand out. Once cut, a line's own
+        // pieces take over (see the snip), so the line under them goes.
         const hot = schemOn() ? base : dark ? '#e7eaef' : '#2b3038'
-        return withAlpha(hot, (cut.cut.has(`${l.ucId}>${l.platformId}`) ? 0.45 : 1) * (1 - cut.fade))
+        return fadeColour(hot, cut.cut.has(`${l.ucId}>${l.platformId}`) ? 0 : 1)
       }
       return base
     }
@@ -1767,6 +1805,7 @@ export function Graph3D(props: Graph3DProps) {
     }
     g.linkColor(linkColour)
     linkColourRef.current = linkColour
+    dimDashed()
     paintSchematic()
     const lastLit = Math.max(0, ...litAt.current.values(), ...(g.graphData().links as (GLink & { __litAt?: number })[]).map((l) => l.__litAt ?? 0))
     if (waveRaf.current) cancelAnimationFrame(waveRaf.current)
@@ -1790,6 +1829,21 @@ export function Graph3D(props: Graph3DProps) {
     if (import.meta.env.DEV) perf('applyState', performance.now() - tState)
   }
 
+  // The dashed boundary lines are the canvas's own objects, so the library's
+  // colours never reach them: the focus rule is applied to them here, the
+  // lines outside it stepping well back like every other line.
+  function dimDashed() {
+    const g = gRef.current
+    if (!g || !propsRef.current.dashedLinks) return
+    const f = propsRef.current.focus
+    for (const raw of g.graphData().links as (GLink & { __lineObj?: THREE.Line })[]) {
+      const mat = raw.__lineObj?.material as THREE.Material & { opacity: number; userData: { base?: number } } | undefined
+      if (!mat || mat.userData.base === undefined) continue
+      const inside = !f || (f.nodes.has(raw.ucId) && f.nodes.has(raw.platformId))
+      mat.opacity = inside ? mat.userData.base : mat.userData.base * 0.12
+    }
+  }
+
   // The latest applyState, for code that runs from handlers set up once.
   const applyStateRef = useRef(applyState)
   applyStateRef.current = applyState
@@ -1797,7 +1851,7 @@ export function Graph3D(props: Graph3DProps) {
     applyState()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedId, props.isolatedSubdomain, props.showHulls, props.dimNodes, props.dimHulls, props.failedNodeId,
-      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark, props.selectedLink, props.quietLabels])
+      props.affectedUseCases, props.litLinks, props.hideLinksOf, props.focus, props.wave, props.flow, props.dark, props.selectedLink, props.quietLabels, props.hideLabels, props.layer, props.sprout])
 
   // Link width and the dashed treatment rebuild link geometry, so they are
   // re-issued only when their own inputs change.
@@ -1866,9 +1920,11 @@ export function Graph3D(props: Graph3DProps) {
           : new THREE.LineBasicMaterial({
             color: dark ? '#7d848e' : '#9aa0a8', transparent: true, opacity: 0.35,
           })
+        mat.userData.base = mat.opacity
         return new THREE.Line(geom, mat)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       }) as any)
+      dimDashed()
       g.linkPositionUpdate(((obj: THREE.Object3D, coords: { start: Positioned; end: Positioned }) => {
         const line = obj as THREE.Line
         const pos = line.geometry.getAttribute('position') as THREE.BufferAttribute
@@ -1926,7 +1982,7 @@ export function Graph3D(props: Graph3DProps) {
   // map's lines are up, and every state they carried (lit, focused, ghosted,
   // snipped, the value flow) is painted onto the map's lines from the same
   // colour and width functions.
-  type SchemLine = { link: GLink & { __showAt?: number }; line: Line2; mat: LineMaterial; pts: number[]; len: number }
+  type SchemLine = { link: GLink & { __showAt?: number }; line: Line2; mat: LineMaterial; pts: number[]; len: number; shown?: boolean; drawT0?: number }
   const schem = useRef<{ group: THREE.Group; lines: SchemLine[]; on: boolean; fade: number } | null>(null)
   const linkWidthRef = useRef<((raw: object) => number) | null>(null)
   const linkRaisedRef = useRef<((raw: object) => boolean) | null>(null)
@@ -1937,8 +1993,9 @@ export function Graph3D(props: Graph3DProps) {
   }
   function schemResolution() {
     const el = holder.current
-    if (!el || !schem.current) return
-    for (const e of schem.current.lines) e.mat.resolution.set(el.clientWidth, el.clientHeight)
+    if (!el) return
+    for (const e of schem.current?.lines ?? []) e.mat.resolution.set(el.clientWidth, el.clientHeight)
+    for (const e of fluid.current?.list.values() ?? []) e.mat.resolution.set(el.clientWidth, el.clientHeight)
   }
   function clearSchematic() {
     const S = schem.current
@@ -1981,7 +2038,7 @@ export function Graph3D(props: Graph3DProps) {
       line.renderOrder = 2
       line.frustumCulled = false
       S.group.add(line)
-      S.lines.push({ link, line, mat, pts, len: routeLength(pts) })
+      S.lines.push({ link, line, mat, pts, len: routeLength(pts), shown: (link.__showAt ?? 0) <= performance.now() })
     }
     for (const e of old) { S.group.remove(e.line); e.line.geometry.dispose(); e.mat.dispose() }
     S.on = true
@@ -2080,8 +2137,31 @@ export function Graph3D(props: Graph3DProps) {
       e.mat.linewidth = 1.3 + 1.25 * (widthOf ? widthOf(e.link) : 1) + (up ? 2 : 0)
       e.line.renderOrder = up ? 4 : a < 0.5 ? 1 : 2
       e.line.position.z = up ? 0.4 : a < 0.5 ? -0.1 : 0
-      e.line.visible = (e.link.__showAt ?? 0) <= now && e.mat.opacity > 0.01
+      const vis = (e.link.__showAt ?? 0) <= now && e.mat.opacity > 0.01
+      e.line.visible = vis
+      // A line appearing after the map was built grows in from its use case.
+      if (vis && !e.shown) { e.shown = true; if (!propsRef.current.reducedMotion) startDraw(e, now) }
+      if (!vis && (e.link.__showAt ?? 0) > now) e.shown = false
     }
+  }
+  const drawing = useRef<SchemLine[]>([])
+  const drawRaf = useRef(0)
+  function startDraw(e: SchemLine, now: number) {
+    e.drawT0 = now
+    e.mat.dashed = true; e.mat.dashSize = e.len; e.mat.gapSize = e.len + 1; e.mat.dashOffset = e.len
+    drawing.current.push(e)
+    if (drawRaf.current) return
+    const step = () => {
+      const t = performance.now()
+      drawing.current = drawing.current.filter((d) => {
+        const u = Math.min(1, (t - (d.drawT0 ?? t)) / 380)
+        d.mat.dashOffset = d.len * (1 - (1 - Math.pow(1 - u, 3)))
+        if (u >= 1) { d.mat.dashed = false; return false }
+        return true
+      })
+      drawRaf.current = drawing.current.length ? requestAnimationFrame(step) : 0
+    }
+    drawRaf.current = requestAnimationFrame(step)
   }
   /**
    * The value flow on the transit map: dots that run each route from use case
@@ -2155,6 +2235,120 @@ export function Graph3D(props: Graph3DProps) {
     stopSchemFlow()
     clearSchematic()
   }, [])
+
+  // ---- a failure, flowing ----
+  //
+  // Each line the failure reaches fills with red from its upstream end, the
+  // end nearer the failed node, at one steady speed, a bright bead leading
+  // it, like fluid pushed down a pipe. The fill lands when the line turns
+  // lit, so the colour and the fluid agree. One overlay per line, built once
+  // and kept until the failure is cleared; one loop moves them all, and
+  // stops when every fill has landed.
+  type Fluid = { key: string; line: Line2; mat: LineMaterial; len: number; t0: number; dur: number; pts: number[] }
+  const fluid = useRef<{ group: THREE.Group; list: Map<string, Fluid>; heads: THREE.Points | null; raf: number } | null>(null)
+  function clearFluid() {
+    const F = fluid.current
+    if (!F) return
+    cancelAnimationFrame(F.raf); F.raf = 0
+    for (const e of F.list.values()) { F.group.remove(e.line); e.line.geometry.dispose(); e.mat.dispose() }
+    F.list.clear()
+    if (F.heads) { F.group.remove(F.heads); F.heads.geometry.dispose(); (F.heads.material as THREE.Material).dispose(); F.heads = null }
+  }
+  function syncFluid(from: string, fresh: boolean, instant = false) {
+    const g = gRef.current
+    const el = holder.current
+    if (!g || !el) return
+    if (!fluid.current) { const group = new THREE.Group(); g.scene().add(group); fluid.current = { group, list: new Map(), heads: null, raf: 0 } }
+    const F = fluid.current
+    const keep = fresh ? new Map<string, Fluid>() : F.list
+    const old = fresh ? [...F.list.values()] : []
+    if (fresh) F.list = keep
+    const nodes = new Map((g.graphData().nodes as (GNode & Positioned)[]).map((n) => [n.id, n]))
+    const src = nodes.get(from)
+    const flat = schemOn()
+    const routes = new Map((schem.current?.on ? schem.current.lines : []).map((e) => [`${e.link.ucId}>${e.link.platformId}`, e.pts]))
+    const reduced = propsRef.current.reducedMotion || instant
+    for (const raw of g.graphData().links as (GLink & { __litAt?: number })[]) {
+      const key = `${raw.ucId}>${raw.platformId}`
+      if (!raw.__litAt || keep.has(key)) continue
+      const a = nodes.get(raw.ucId), b = nodes.get(raw.platformId)
+      if (!a || !b || a.x === undefined || b.x === undefined) continue
+      const d = (n: GNode & Positioned) => (src ? Math.hypot((n.x ?? 0) - (src.x ?? 0), (n.y ?? 0) - (src.y ?? 0), (n.z ?? 0) - (src.z ?? 0)) : 0)
+      // Uphill to downhill: from the end nearer the failure.
+      const fromPlatform = d(b) <= d(a)
+      let pts: number[]
+      const r = flat ? routes.get(key) : undefined
+      if (r) {
+        pts = []
+        for (let k = 0; k < r.length; k += 2) pts.push(r[k]!, r[k + 1]!, 0.5)
+        if (fromPlatform) { const rev: number[] = []; for (let k = pts.length - 3; k >= 0; k -= 3) rev.push(pts[k]!, pts[k + 1]!, pts[k + 2]!); pts = rev }
+      } else {
+        const [p, q] = fromPlatform ? [b, a] : [a, b]
+        pts = [p.x ?? 0, p.y ?? 0, p.z ?? 0, q.x ?? 0, q.y ?? 0, q.z ?? 0]
+      }
+      let len = 0
+      for (let k = 0; k + 5 < pts.length; k += 3) len += Math.hypot(pts[k + 3]! - pts[k]!, pts[k + 4]! - pts[k + 1]!, pts[k + 5]! - pts[k + 2]!)
+      const dur = reduced ? 0 : Math.max(240, Math.min(950, len * 3.2))
+      const geom = new LineGeometry()
+      geom.setPositions(pts)
+      const mat = new LineMaterial({ color: 0xd05a6a, linewidth: flat ? 4 : 3.2, transparent: true, depthTest: false, depthWrite: false, worldUnits: false, dashed: dur > 0, dashSize: len, gapSize: len + 1, dashOffset: dur > 0 ? len : 0 })
+      mat.resolution.set(el.clientWidth, el.clientHeight)
+      const line = new Line2(geom, mat)
+      line.computeLineDistances()
+      line.renderOrder = 6
+      line.frustumCulled = false
+      line.raycast = () => {}
+      F.group.add(line)
+      keep.set(key, { key, line, mat, len, t0: raw.__litAt - dur, dur, pts })
+    }
+    // The old overlays go only now, so their shader is never dropped and rebuilt.
+    for (const e of old) { F.group.remove(e.line); e.line.geometry.dispose(); e.mat.dispose() }
+    // One bead per line, at the front of its fill.
+    if (!F.heads) {
+      const geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 256), 3))
+      geo.setDrawRange(0, 0)
+      const pm = new THREE.PointsMaterial({ size: 9, sizeAttenuation: false, color: 0xffb0a0, map: dotTexture(), transparent: true, depthTest: false, depthWrite: false, alphaTest: 0.05 })
+      F.heads = new THREE.Points(geo, pm)
+      F.heads.renderOrder = 7
+      F.heads.frustumCulled = false
+      F.heads.raycast = () => {}
+      F.group.add(F.heads)
+    }
+    if (!F.raf) {
+      const step = () => {
+        const t = performance.now()
+        const heads = F.heads!
+        const pos = heads.geometry.getAttribute('position') as THREE.BufferAttribute
+        let nh = 0, live = false
+        for (const e of F.list.values()) {
+          const u = e.dur <= 0 ? 1 : Math.max(0, Math.min(1, (t - e.t0) / e.dur))
+          if (u < 1) live = true
+          e.line.visible = u > 0
+          if (e.mat.dashed) { e.mat.dashOffset = e.len * (1 - u); if (u >= 1) e.mat.dashed = false }
+          if (u > 0 && u < 1 && nh < 256) {
+            // The bead: the point u of the way along the route.
+            let want = u * e.len
+            for (let k = 0; k + 5 < e.pts.length; k += 3) {
+              const seg = Math.hypot(e.pts[k + 3]! - e.pts[k]!, e.pts[k + 4]! - e.pts[k + 1]!, e.pts[k + 5]! - e.pts[k + 2]!)
+              if (want <= seg || k + 6 >= e.pts.length) {
+                const f = seg > 0 ? Math.min(1, want / seg) : 0
+                pos.setXYZ(nh++, e.pts[k]! + (e.pts[k + 3]! - e.pts[k]!) * f, e.pts[k + 1]! + (e.pts[k + 4]! - e.pts[k + 1]!) * f, e.pts[k + 2]! + (e.pts[k + 5]! - e.pts[k + 2]!) * f)
+                break
+              }
+              want -= seg
+            }
+          }
+        }
+        heads.geometry.setDrawRange(0, nh)
+        pos.needsUpdate = true
+        F.raf = live ? requestAnimationFrame(step) : 0
+        if (!live) heads.geometry.setDrawRange(0, 0)
+      }
+      F.raf = requestAnimationFrame(step)
+    }
+  }
+  useEffect(() => () => clearFluid(), [])
 
   // ---- leaving, acted out ----
   //
@@ -2231,6 +2425,67 @@ export function Graph3D(props: Graph3DProps) {
     }
     const o = objs.current.get(snip.id)
     const t0 = performance.now()
+    // The pieces of each cut line. The stub on the use case's side draws back
+    // into it; the severed piece drifts off and fades, with the node when the
+    // node leaves, away from the map when only the line was cut. Each piece
+    // is built once, relative to its anchor, and moved by its anchor alone.
+    const el = holder.current
+    const flatNow = schemOn()
+    const routeOf = new Map((schem.current?.on ? schem.current.lines : []).map((e) => [`${e.link.ucId}>${e.link.platformId}`, e.pts]))
+    const pieceGroup = new THREE.Group()
+    g.scene().add(pieceGroup)
+    type Piece = { stub: Line2; stubMat: LineMaterial; part: Line2; partMat: LineMaterial; at: number; c: THREE.Vector3; drift: THREE.Vector3 }
+    const pieces: Piece[] = []
+    let centre = new THREE.Vector3()
+    for (const n of nodes) centre.add(new THREE.Vector3(n.x ?? 0, n.y ?? 0, flatNow ? 0 : n.z ?? 0))
+    centre = centre.multiplyScalar(1 / Math.max(1, nodes.length))
+    const makeLine = (pts: number[], origin: THREE.Vector3, colour: string, width: number) => {
+      const rel: number[] = []
+      for (let k = 0; k < pts.length; k += 3) rel.push(pts[k]! - origin.x, pts[k + 1]! - origin.y, pts[k + 2]! - origin.z)
+      const geom = new LineGeometry()
+      geom.setPositions(rel)
+      const mat = new LineMaterial({ color: new THREE.Color(colour), linewidth: width, transparent: true, depthTest: false, depthWrite: false, worldUnits: false })
+      if (el) mat.resolution.set(el.clientWidth, el.clientHeight)
+      const line = new Line2(geom, mat)
+      line.position.copy(origin)
+      line.renderOrder = 6
+      line.frustumCulled = false
+      line.raycast = () => {}
+      pieceGroup.add(line)
+      return { line, mat }
+    }
+    const cutPiece = (l: GLink, at: number) => {
+      const a = byId.get(l.ucId), b = byId.get(l.platformId)
+      if (!a || !b) return
+      const colour = flatNow ? (SUBDOMAIN_COLOUR[a.subdomain ?? ''] ?? '#9aa0a8') : propsRef.current.dark ? '#e7eaef' : '#2b3038'
+      // The line as points from the use case to the platform, and the cut 40 percent along it.
+      let pts: number[]
+      const r = routeOf.get(`${l.ucId}>${l.platformId}`)
+      if (flatNow && r) { pts = []; for (let k = 0; k < r.length; k += 2) pts.push(r[k]!, r[k + 1]!, 0.5) }
+      else pts = [a.x ?? 0, a.y ?? 0, flatNow ? 0.5 : a.z ?? 0, b.x ?? 0, b.y ?? 0, flatNow ? 0.5 : b.z ?? 0]
+      const seg: number[] = []
+      let total = 0
+      for (let k = 0; k + 5 < pts.length; k += 3) { const d = Math.hypot(pts[k + 3]! - pts[k]!, pts[k + 4]! - pts[k + 1]!, pts[k + 5]! - pts[k + 2]!); seg.push(d); total += d }
+      let want = total * 0.4, split = 0, f = 0
+      for (; split < seg.length; split++) { if (want <= seg[split]! || split === seg.length - 1) { f = seg[split]! > 0 ? Math.min(1, want / seg[split]!) : 0; break } want -= seg[split]! }
+      const j = split * 3
+      const c = new THREE.Vector3(pts[j]! + (pts[j + 3]! - pts[j]!) * f, pts[j + 1]! + (pts[j + 4]! - pts[j + 1]!) * f, pts[j + 2]! + (pts[j + 5]! - pts[j + 2]!) * f)
+      const stubPts = [...pts.slice(0, j + 3), c.x, c.y, c.z]
+      const partPts = [c.x, c.y, c.z, ...pts.slice(j + 3)]
+      const aV = new THREE.Vector3(pts[0]!, pts[1]!, pts[2]!)
+      const width = flatNow ? 3.4 : 3
+      const stub = makeLine(stubPts, aV, colour, width)
+      const part = makeLine(partPts, c, colour, width)
+      const drift = c.clone().sub(centre)
+      if (flatNow) drift.z = 0
+      drift.normalize().multiplyScalar(Math.max(24, away * 0.35))
+      pieces.push({ stub: stub.line, stubMat: stub.mat, part: part.line, partMat: part.mat, at, c, drift })
+    }
+    const clearPieces = () => {
+      for (const p of pieces) for (const [line, mat] of [[p.stub, p.stubMat], [p.part, p.partMat]] as const) { pieceGroup.remove(line); line.geometry.dispose(); mat.dispose() }
+      pieces.length = 0
+      g.scene().remove(pieceGroup)
+    }
     const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3))
     const easeInOut = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
     const byId = new Map(nodes.map((n) => [n.id, n]))
@@ -2255,7 +2510,7 @@ export function Graph3D(props: Graph3DProps) {
         place(m.el, m.l)
         const since = t - m.at
         const key = `${m.l.ucId}>${m.l.platformId}`
-        if (since >= 0 && !S.cut.has(key)) { S.cut.add(key); changed = true }
+        if (since >= 0 && !S.cut.has(key)) { S.cut.add(key); changed = true; cutPiece(m.l, t) }
         m.el.style.opacity = String(since < 0 ? 0 : t < cutsEnd + T.slide ? ease(since / 160) : Math.max(0, 1 - (t - cutsEnd - T.slide) / 500))
         m.el.classList.toggle('cut', since >= 120)
       }
@@ -2266,6 +2521,26 @@ export function Graph3D(props: Graph3DProps) {
       if (k > 0 || S.fade !== 0) { S.fade = ease((t - cutsEnd) / (T.slide * 0.8)); changed = true }
       if (changed) repaint()
       if (!only) node.__threeObj?.position.set((node.x ?? 0) + dir.x * away * k, (node.y ?? 0) + dir.y * away * k, (node.z ?? 0) + dir.z * away * k)
+      // The pieces: stubs draw back, severed pieces go.
+      for (const p of pieces) {
+        const since = t - p.at
+        const back = ease(since / 900)
+        p.stub.scale.setScalar(Math.max(0.001, 1 - back))
+        p.stubMat.opacity = 0.95 * (1 - back)
+        p.stub.visible = back < 1
+        if (only) {
+          const kd = easeInOut(since / 1600)
+          p.part.position.copy(p.c).addScaledVector(p.drift, kd)
+          p.partMat.opacity = 0.95 * (1 - kd)
+          p.part.visible = kd < 1
+        } else {
+          // A small drop at the cut, then away with the node.
+          const sag = ease(since / 420) * 0.12
+          p.part.position.copy(p.c).addScaledVector(p.drift, sag).addScaledVector(dir, away * k)
+          p.partMat.opacity = 0.95 * (1 - k)
+          p.part.visible = k < 1
+        }
+      }
       if (o && k > 0 && !only) {
         o.solid.opacity = o.fadeTo * (1 - k)
         o.mesh.visible = o.solid.opacity > 0.01
@@ -2283,12 +2558,13 @@ export function Graph3D(props: Graph3DProps) {
       else {
         snipRaf.current = 0
         for (const m of marks) m.el.style.opacity = '0'
+        clearPieces()
         if (!only) { S.gone = true; if (o) applyNodeState(node, o, true) }
       }
     }
     if (snipRaf.current) cancelAnimationFrame(snipRaf.current)
     snipRaf.current = requestAnimationFrame(step)
-    return () => { if (snipRaf.current) cancelAnimationFrame(snipRaf.current); snipRaf.current = 0 }
+    return () => { if (snipRaf.current) cancelAnimationFrame(snipRaf.current); snipRaf.current = 0; clearPieces() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snipKey])
 
@@ -2397,6 +2673,43 @@ export function Graph3D(props: Graph3DProps) {
     return () => cancelAnimationFrame(raf)
   }, [props.noteAt])
   useEffect(() => follow(popoverEl.current, props.popover, true), [props.popover])
+  // Pinned readings: a chip beside each node, kept there as the camera moves.
+  const pinEls = useRef<(HTMLDivElement | null)[]>([])
+  const pinKey = props.pins?.map((p) => `${p.id}:${p.text}`).join('|') ?? ''
+  useEffect(() => {
+    const stops = (props.pins ?? []).map((p, i) => follow(pinEls.current[i] ?? null, { kind: 'node', id: p.id }))
+    return () => stops.forEach((f) => f())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinKey])
+  // A node popping into view: a quick swell and a ring, one after another.
+  const popKey = props.pop ? `${props.pop.nonce}` : ''
+  useEffect(() => {
+    const g = gRef.current
+    const ids = props.pop?.ids ?? []
+    if (!g || !ids.length || propsRef.current.reducedMotion) return
+    const nodes = g.graphData().nodes as (GNode & { __threeObj?: THREE.Object3D })[]
+    const t0 = performance.now()
+    let raf = 0
+    const step = () => {
+      const t = performance.now()
+      let live = false
+      ids.forEach((id, i) => {
+        const n = nodes.find((x) => x.id === id)
+        const obj = n?.__threeObj
+        const u = (t - t0 - i * 160) / 460
+        if (!obj || u < 0) { live = true; return }
+        const o = objs.current.get(id)
+        if (o && !o.pulseUntil && u < 1) { o.pulseUntil = t + 700; applyNodeState(n!, o, true) }
+        const k = u >= 1 ? 1 : 1 + 0.45 * Math.sin(Math.PI * u) * (1 - u * 0.3)
+        obj.scale.setScalar(k)
+        if (u < 1) live = true
+      })
+      raf = live ? requestAnimationFrame(step) : 0
+    }
+    raf = requestAnimationFrame(step)
+    return () => { cancelAnimationFrame(raf); for (const id of ids) { const n = nodes.find((x) => x.id === id); n?.__threeObj?.scale.setScalar(1); const o = objs.current.get(id); if (o) o.pulseUntil = 0 } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [popKey])
   const pokeEls = useRef<(HTMLDivElement | null)[]>([])
   const pokeKey = props.pokes?.ids.join(',') ?? ''
   useEffect(() => {
@@ -3110,6 +3423,8 @@ export function Graph3D(props: Graph3DProps) {
   const forceFold = useRef(false)
 
   function startFold(to: '2d' | '3d') {
+    // The failure's fluid is drawn for one shape; it is redrawn when the new one lands.
+    clearFluid()
     const g = gRef.current
     if (!g || !lay.current) { modeRef.current = to; return }
     const F = fold.current
@@ -3256,6 +3571,8 @@ export function Graph3D(props: Graph3DProps) {
     g.enablePointerInteraction(true)
     // Landing flat, the straight lines reconfigure into the transit map's.
     if (to === '2d') buildSchematic(true)
+    // A failure on the picture follows it into the new shape, already filled.
+    if (propsRef.current.wave) syncFluid(propsRef.current.wave.from, true, true)
     applyParticles.current()
     // Labels fade back in over 150 ms.
     const t0 = performance.now()
@@ -3470,6 +3787,11 @@ export function Graph3D(props: Graph3DProps) {
           <span>{props.gestureHint}</span>
         </div>
       )}
+      {props.pins && props.pins.map((p, i) => (
+        <div key={`${p.id}:${p.text}`} ref={(el) => { pinEls.current[i] = el }} className={`canvas-pin${p.tone ? ` pin-${p.tone}` : ''}`} hidden aria-hidden="true">
+          <span className="canvas-pin-chip"><span className="canvas-pin-dot" /><span className="canvas-pin-text">{p.text}</span></span>
+        </div>
+      ))}
       {props.pokes && (
         <>
           {props.pokes.ids.map((id, i) => (
