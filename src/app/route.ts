@@ -10,6 +10,7 @@
 //   #/explore      view 1        #/footprint    view 4
 //   #/pool         view 2        #/shapes       view 5
 //   #/risk         view 3        #/boundaries   view 6
+//   #/plug         view 7        #/paper        view 8
 //   #/tour/1 ... #/tour/7        the guided tour
 //
 // The binding is two way. Changing the hash sets the store; changing the store
@@ -27,6 +28,7 @@ export const VIEW_SLUGS: Record<Exclude<View, 'landing'>, string> = {
   5: 'shapes',
   6: 'boundaries',
   7: 'plug',
+  8: 'paper',
 }
 
 const SLUG_TO_VIEW = new Map<string, Exclude<View, 'landing'>>(

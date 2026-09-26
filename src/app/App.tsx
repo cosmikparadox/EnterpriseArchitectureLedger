@@ -6,6 +6,7 @@
 // makes required fields: an entry missing either is not a ledger entry.
 
 import { PlugNPlay } from '../views/PlugNPlay'
+import { Paper } from '../views/Paper'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import estateJson from '../../data/estate.json'
 import bestOfBreedJson from '../../data/estate_bestofbreed.json'
@@ -46,6 +47,7 @@ const VIEWS = [
   { n: 5, t: 'Two shapes', ready: true },
   { n: 6, t: 'Boundaries', ready: true },
   { n: 7, t: copy.rail_plug, ready: true },
+  { n: 8, t: copy.rail_paper, ready: true },
 ]
 
 function useSystemDark(): boolean {
@@ -153,6 +155,11 @@ export function App() {
   if (tourStep !== null && sheet) classes.push('sheet')
   // A beat with no card: nothing on the canvas keeps clear of a column.
   if (tourStep !== null && story.beat && !story.beat.card) classes.push('story-nocard')
+  // The 2D and 3D switch is only offered where there is a graph to fold: not
+  // on the two pages without one, and not on a story beat whose picture
+  // covers a blank canvas.
+  const noGraph = view === 7 || view === 8
+  const graphOn = !onLanding && !noGraph && !(story.beat && (story.beat.overlay !== null || story.beat.scene.blank))
 
   return (
     <div className={classes.join(' ')}>
@@ -190,7 +197,7 @@ export function App() {
       )}
 
       <main className="main">
-        {tourStep === null && !onLanding && view !== 7 && <WipNote />}
+        {tourStep === null && !onLanding && !noGraph && <WipNote />}
         {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
@@ -198,7 +205,8 @@ export function App() {
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 7 && <PlugNPlay />}
-        {!onLanding && view !== 7 && (
+        {view === 8 && <Paper dark={dark} />}
+        {!onLanding && (
           <div className="canvas-switches">
             <button
               type="button" className="theme-toggle" role="switch" aria-checked={dark}
@@ -209,10 +217,12 @@ export function App() {
               <span className="tt-track" aria-hidden="true"><span className="tt-knob" /></span>
             </button>
             {/* The map, flat or in three dimensions. A tap mid-fold reverses it. */}
-            <div className="dim-toggle" role="group" aria-label={copy.dim_group}>
-              <button type="button" aria-pressed={dimension === '2d'} aria-label={copy.dim_2d_label} title={copy.dim_2d_label} onClick={() => setDimension('2d')}>{copy.dim_2d}</button>
-              <button type="button" aria-pressed={dimension === '3d'} aria-label={copy.dim_3d_label} title={copy.dim_3d_label} onClick={() => setDimension('3d')}>{copy.dim_3d}</button>
-            </div>
+            {graphOn && (
+              <div className="dim-toggle" role="group" aria-label={copy.dim_group}>
+                <button type="button" aria-pressed={dimension === '2d'} aria-label={copy.dim_2d_label} title={copy.dim_2d_label} onClick={() => setDimension('2d')}>{copy.dim_2d}</button>
+                <button type="button" aria-pressed={dimension === '3d'} aria-label={copy.dim_3d_label} title={copy.dim_3d_label} onClick={() => setDimension('3d')}>{copy.dim_3d}</button>
+              </div>
+            )}
           </div>
         )}
         {story.beat && story.n !== null && (

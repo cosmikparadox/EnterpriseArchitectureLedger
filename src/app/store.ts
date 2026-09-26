@@ -21,7 +21,7 @@ import { create } from 'zustand'
 import type { AllocationRule } from '../model/types'
 
 /** 'landing' is the front page at #/. The six views are the six views. */
-export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6 | 7
+export type View = 'landing' | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
 /**
  * Beats. 0 is the welcome, 1 the company. 2 to 6 open the story: what the

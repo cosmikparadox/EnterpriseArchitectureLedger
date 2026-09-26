@@ -1325,11 +1325,16 @@ button, input, select { font: inherit; color: inherit; }
 /* How, one: a drawing that fades, a map that draws itself in. */
 .ov-map { width: min(760px, 100%); }
 .ov-map-svg { width: 100%; height: auto; display: block; }
-.ov-map-drawing rect { fill: var(--panel); stroke: var(--ink-3); stroke-width: 1.5; }
-.ov-map-drawing line { stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; }
-.ov-map-drawing marker path, #ov-arrow path { fill: var(--ink-3); }
+/* The drawing's ink. On a dark canvas the grey it shares with light text
+   read as nearly nothing once it settled, so dark gets its own lighter ink
+   and settles less far: the drawing stays as legible as the map beside it. */
+.ov-map-svg { --draw-ink: var(--ink-3); --draw-fill: var(--panel); --draw-rest: 0.35; }
+:root[data-theme="dark"] .ov-map-svg { --draw-ink: #b4bcc8; --draw-fill: #1f232b; --draw-rest: 0.8; }
+.ov-map-drawing rect { fill: var(--draw-fill); stroke: var(--draw-ink); stroke-width: 1.5; }
+.ov-map-drawing line { stroke: var(--draw-ink); stroke-width: 2; stroke-linecap: round; }
+.ov-map-drawing marker path, #ov-arrow path { fill: var(--draw-ink); }
 .ov-map-drawing { opacity: 0; animation: ov-map-fade 3600ms ease forwards; }
-@keyframes ov-map-fade { 0% { opacity: 0; } 15% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: 0.35; } }
+@keyframes ov-map-fade { 0% { opacity: 0; } 15% { opacity: 1; } 55% { opacity: 1; } 100% { opacity: var(--draw-rest); } }
 .ov-map-mined path { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0.7; animation: ov-map-draw 700ms ease forwards; }
 .ov-map-mined circle { fill: var(--ink-3); opacity: 0; animation: wm-in 400ms ease forwards; }
 .ov-map-mined circle.hub { fill: var(--accent); }
@@ -1358,7 +1363,7 @@ button, input, select { font: inherit; color: inherit; }
   .ov-why-so { font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ov-map-drawing { animation: none; opacity: 0.35; }
+  .ov-map-drawing { animation: none; opacity: var(--draw-rest); }
   .ov-map-mined path { animation: none; stroke-dashoffset: 0; }
   .ov-map-mined circle { animation: none; opacity: 1; }
 }
@@ -1752,8 +1757,8 @@ button, input, select { font: inherit; color: inherit; }
 .book-drag:hover::after { opacity: 0.8; }
 
 /* ---- tab 7: Plug 'n' Play, coming soon ---- */
-.plug-page { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 32px 20px; background: var(--bg); overflow: auto; }
-.plug-inner { max-width: 560px; text-align: center; animation: intro-in 600ms ease; }
+.plug-page { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: 32px 20px; background: var(--bg); overflow: auto; }
+.plug-inner { max-width: 560px; margin: auto 0; text-align: center; animation: intro-in 600ms ease; }
 .plug-art { width: 220px; height: 64px; margin: 0 auto 22px; display: block; overflow: visible; }
 .plug-art rect { fill: var(--panel); stroke: var(--ink-2); stroke-width: 2; }
 .plug-art path { fill: none; stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; }
@@ -1769,6 +1774,9 @@ button, input, select { font: inherit; color: inherit; }
 .plug-title { font-size: clamp(40px, 7vw, 72px); line-height: 1.02; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 18px; color: var(--ink); }
 .plug-line { font-size: clamp(15px, 1.6vw, 18px); line-height: 1.55; color: var(--ink-2); margin: 0 auto 6px; max-width: 480px; }
 .plug-note { margin-top: 18px; font-size: 12.5px; color: var(--ink-3); }
+.plug-help { margin: 34px auto 0; padding: 20px 22px 8px; max-width: 520px; text-align: left; border-top: 1px solid var(--line); }
+.plug-help h2 { font-size: 15px; font-weight: 700; margin: 0 0 10px; color: var(--ink); }
+.plug-help p { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 10px; }
 @media (prefers-reduced-motion: reduce) { .plug-art .plug-out, .plug-art .plug-head, .plug-inner { animation: none; } }
 
 /* ---- leaving, acted out: scissors on each severed line ---- */
@@ -1778,3 +1786,57 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--panel); border: 1.5px solid #d05a6a; color: #d05a6a; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
 .snip-mark svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; transition: transform 160ms ease; }
 .snip-mark.cut svg { transform: rotate(-18deg) scale(0.92); }
+
+/* ---- tab 8: the paper, read in place ---- */
+.paper-page-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--graph-bg); }
+.paper-head {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 18px 28px 14px; padding-right: 150px; border-bottom: 1px solid var(--line); background: var(--bg);
+}
+.paper-eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.paper-title { font-size: clamp(20px, 2.4vw, 28px); font-weight: 800; letter-spacing: -0.01em; margin: 0; color: var(--ink); line-height: 1.1; }
+.paper-sub { margin: 4px 0 0; font-size: 13px; color: var(--ink-3); }
+.paper-tools {
+  display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px;
+  background: var(--panel); border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: 12px;
+}
+.paper-tools button {
+  border: 0; background: transparent; color: var(--ink-2); font: inherit; font-weight: 600; min-width: 28px; height: 26px;
+  padding: 0 8px; border-radius: 999px; cursor: pointer; line-height: 1; transition: background 200ms, color 200ms;
+}
+.paper-tools button:hover:not(:disabled) { color: var(--ink); background: var(--panel-2); }
+.paper-tools button:disabled { opacity: 0.35; cursor: default; }
+.paper-tools button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.paper-tools .paper-fit { font-variant-numeric: tabular-nums; min-width: 48px; }
+.paper-count { padding: 0 8px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.paper-sep { width: 1px; height: 16px; background: var(--line); margin: 0 4px; }
+.paper-scroll { flex: 1; overflow: auto; padding: 24px 24px 0; outline: none; scroll-behavior: auto; }
+.paper-page {
+  position: relative; margin: 0 auto 22px; background: #fff; border-radius: 3px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 8px 28px rgba(0,0,0,0.10);
+}
+.paper-canvas { display: block; width: 100%; height: 100%; }
+.paper-dark .paper-page { background: #1b1e24; box-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 10px 32px rgba(0,0,0,0.45); }
+.paper-dark .paper-canvas { filter: invert(0.88) hue-rotate(180deg) contrast(0.95); }
+.paper-loading { display: flex; gap: 6px; justify-content: center; padding: 80px 0; }
+.paper-loading span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: paper-dot 1s ease-in-out infinite alternate; }
+.paper-loading span:nth-child(2) { animation-delay: 160ms; } .paper-loading span:nth-child(3) { animation-delay: 320ms; }
+@keyframes paper-dot { from { opacity: 0.2; transform: translateY(2px); } to { opacity: 1; transform: translateY(-2px); } }
+.paper-failed { max-width: 460px; margin: 60px auto; text-align: center; color: var(--ink-2); }
+.paper-foot { max-width: 620px; margin: 10px auto 0; padding: 22px 8px 40px; text-align: center; border-top: 1px solid var(--line); }
+.paper-foot p { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-2); }
+.paper-foot a { font-size: 14px; font-weight: 700; color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+.paper-foot a:hover { border-bottom-width: 2px; }
+.paper-page .textLayer { position: absolute; text-align: initial; inset: 0; overflow: clip; opacity: 1; line-height: 1; text-size-adjust: none; forced-color-adjust: none; transform-origin: 0 0; z-index: 0; }
+.paper-page .textLayer :is(span, br) { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
+.paper-page .textLayer span.markedContent { top: 0; height: 0; }
+.paper-page .textLayer ::selection { background: color-mix(in srgb, var(--accent), transparent 70%); }
+.paper-page .textLayer br::selection { background: transparent; }
+.paper-page .textLayer .endOfContent { display: block; position: absolute; inset: 100% 0 0; z-index: 0; cursor: default; user-select: none; }
+@media (max-width: 720px) {
+  .paper-head { padding: 12px 14px 10px; }
+  .paper-sub { display: none; }
+  .paper-scroll { padding: 14px 10px 0; }
+  .paper-page { margin-bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .paper-loading span { animation: none; opacity: 0.8; } }

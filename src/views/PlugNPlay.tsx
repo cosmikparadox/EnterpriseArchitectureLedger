@@ -1,5 +1,6 @@
 // Tab 7. The standalone app this demo points towards, not built yet.
-// A clean page: what it will be, in two plain sentences, and nothing else.
+// A clean page: what it will be, in two plain sentences, and the ask that
+// comes before it: people to test the idea on real estates.
 
 import { copy } from '../copy'
 
@@ -28,6 +29,13 @@ export function PlugNPlay() {
         <p className="plug-line">{copy.plug_line}</p>
         <p className="plug-line">{copy.plug_line2}</p>
         <p className="plug-note">{copy.plug_note}</p>
+        <section className="plug-help" aria-labelledby="plug-help-h">
+          <h2 id="plug-help-h">{copy.plug_help_h}</h2>
+          <p>{copy.plug_help_1}</p>
+          <p>{copy.plug_help_2}</p>
+          <p>{copy.plug_help_3}</p>
+          <p>{copy.plug_help_4}</p>
+        </section>
       </div>
     </div>
   )
