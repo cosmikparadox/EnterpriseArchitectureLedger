@@ -192,10 +192,12 @@ export function TwoShapes({ concentrated, bestOfBreed, dark, rule, setRule }: Tw
         focus: { nodes: new Set([e.topId, ...affected]) },
       }
     }
-    // Leaving, acted out: the exit's lines are snipped, it slides away and
-    // what rode it is stranded. Replayed on every visit and on each side.
+    // Leaving, acted out: the exit and what rides it hold their colour while
+    // the rest steps back a little; its lines are snipped one by one; it
+    // slides slowly away and what rode it is stranded. Replayed on every
+    // visit and on each side.
     return {
-      focus: { nodes: new Set([e.exitId, ...e.exitRiders]) },
+      focus: { nodes: new Set([e.exitId, ...e.exitRiders]), soft: true },
       snip: { id: e.exitId, nonce: visit * 10 + (side === 'left' ? 1 : 2) },
     }
   }

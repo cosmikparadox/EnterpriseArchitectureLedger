@@ -111,7 +111,8 @@ export interface Graph3DProps {
    * named to a quarter. The one control on the card changes the set, so the
    * picture answers the slider and nothing else competes with it.
    */
-  focus?: { nodes: Set<string>; hulls?: Set<string> } | null
+  /** soft: the rest of the picture steps back only a little. */
+  focus?: { nodes: Set<string>; hulls?: Set<string>; soft?: boolean } | null
   /**
    * A wave. The lit links and affected nodes light in order of their distance
    * from the source rather than all at once, so a failure is seen to spread.
@@ -1503,13 +1504,20 @@ export function Graph3D(props: Graph3DProps) {
     // when the wave arrives, in the loop below.
     const affected = (propsRef.current.affectedUseCases?.has(n.id) === true && (litAt.current.get(n.id) ?? 0) <= performance.now()) || snipState.current.stranded.has(n.id)
     const failed = propsRef.current.failedNodeId === n.id
+    // A snipped exit belongs to the snip while it leaves, and stays gone
+    // after, whatever else repaints the picture.
+    const sn = snipState.current
+    if (sn.id === n.id && (sn.phase === 'go' || sn.gone)) {
+      if (sn.gone) { o.solid.opacity = 0; o.mesh.visible = false; o.halo.visible = false; o.ring.visible = false; o.labelWanted = false; if (o.label) o.label.visible = false }
+      return
+    }
 
     o.mesh.material = affected ? o.wire : o.solid
     // A node the story has not revealed is not there at all; a node Isolate
     // has dimmed is still there, faintly, because the sharing is the lesson.
     // A layer arriving comes in one node at a time when the scene asks for
     // it: each node in the same pass starts a little after the last.
-    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : ghosted ? GHOST : dim ? 0.12 : 1
+    const target = propsRef.current.dimNodes?.has(n.id) ? 0 : ghosted ? (propsRef.current.focus?.soft ? 0.5 : GHOST) : dim ? 0.12 : 1
     const wasHidden = o.fadeTo === 0
     const delay = !instant && wasHidden && target > 0 && propsRef.current.stagger ? Math.min(1400, arriving.current++ * 45) : 0
     fadeTo(o, target, instant, delay)
@@ -1657,7 +1665,12 @@ export function Graph3D(props: Graph3DProps) {
       const base = linkColourBase(raw)
       const l = raw as GLink
       const cut = snipState.current
-      if (cut.id && (l.platformId === cut.id || l.ucId === cut.id)) return withAlpha(base, cut.linkAlpha)
+      if (cut.id && (l.platformId === cut.id || l.ucId === cut.id)) {
+        // Marked: the lines about to go stand out. Then each line, once cut,
+        // hangs slack, and all of them fade as the node leaves.
+        const hot = schemOn() ? base : dark ? '#e7eaef' : '#2b3038'
+        return withAlpha(hot, (cut.cut.has(`${l.ucId}>${l.platformId}`) ? 0.45 : 1) * (1 - cut.fade))
+      }
       return base
     }
     const selLink = props.selectedLink ? `${props.selectedLink.ucId}>${props.selectedLink.platformId}` : null
@@ -1667,7 +1680,7 @@ export function Graph3D(props: Graph3DProps) {
       const l = raw as GLink & { __litAt?: number }
       const key = `${l.ucId}>${l.platformId}`
       if (props.litLinks?.has(key) && (l.__litAt ?? 0) <= performance.now()) return '#d05a6a'
-      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return dark ? '#2a2f37' : '#dcdcd8'
+      if (focus && !(focus.nodes.has(l.ucId) && focus.nodes.has(l.platformId))) return focus.soft ? (schemOn() ? withAlpha(lineColour(l), 0.4) : dark ? '#3c424b' : '#c6c8cb') : dark ? '#2a2f37' : '#dcdcd8'
       if (props.flow) return flowColour(props.flow.warmth.get(l.ucId) ?? 0)
       // On the transit map a chosen line, or a chosen station's lines, keep
       // their own colour and the rest step back, so a line can be followed
@@ -2060,11 +2073,16 @@ export function Graph3D(props: Graph3DProps) {
 
   // ---- leaving, acted out ----
   //
-  // The two shapes' leaving row. Scissors mark each of the node's lines and
-  // the lines fade; the node slides away from the middle of the map and
-  // fades; its riders turn to wireframe with a pulse, stranded. All of it is
-  // undone the moment the snip is taken away.
-  const snipState = useRef({ id: '', linkAlpha: 1, stranded: new Set<string>() })
+  // The two shapes' leaving row, in three movements, slow enough to follow.
+  // First the exit and everything tied to it hold their colour while the
+  // rest of the picture steps back a little, and the exit's halo pulses.
+  // Then the scissors cut its lines one at a time, each line going slack as
+  // it is cut. Then the exit slides slowly away and fades, its lines fading
+  // with it, and what rode it turns to wireframe, stranded. The camera stays
+  // the reader's throughout. All of it is undone the moment the snip is
+  // taken away.
+  type SnipPhase = 'mark' | 'cut' | 'go'
+  const snipState = useRef<{ id: string; phase: SnipPhase; cut: Set<string>; fade: number; stranded: Set<string>; gone?: boolean }>({ id: '', phase: 'go', cut: new Set(), fade: 0, stranded: new Set() })
   const linkColourRef = useRef<((raw: object) => string) | null>(null)
   const snipRaf = useRef(0)
   const snipLayer = useRef<HTMLDivElement | null>(null)
@@ -2077,12 +2095,12 @@ export function Graph3D(props: Graph3DProps) {
       const n = (g.graphData().nodes as (GNode & Positioned & { __threeObj?: THREE.Object3D })[]).find((x) => x.id === id)
       n?.__threeObj?.position.set(n.x ?? 0, n.y ?? 0, n.z ?? 0)
       const o = objs.current.get(id)
-      if (o) { o.solid.opacity = o.fadeTo; if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 }
+      if (o) { o.solid.opacity = o.fadeTo; o.mesh.visible = true; if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 }
     }
     const snip = propsRef.current.snip
     if (!g || !snip) {
       const was = snipState.current.id
-      snipState.current = { id: '', linkAlpha: 1, stranded: new Set() }
+      snipState.current = { id: '', phase: 'go', cut: new Set(), fade: 0, stranded: new Set() }
       undo(was)
       if (layer) layer.innerHTML = ''
       applyState()
@@ -2093,8 +2111,11 @@ export function Graph3D(props: Graph3DProps) {
     if (!node || node.x === undefined) return
     const links = (g.graphData().links as GLink[]).filter((l) => l.platformId === snip.id || l.ucId === snip.id)
     const riders = new Set(links.map((l) => (l.platformId === snip.id ? l.ucId : l.platformId)))
-    undo(snipState.current.id)
-    snipState.current = { id: snip.id, linkAlpha: 1, stranded: new Set() }
+    const prev = snipState.current.id
+    undo(prev)
+    snipState.current = { id: snip.id, phase: 'mark', cut: new Set(), fade: 0, stranded: new Set() }
+    // A replay, or a new exit: both nodes take their state afresh.
+    for (const id of new Set([prev, snip.id])) { const pn = nodes.find((x) => x.id === id), po = objs.current.get(id); if (pn && po) applyNodeState(pn, po, true) }
     const reduced = propsRef.current.reducedMotion || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
     // Out, away from the middle of the map, a good way.
     let r = 0
@@ -2104,22 +2125,27 @@ export function Graph3D(props: Graph3DProps) {
     if (dir.lengthSq() < 1) dir.set(1, 0, 0)
     dir.normalize()
     const away = Math.max(60, r * 0.7)
-    // A scissor mark on each line.
-    const marks: { el: HTMLDivElement; l: GLink }[] = []
+    // A scissor mark for each line, shown when that line is cut.
+    const marks: { el: HTMLDivElement; l: GLink; at: number }[] = []
+    const MARK = reduced ? 0 : 1100
+    const gap = reduced ? 0 : Math.min(240, 1600 / Math.max(1, links.length))
+    const cutsEnd = MARK + gap * links.length + (reduced ? 0 : 350)
+    const T = reduced ? { slide: 1, strand: 0, end: 1 } : { slide: 3200, strand: 500, end: 3200 + 600 }
     if (layer) {
       layer.innerHTML = ''
-      for (const l of links) {
+      links.forEach((l, i) => {
         const m = document.createElement('div')
         m.className = 'snip-mark'
+        m.style.opacity = '0'
         m.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/></svg>'
         layer.appendChild(m)
-        marks.push({ el: m, l })
-      }
+        marks.push({ el: m, l, at: MARK + gap * i })
+      })
     }
     const o = objs.current.get(snip.id)
     const t0 = performance.now()
-    const T = reduced ? { cut: 0, fade: 1, slide: 1, strand: 1, end: 1 } : { cut: 380, fade: 620, slide: 1100, strand: 1300, end: 2300 }
     const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3))
+    const easeInOut = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
     const byId = new Map(nodes.map((n) => [n.id, n]))
     const place = (el: HTMLElement, l: GLink) => {
       const a = byId.get(l.ucId), b = byId.get(l.platformId)
@@ -2129,34 +2155,50 @@ export function Graph3D(props: Graph3DProps) {
       el.style.transform = `translate(${Math.round(p.x)}px, ${Math.round(p.y)}px)`
     }
     let stranded = false
+    const repaint = () => { if (linkColourRef.current) { g.linkColor(linkColourRef.current); paintSchematic() } }
+    repaint()
     const step = () => {
       const t = performance.now() - t0
+      const S = snipState.current
+      // One: marked. The exit pulses; its lines stand out.
+      if (o) o.halo.visible = t < cutsEnd && Math.floor(t / 320) % 2 === 0
+      // Two: cut, one line at a time.
+      let changed = false
       for (const m of marks) {
         place(m.el, m.l)
-        m.el.style.opacity = String(t < T.cut ? ease(t / Math.max(1, T.cut)) : t < T.end - 500 ? 1 : Math.max(0, (T.end - t) / 500))
-        m.el.classList.toggle('cut', t >= T.cut)
+        const since = t - m.at
+        const key = `${m.l.ucId}>${m.l.platformId}`
+        if (since >= 0 && !S.cut.has(key)) { S.cut.add(key); changed = true }
+        m.el.style.opacity = String(since < 0 ? 0 : t < cutsEnd + T.slide ? ease(since / 160) : Math.max(0, 1 - (t - cutsEnd - T.slide) / 500))
+        m.el.classList.toggle('cut', since >= 120)
       }
-      // The lines let go.
-      snipState.current.linkAlpha = 1 - ease((t - T.cut) / Math.max(1, T.fade))
-      if (linkColourRef.current) { g.linkColor(linkColourRef.current); paintSchematic() }
-      // The node slides away and fades.
-      const k = ease((t - T.cut - 120) / T.slide)
+      const phase: SnipPhase = t < MARK ? 'mark' : t < cutsEnd ? 'cut' : 'go'
+      if (phase !== S.phase) { S.phase = phase; changed = true }
+      // Three: the exit slides slowly away and fades; its lines fade with it.
+      const k = easeInOut((t - cutsEnd) / T.slide)
+      if (k > 0 || S.fade !== 0) { S.fade = ease((t - cutsEnd) / (T.slide * 0.8)); changed = true }
+      if (changed) repaint()
       node.__threeObj?.position.set((node.x ?? 0) + dir.x * away * k, (node.y ?? 0) + dir.y * away * k, (node.z ?? 0) + dir.z * away * k)
-      if (o) {
+      if (o && k > 0) {
         o.solid.opacity = o.fadeTo * (1 - k)
         o.mesh.visible = o.solid.opacity > 0.01
         if (o.label) (o.label.material as THREE.SpriteMaterial).opacity = 1 - k
         o.halo.visible = false; o.ring.visible = false
       }
-      // What rode it is stranded.
-      if (!stranded && t >= T.strand) {
+      // What rode it is stranded, soon after it starts to leave.
+      if (!stranded && t >= cutsEnd + T.strand) {
         stranded = true
-        snipState.current.stranded = riders
+        S.stranded = riders
         for (const id of riders) { const ro = objs.current.get(id); if (ro) ro.pulseUntil = performance.now() + 600 }
         for (const n of nodes) { const ro = objs.current.get(n.id); if (ro && riders.has(n.id)) applyNodeState(n, ro, true) }
       }
-      if (t < T.end) snipRaf.current = requestAnimationFrame(step)
-      else { snipRaf.current = 0; for (const m of marks) m.el.style.opacity = '0' }
+      if (t < cutsEnd + T.end) snipRaf.current = requestAnimationFrame(step)
+      else {
+        snipRaf.current = 0
+        for (const m of marks) m.el.style.opacity = '0'
+        S.gone = true
+        if (o) applyNodeState(node, o, true)
+      }
     }
     if (snipRaf.current) cancelAnimationFrame(snipRaf.current)
     snipRaf.current = requestAnimationFrame(step)
