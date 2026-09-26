@@ -2928,3 +2928,49 @@ the story quoted for months before a platform existed.
 
 **Licence.** None was added. The repository has no LICENSE file and
 `package.json` is marked private. The paper itself is CC BY 4.0.
+
+### 102. Readable maps: names over lines, a focus rule, a wider flat map, the exit badge, and cutting anything
+
+**Names and lines.** Every label now carries a halo in the canvas colour,
+the way a printed map sets its names. On the flat map labels are drawn
+after the lines and over them, so a line breaks around a name rather than
+striking through it. Names follow one hierarchy, applied by the renderer
+rather than beat by beat:
+- in the focus, chosen, or next to the chosen node: full strength;
+- a node chosen elsewhere: the rest step well back, use cases most;
+- nothing chosen: platforms nearly full, use cases quieter;
+- a beat about the lines (the lines, connectors, flow and today's graph
+  beats): every name outside the focus steps back again, so the lines
+  carry it.
+The fold's fade multiplies the hierarchy rather than overwriting it, and
+when names collide the quieter one gives way.
+
+**The focus rule.** In the story, a beat that picks a node is about that
+node. The picture keeps it and everything it touches, and the rest steps
+well back, names included. That covers the busiest node, why, the book,
+the meter and the pool, which used to light their lines but leave every
+other name bright. Ghosted nodes and lines are dimmer than before.
+
+**Spacing.** The flat lattice keeps a free cell between any two stations,
+where neighbours could touch corners before. Each use case's name runs up
+and to the right at 45 degrees, and the lattice keeps other stations off
+that run where a spot a few rings out allows it. The 3D layout is
+unchanged; the fold carries each node from its 3D place to its wider flat
+one, so the two stay in step.
+
+**The exit beat.** Past month 30 every use case on Claims administration
+has attached, so moving the handle further changes nothing on the graph,
+by design: only the model's hardening rate grows the figure. That is now
+visible. While the month is moved, the work of leaving at that month sits
+beside the platform with a bar towards its month 60 figure, and once all
+have attached it says only time adds to it now.
+
+**Cutting anything.** On the two shapes, tap any platform or any line, on
+either shape, to cut it with the same three movements as the leaving row.
+A platform strands every use case on it; a single line strands just its
+use case, and the platform stays. A note says what the cut strands and,
+for a platform, the work of moving them. In the story the tap takes over
+the leaving row; tapping the background puts everything back.
+
+**What's next.** The line about dates is gone, and the intent is in the
+owner's own words.
