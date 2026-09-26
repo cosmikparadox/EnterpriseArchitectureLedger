@@ -2708,3 +2708,59 @@ mechanism", in grey. They are now "On the books", in the CFO's gold, and
 gave its two readers. The labels name the lens, not the job title. The
 footprint's note on the bill now says the work of leaving was not shown,
 not the execution component, in line with deviation 95.
+
+### 98. Round two: a map that stays put, a transit map, a lift, and leaving acted out
+
+**Moving the flat map.** A drag on the flat map moved it several times
+further than the pointer, and a quick flick threw it off screen for good.
+The flat map now has its own gestures instead of the trackball's. A drag
+moves the map exactly as far as the pointer moves, with no momentum. The
+wheel and a pinch zoom about the pointer, between an eighth of the framed
+size and nearly twice it. The map can never be pushed fully out of view.
+In 3D the trackball stops the moment the pointer lets go, zooms and pans
+more gently, and cannot wander far from the estate. Once the view has
+been moved, a Recentre button brings the whole map back.
+
+**The ledger book moves.** On the "blueprint fills the book" beat, the book
+can be dragged by its title, like the floating card, so it no longer sits
+on the map. Dragging the book never pans the map.
+
+**Domains in focus.** A domain a beat is about is now drawn at 2.6 times
+its resting strength, and laid on normally rather than added. Added light
+only paled a light canvas; now the domain in focus on the change the rule
+beat reads a few shades darker.
+
+**The walkthrough footer.** Back, Next, the step count and Done are pinned
+to the foot of the panel, in the panel's own colours, and the step's text
+scrolls above them.
+
+**Tab 7, Plug 'n' Play.** A plain coming soon page for a standalone app you
+plug your own telemetry into. Nothing on it is live.
+
+**Leaving, acted out.** On the two shapes screen, the leaving row now shows
+the leaving. Scissors mark each line of the system that goes, the lines
+fade, the system slides away and fades, and the use cases that relied on
+it turn to outlines, stranded. Moving to another row undoes it.
+
+**The lift.** Going from 2D to 3D now plays as if a hand picked the flat
+map up by its middle. The middle rises first, the edges hang and follow,
+and the flat domain panels thin to threads as they stretch. Each node
+casts a soft shadow on the ground while the camera looks down, and the
+shadows shrink and fade as the map rises. Folding back to 2D is the
+origami fold as before. A reversal part way through plays back from where
+it is.
+
+**The transit map.** In 2D the map is now drawn the way a metro map is.
+Each station sits on a square lattice, near where the fold put it, with a
+clear cell around it and more around a large one. Each line runs
+horizontally, vertically or at 45 degrees, with at most one rounded bend,
+in its domain's colour and as thick as the work it carries. Of four
+possible shapes, a line takes the one that keeps clear of other stations
+and off the lines already drawn, so lines leave a busy station in
+different directions. Use case names are set at 45 degrees, as a metro
+map names a row of close stations. The lines draw on once the fold lands
+and fade as the lift begins. Every state the straight lines showed (lit,
+focused, ghosted, snipped, the value flow) shows on the map's lines, and a
+tap picks a line along its route. The geometry lives in
+`src/components/schematic.ts` with its own tests. The lattice changes
+where nodes sit on the flat map only; no figure, weight or edge changes.
