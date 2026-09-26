@@ -8,6 +8,22 @@
 export const copy = {
   // Spec hard rule E. Every screen carries this.
   footer: 'Illustrative data. Synthetic estate. Not a measurement.',
+  footer_views: 'Independent research. Views are my own.',
+  about_link: 'About and disclaimers',
+  about_h: 'About and disclaimers',
+  about_close: 'Close',
+  about_1: 'This is independent research in a personal capacity.',
+  about_2: "It does not reflect my employer's position, or the products and services it sells.",
+  about_3: 'It is not affiliated with or endorsed by any employer, vendor or client.',
+  about_4: 'Harbourline is invented. Its systems, figures and people are synthetic. Any likeness to a real company is coincidence.',
+  about_5: 'Every figure is illustrative. None measures any real estate.',
+  about_6: 'This is a thesis, not a finding. The studies that would test it have not been run.',
+  about_7: 'Nothing here is financial, accounting, legal, investment or security advice. Do not base decisions on it.',
+  about_8: 'Framework and standard names belong to their owners. Naming them implies no endorsement.',
+  about_9: 'The paper is published under CC BY 4.0.',
+  // Checked before it was written: across every route, every story beat and
+  // every page of the paper, the built file made no request beyond itself.
+  about_data: 'The page sends nothing anywhere once loaded.',
 
   intro:
     'A platform is a shared node. Use cases plug into it. Part of what each ' +
@@ -133,13 +149,8 @@ export const copy = {
 
   rail_tour: 'Tour',
   // Tab 7: the standalone app, not built yet. Said plainly.
-  rail_plug: "Plug 'n' Play",
+  rail_next: "What's next",
   rail_paper: 'Read the paper',
-  plug_eyebrow: 'Moving beyond theory',
-  plug_title: 'Coming soon',
-  plug_line: 'A standalone app you plug your own telemetry into.',
-  plug_line2: 'It maps your estate from what your systems actually do, and helps you weigh cost, risk and exit.',
-  plug_note: "Same ledger, your real numbers instead of Harbourline's.",
   paper_eyebrow: 'The canonical thesis, v2.1d',
   paper_title: 'The Architecture Ledger',
   paper_sub: 'The complete reference this explorer is built from.',
@@ -156,11 +167,35 @@ export const copy = {
   paper_failed: 'The paper would not open in this browser. It is on Zenodo, linked below.',
   paper_more: 'For a deeper dive, the research paper, the mathematics and a plain English companion are there too.',
   paper_link: 'Find the supplemental documents on Zenodo',
-  plug_help_h: 'Where I need help',
-  plug_help_1: 'Right now all of this runs on an invented insurer. That was fine for building it. It is not proof.',
-  plug_help_2: 'The next step is putting it in front of real companies, with their own systems, and seeing if it holds.',
-  plug_help_3: 'So I am looking for people who will test it, not just read it. Architects, finance teams, anyone who has had to defend a number about their systems.',
-  plug_help_4: 'Different industries and sizes help most. And if it does not track, I want to hear that too.',
+  // Tab 7, What's next. Promises nothing: a roadmap without dates, and a
+  // quiet note on the intent, set like a disclaimer.
+  next_eyebrow: 'Moving beyond theory',
+  next_title: "What's next",
+  next_intro: 'Everything so far runs on an invented insurer. Here is how the idea gets tested for real.',
+  next_here: 'You are here',
+  next_s1_h: 'Test the idea',
+  next_s1: 'A controlled study with practitioners, and a study of real migrations from records companies already keep.',
+  next_s1_tag: 'Now, in preparation',
+  next_s2_h: 'Stress-test in the real world',
+  next_s2: 'On real estates, with organisations willing to try.',
+  next_s2_tag: 'Next, if step one holds',
+  next_s3_h: 'Revise in the open',
+  next_s3: 'What fails gets corrected and logged, version by version.',
+  next_s3_tag: 'Always',
+  next_s4_h: 'The options an architecture creates',
+  next_s4: 'The paper measures the choices a commitment removes. Measuring the ones it creates is an open problem.',
+  next_s4_tag: 'Later, only if the evidence supports it',
+  next_loop: 'Back to steps one and two',
+  next_nodates: 'No dates. Each step waits on the one before.',
+  next_intent_h: 'The intent',
+  next_intent_1: 'If the testing holds, the intent is an open source release that any organisation can take.',
+  next_intent_2: 'Each organisation would review it against its own security standards before running it anywhere.',
+  next_intent_3: 'It would then run inside that environment, on its own telemetry, with nothing sent outside.',
+  next_intent_4: 'The measurement would be tested first. The learning and prediction layer, still in development, would follow.',
+  next_intent_5: 'When real-world testing starts, a few organisations will be asked to try it on anonymised data.',
+  next_intent_6: 'It is meant for architects, finance teams, and anyone who has had to defend a number about their systems.',
+  next_contact: 'Interested in taking part later? Get in touch.',
+  next_contact_note: 'Please do not send system data, logs or telemetry. A short note about your organisation is enough.',
 
   // View 4, cursor dragged to a month before the node was adopted. The panel
   // keeps its shape; only the figures have nothing to say yet.
@@ -237,8 +272,8 @@ export const copy = {
   wip_more:
     'The next step is testing it on real telemetry, which takes an ' +
     'organisation willing to try. Curious domain and technology leaders are ' +
-    'welcome to use it to stress-test the idea. A public repository for ' +
-    'plugging in your own telemetry and building this view is on the roadmap.',
+    'welcome to use it to stress-test the idea. Real-world testing comes ' +
+    "next. The What's next tab says more.",
   wip_open: 'Read more',
   wip_hide: 'Hide',
   chapter_0: 'Prologue',

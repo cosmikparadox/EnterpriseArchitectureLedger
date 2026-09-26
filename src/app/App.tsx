@@ -5,8 +5,9 @@
 // it carries the graph version and the decomposition owner, which canon 9.8.2
 // makes required fields: an entry missing either is not a ledger entry.
 
-import { PlugNPlay } from '../views/PlugNPlay'
+import { WhatsNext } from '../views/WhatsNext'
 import { Paper } from '../views/Paper'
+import { AboutNote } from '../components/AboutNote'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import estateJson from '../../data/estate.json'
 import bestOfBreedJson from '../../data/estate_bestofbreed.json'
@@ -46,7 +47,7 @@ const VIEWS = [
   { n: 4, t: 'Footprint', ready: true },
   { n: 5, t: 'Two shapes', ready: true },
   { n: 6, t: 'Boundaries', ready: true },
-  { n: 7, t: copy.rail_plug, ready: true },
+  { n: 7, t: copy.rail_next, ready: true },
   { n: 8, t: copy.rail_paper, ready: true },
 ]
 
@@ -89,6 +90,7 @@ export function App() {
   const dimension = useLedger((s) => s.dimension)
   const setDimension = useLedger((s) => s.setDimension)
   const systemDark = useSystemDark()
+  const [about, setAbout] = useState(false)
   const dark = theme === 'auto' ? systemDark : theme === 'dark'
   useLayoutEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light' }, [dark])
   const ix = useMemo(() => buildIndex(estate), [])
@@ -204,7 +206,7 @@ export function App() {
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
-        {view === 7 && <PlugNPlay />}
+        {view === 7 && <WhatsNext />}
         {view === 8 && <Paper dark={dark} />}
         {!onLanding && (
           <div className="canvas-switches">
@@ -245,11 +247,16 @@ export function App() {
 
       <footer className="footer">
         <span>{copy.footer}</span>
+        <span className="footer-note">
+          {copy.footer_views}{' '}
+          <button type="button" className="footer-about" aria-expanded={about} onClick={() => setAbout((v) => !v)}>{copy.about_link}</button>
+        </span>
         <span className="prov">
           graph {p.graph_version}, as at {p.graph_as_at} | decomposition owned by {p.decomposition_owner},
           revised {p.decomposition_revised} | basis: {BASIS_LABEL[rule]} | seed {p.seed}
         </span>
       </footer>
+      {about && <AboutNote onClose={() => setAbout(false)} />}
     </div>
   )
 }

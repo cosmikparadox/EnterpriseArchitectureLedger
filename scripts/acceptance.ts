@@ -643,6 +643,9 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   const offsiteLinks: string[] = []
   const allowed: string[] = []
   const ARCHIVE = 'https://doi.org/10.5281/zenodo.21863760'
+  // Tab 7's contact link, read from its one constant. Allowed there only
+  // once the owner sets it; empty, the page must render no link at all.
+  const CONTACT = /export const CONTACT_URL = '([^']*)'/.exec(readFileSync('src/views/WhatsNext.tsx', 'utf8'))?.[1] ?? ''
   const C3_ROUTES = ['#/', '#/explore', '#/pool', '#/risk', '#/footprint', '#/shapes', '#/boundaries', '#/plug', '#/paper', '#/tour/40']
   for (const hash of C3_ROUTES) {
     await page.goto(`http://localhost:5190/${hash}`, { waitUntil: 'load' })
@@ -652,6 +655,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
     for (const h of hrefs) {
       if (h.startsWith('http://localhost:5190')) continue
       if (hash === '#/paper' && h === ARCHIVE) allowed.push(`${hash}: ${h}`)
+      else if (hash === '#/plug' && CONTACT && h === new URL(CONTACT).href) allowed.push(`${hash}: ${h}`)
       else offsiteLinks.push(`${hash}: ${h}`)
     }
   }
@@ -659,10 +663,10 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
     (dist.match(/https?:\/\/[a-zA-Z0-9.-]+/g) ?? [])
       .filter((u) => !u.includes('w3.org')),
   ))
-  add('C3 nothing on the page links to another site, bar the archive on tab 8',
-    offsiteLinks.length === 0 && allowed.length === 1 ? 'PASS' : 'FAIL',
+  add('C3 nothing on the page links to another site, bar the archive on tab 8 and the contact link on tab 7 once set',
+    offsiteLinks.length === 0 && allowed.length === (CONTACT ? 2 : 1) ? 'PASS' : 'FAIL',
     offsiteLinks.length === 0
-      ? `0 other offsite links across ${C3_ROUTES.length} routes; the one allowed link: ${allowed.join(', ') || 'MISSING'}. Bundle mentions ${bundleHosts.length} host(s), none rendered: ${bundleHosts.join(', ')}. All are vendored library internals except example.invalid, which is the unset Medium placeholder and is why the Medium line is not drawn.`
+      ? `0 other offsite links across ${C3_ROUTES.length} routes; allowed: ${allowed.join(', ') || 'MISSING'}; contact link ${CONTACT ? 'set' : 'unset, so none rendered'}. Bundle mentions ${bundleHosts.length} host(s), none rendered: ${bundleHosts.join(', ')}. All are vendored library internals except example.invalid, which is the unset Medium placeholder and is why the Medium line is not drawn.`
       : offsiteLinks.join(' | '))
   await ctx.close()
 }
