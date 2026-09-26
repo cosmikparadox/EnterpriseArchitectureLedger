@@ -408,7 +408,7 @@ const nextBeat = async (page: import('@playwright/test').Page, i: number) => {
   const heading = (await page.locator('.story h1').innerText()).trim()
   const view = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { view: unknown; selectedId: string | null } } }).__ledger?.getState().view)
   const selected = await page.evaluate(() => (window as unknown as { __ledger?: { getState: () => { selectedId: string | null } } }).__ledger?.getState().selectedId)
-  const ok = heading === BEAT_HEADING[35] && view === 4 && selected === 'meridian' && errors.length === 0
+  const ok = heading === BEAT_HEADING[35] && view === 4 && selected === 'claims_admin' && errors.length === 0
   add('T4 deep link to one beat cold-loads into it', ok ? 'PASS' : 'FAIL',
     `#/tour/35: heading "${heading}", view ${String(view)}, selected "${selected}", page errors ${errors.length}`)
   await ctx.close()
@@ -800,7 +800,7 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   await page.locator('.ledger-workings').click()
   for (const row of await page.locator('.ledger-row').all()) {
     const l = (await row.locator('.l').innerText()).trim(); const v = (await row.locator('.v').innerText()).trim()
-    if (/^Entry two|^Entry three|domain|^Data cloud/.test(l)) check('story ledger', l, v)
+    if (/^Entry two|^Entry three|domain|^Claims administration/.test(l)) check('story ledger', l, v)
   }
   await page.goto('http://localhost:5190/#/risk', { waitUntil: 'load' }); await page.waitForTimeout(2500)
   for (const row of await page.locator('.panel .row').all()) {
@@ -849,8 +849,9 @@ const clear = (p: Pt, nodes: Pt[]) => nodes.every((n) => Math.hypot(n.x - p.x, n
   if (!/claim triage/i.test(head)) faults.push(`card head "${head}"`)
   if (!closeLine.includes('Claim triage')) faults.push(`close "${closeLine}"`)
   for (const [where, t] of [['prologue', prologue], ['book', book], ['close', entries]] as const) {
-    for (const want of ['49,444', '59,000', '5,400,000']) if (!nums(t).includes(want)) faults.push(`${where} lacks ${want}`)
-    if (!/Data cloud/.test(t)) faults.push(`${where} lacks Data cloud`)
+    // Entry three is on Claims administration since brief v0.6.
+    for (const want of ['49,444', '59,000', '5,300,000']) if (!nums(t).includes(want)) faults.push(`${where} lacks ${want}`)
+    if (!/Claims administration/.test(t)) faults.push(`${where} lacks Claims administration`)
   }
   await ctx.close()
   add('V1 one use case carries all three entries, everywhere', faults.length === 0 ? 'PASS' : 'FAIL',
