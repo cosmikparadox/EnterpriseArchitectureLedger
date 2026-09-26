@@ -2867,3 +2867,64 @@ Measured in the container on the flow beat, with its software renderer:
 frames in five seconds went from 20 to 37, and the canvas's own script
 time fell to under one percent. Nothing was taken out of the picture to
 get there.
+
+### 101. Brief v0.6: What's next, disclaimers, the leaving story on Claims administration, and attachment
+
+**Tab 7 is What's next.** The rail reads "What's next"; the route stays
+`#/plug`. The page no longer promises an app. It shows an informal
+roadmap of four stepping stones, no dates, with a "you are here" marker on
+step one and step three drawn as a loop back to steps one and two. The
+loop is drawn from where the stones actually sit, so it reads side by side
+on a wide screen and stacked at 390 px. Under the roadmap: "No dates. Each
+step waits on the one before." Then a short note on the intent, set like
+a disclaimer rather than an appeal: an open source release organisations
+could review against their own security standards and run in their own
+environment, the measurement tested first and the learning layer after.
+A contact link renders from one constant, `CONTACT_URL` in
+`src/views/WhatsNext.tsx`. It is empty, so neither the link nor its note
+about not sending data shows. Acceptance check C3 allows exactly that
+link, on that tab, once it is set.
+
+**Footer and disclaimers.** Every screen's footer adds "Independent
+research. Views are my own." and a link to a short About and disclaimers
+panel, set like the work in progress note. Before its last line, "The
+page sends nothing anywhere once loaded.", was written, the built file was
+loaded and walked through every route, all 41 story beats and every page
+of the paper, recording every request. There were 16, all the page itself
+or in-memory worker blobs; none left it. The only fetch in our own code is
+the paper viewer's dev-server path, which the built file never takes. On a
+phone the footer wraps to two lines and the provenance line is hidden. The
+work in progress note now ends "Real-world testing comes next. The What's
+next tab says more."
+
+**The leaving story moves to Claims administration.** The Data cloud is a
+real vendor category, and a lock-in story told about it reads as
+commentary on that category. `LEAVING_PLATFORM_ID` is `claims_admin`,
+read by the grow and exit beats, the card's third entry, the book, the
+prologue's exit note and Explore's leaving line. The Footprint screen
+opens on Claims administration and the Risk screen on the identity
+service. No screen default, story example or highlighted node features the
+Data cloud now; it stays on the map as an ordinary platform.
+
+| Figure (equal split) | Data cloud, before | Claims administration, after |
+| --- | --- | --- |
+| Adopted, month | 17 | 6 |
+| Riders, domains | 16, six domains | 6, Claims and Data |
+| Attached by month 31 | 16 | 6 (months 6, 8, 11, 18, 26, 30) |
+| Work of leaving, month 31 | about 3,700,000 | about 3,800,000 |
+| Work of leaving, month 60 (the third entry) | about 5,400,000, shared by 16 | about 5,300,000, shared by 6 |
+| Work the commitment created, month 31 | about 3,500,000 | about 3,300,000 |
+| Choices given up (option component), month 31 | about 790,000 | about 680,000 |
+
+The option component is reported as the model gives it; nothing was tuned.
+
+**Attachment.** A rider now counts as attached from the later of its use
+case's adoption and its platform's, through one helper, `attachedAt`,
+used by the story figures and the Footprint screen and chart. On the Data
+cloud that is none at month 16, not six, and six at month 17. No figure
+from a platform's adoption month onward changes, because the Footprint
+screen already showed nothing before adoption; what changes is the count
+the story quoted for months before a platform existed.
+
+**Licence.** None was added. The repository has no LICENSE file and
+`package.json` is marked private. The paper itself is CC BY 4.0.
