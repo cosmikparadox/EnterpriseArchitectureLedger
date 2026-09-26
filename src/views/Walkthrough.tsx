@@ -7,7 +7,9 @@
 // was chosen, because the estate has no decision record and the ledger
 // would refuse to invent one.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { PanelFootContext } from '../components/PanelShell'
 import { copy, fill } from '../copy'
 import { describePlatform, describeUseCase } from '../model/describe'
 import { leavingFor, platformView } from '../app/graph'
@@ -87,21 +89,28 @@ export function Walkthrough({ ix, rule, id, step, onStep, onFocus, onClose }: Wa
   const boxRef = useRef<HTMLElement | null>(null)
   useEffect(() => { boxRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [step])
   const stem = isPlatform ? `walk_p_${key}` : `walk_u_${key}`
+  // Back and Next live in the panel's pinned footer, so they stay in reach
+  // however far the body is scrolled; outside a panel they sit under the text.
+  const foot = useContext(PanelFootContext)
+  const nav = (
+    <div className="walk-nav">
+      <button className="ctl" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>{copy.story_back}</button>
+      {step < steps.length - 1
+        ? <button className="cta" onClick={() => setStep((s) => s + 1)}>{copy.story_next}</button>
+        : <button className="cta" onClick={onClose}>{copy.walk_close}</button>}
+      <div className="walk-progress" aria-hidden="true">
+        <span className="walk-step">{fill(copy.walk_step, { k: step + 1, n: steps.length })}</span>
+        <span className="walk-dots">{steps.map((st, i) => <span key={st} className={i <= step ? 'on' : ''} />)}</span>
+      </div>
+      <button type="button" className="tour-skip" onClick={onClose}>{copy.walk_close}</button>
+    </div>
+  )
   return (
     <section ref={boxRef} className="walk-inline" aria-label={copy.walk_label} aria-live="polite">
-      <div className="walk-top">
-        <span className="walk-step">{fill(copy.walk_step, { k: step + 1, n: steps.length })}</span>
-        <button type="button" className="tour-skip" onClick={onClose}>{copy.walk_close}</button>
-      </div>
+      <span className="walk-eyebrow">{copy.walk_label}</span>
       <h3 key={key}>{c[`${stem}_h`]}</h3>
       <p key={`${key}-l`}>{fill(c[stem] ?? '', values)}</p>
-      <div className="walk-actions">
-        <button className="ctl" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>{copy.story_back}</button>
-        {step < steps.length - 1
-          ? <button className="cta" onClick={() => setStep((s) => s + 1)}>{copy.story_next}</button>
-          : <button className="cta" onClick={onClose}>{copy.walk_close}</button>}
-        <div className="walk-dots" aria-hidden="true">{steps.map((st, i) => <span key={st} className={i <= step ? 'on' : ''} />)}</div>
-      </div>
+      {foot ? createPortal(nav, foot) : nav}
     </section>
   )
 }

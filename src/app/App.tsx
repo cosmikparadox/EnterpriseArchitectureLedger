@@ -5,6 +5,7 @@
 // it carries the graph version and the decomposition owner, which canon 9.8.2
 // makes required fields: an entry missing either is not a ledger entry.
 
+import { PlugNPlay } from '../views/PlugNPlay'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import estateJson from '../../data/estate.json'
 import bestOfBreedJson from '../../data/estate_bestofbreed.json'
@@ -44,6 +45,7 @@ const VIEWS = [
   { n: 4, t: 'Footprint', ready: true },
   { n: 5, t: 'Two shapes', ready: true },
   { n: 6, t: 'Boundaries', ready: true },
+  { n: 7, t: copy.rail_plug, ready: true },
 ]
 
 function useSystemDark(): boolean {
@@ -188,14 +190,15 @@ export function App() {
       )}
 
       <main className="main">
-        {tourStep === null && !onLanding && <WipNote />}
+        {tourStep === null && !onLanding && view !== 7 && <WipNote />}
         {view === 1 && <Explore estate={estate} ix={ix} rule={rule} dark={dark} />}
         {view === 2 && <FixedPool estate={estate} dark={dark} rule={rule} setRule={setRule} />}
         {view === 3 && <Risk estate={estate} ix={ix} dark={dark} />}
         {view === 4 && <Footprint estate={estate} ix={ix} dark={dark} />}
         {view === 5 && <TwoShapes concentrated={estate} bestOfBreed={bestOfBreed} dark={dark} rule={rule} setRule={setRule} />}
         {view === 6 && <Boundaries estate={estate} dark={dark} rule={rule} setRule={setRule} />}
-        {!onLanding && (
+        {view === 7 && <PlugNPlay />}
+        {!onLanding && view !== 7 && (
           <div className="canvas-switches">
             <button
               type="button" className="theme-toggle" role="switch" aria-checked={dark}

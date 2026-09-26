@@ -4,7 +4,7 @@
 // are added to its scene directly, because they have to follow the layout as it
 // settles.
 
-import { useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import ForceGraph3D from '3d-force-graph'
 import * as THREE from 'three'
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
@@ -13,6 +13,7 @@ import { CONNECTOR, CONNECTOR_DARK, NEUTRAL, NEUTRAL_DIM, SUBDOMAIN_COLOUR, type
 import { ringTexture, type RingSplit } from './rings'
 import { reportSelectedScreenPos } from '../app/layoutReport'
 import { useLedger } from '../app/store'
+import { copy } from '../copy'
 import { canonicalFrame, cameraBlend, easeInOut, flatten, nodeFold, schedule, toFrame, turnMs, FLAT_FOV, type FlatStats } from './fold'
 
 export type LabelMode = 'all' | 'selected' | 'hubs' | 'none'
@@ -133,6 +134,15 @@ export interface Graph3DProps {
 /** Hull fill and edge opacity when fully shown. */
 const HULL_FILL = 0.085
 const HULL_EDGE = 0.3
+/** How much stronger a domain the beat is about is drawn. */
+const HULL_EMPHASIS = 2.6
+/**
+ * Domains add their light, so an overlap reads denser. A domain drawn with
+ * emphasis is laid on normally instead: on a light canvas, added light only
+ * washes towards white, and the domain in question would look paler, not
+ * stronger.
+ */
+const hullBlend = (alpha: number): THREE.Blending => (alpha > 1 ? THREE.NormalBlending : THREE.AdditiveBlending)
 /** Strength of the pull that keeps each part of the business in its sector. */
 const SECTOR_PULL = 0.1
 /** What a node outside the focus fades to: a trace, so the shape of the estate stays. */
@@ -298,6 +308,9 @@ export function Graph3D(props: Graph3DProps) {
   /** Set while a fold runs; the engine stop it ends with is not a settle. */
   const foldOn = useRef(false)
   const foldStop = useRef(false)
+  /** The reader has moved the camera; a Recentre button offers the way back. */
+  const userMoved = useRef(false)
+  const [moved, setMoved] = useState(false)
   /** Where the canvas's free area is: the card's column and the wordmark. */
   const view = useRef({ inset: 0, top: 0, apply: () => {} })
 
@@ -510,11 +523,61 @@ export function Graph3D(props: Graph3DProps) {
     // the camera. Opening a panel or turning the split narrows the canvas, and
     // without this the graph stays framed for a box that no longer exists and
     // drifts off to one side. Once somebody has orbited, their camera is theirs.
-    let userMovedCamera = false
+    userMoved.current = false
     cameraTaken.current = false
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const controls = g.controls() as any
-    controls?.addEventListener?.('start', () => { userMovedCamera = true })
+    // No glide after the pointer lets go: the picture stops where the hand
+    // stops. The trackball's default kept drifting, and a small flick sent
+    // the estate off the screen.
+    if (controls) { controls.staticMoving = true; controls.zoomSpeed = 0.8; controls.panSpeed = 0.5 }
+    controls?.addEventListener?.('start', () => { userMoved.current = true; setMoved(true) })
+    // Keep the orbit's centre near the estate, so a pan can never lose it.
+    controls?.addEventListener?.('change', () => {
+      if (modeRef.current !== '3d' || foldOn.current || !controls.target) return
+      let r = 0
+      for (const p of live3.current.values()) r = Math.max(r, Math.hypot(p[0], p[1], p[2]))
+      const t = controls.target as THREE.Vector3, lim = Math.max(60, r * 1.1), len = t.length()
+      if (len > lim) { const k = lim / len; const dx = t.x * (k - 1), dy = t.y * (k - 1), dz = t.z * (k - 1); t.multiplyScalar(k); const cam = g.camera(); cam.position.x += dx; cam.position.y += dy; cam.position.z += dz }
+      controls.minDistance = Math.max(20, r * 0.2)
+      controls.maxDistance = Math.max(800, r * 12)
+    })
+    // The flat map's own gestures: a drag carries the map one to one under
+    // the pointer, a wheel or a pinch zooms about the pointer, and the view
+    // never leaves the map.
+    const flatPointers = new Map<number, { x: number; y: number }>()
+    const flatOn = () => modeRef.current === '2d' && !foldOn.current && !camRaf.current
+    const onFlatDown = (e: PointerEvent) => {
+      if (!flatOn() || (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1)) return
+      // A press on the book, a pop-up or a button is theirs, not the map's.
+      if ((e.target as HTMLElement | null)?.closest?.('.canvas-book, .popover, button, .canvas-callout')) return
+      flatPointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    }
+    const onFlatMove = (e: PointerEvent) => {
+      const was = flatPointers.get(e.pointerId)
+      if (!was || !flatOn()) return
+      const now = { x: e.clientX, y: e.clientY }
+      if (flatPointers.size === 1) flatPan(now.x - was.x, now.y - was.y)
+      else if (flatPointers.size === 2) {
+        const other = [...flatPointers.entries()].find(([id]) => id !== e.pointerId)![1]
+        const d0 = Math.hypot(was.x - other.x, was.y - other.y), d1 = Math.hypot(now.x - other.x, now.y - other.y)
+        flatPan((now.x - was.x) / 2, (now.y - was.y) / 2)
+        if (d0 > 4 && d1 > 4) flatZoom(d0 / d1, (now.x + other.x) / 2, (now.y + other.y) / 2)
+      }
+      flatPointers.set(e.pointerId, now)
+    }
+    const onFlatUp = (e: PointerEvent) => { flatPointers.delete(e.pointerId) }
+    const onWheel = (e: WheelEvent) => {
+      if (!flatOn()) return
+      e.preventDefault()
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
+      flatZoom(Math.exp(Math.max(-60, Math.min(60, dy)) * 0.0022), e.clientX, e.clientY)
+    }
+    el.addEventListener('pointerdown', onFlatDown)
+    window.addEventListener('pointermove', onFlatMove)
+    window.addEventListener('pointerup', onFlatUp)
+    window.addEventListener('pointercancel', onFlatUp)
+    el.addEventListener('wheel', onWheel, { passive: false })
     // A drag, as opposed to a tap, is what the gesture hint waits for: a
     // pointer that has travelled more than a few pixels while down.
     let downAt: { x: number; y: number } | null = null
@@ -542,9 +605,9 @@ export function Graph3D(props: Graph3DProps) {
       // The flat map always re-frames to its pose; the 3D one only until the
       // viewer has taken the camera.
       if (modeRef.current === '2d' && framed && !foldOn.current) { clearTimeout(refit); refit = setTimeout(() => { if (!foldOn.current) fit(300) }, 300); return }
-      if (userMovedCamera || cameraTaken.current || !framed) return
+      if (userMoved.current || cameraTaken.current || !framed) return
       clearTimeout(refit)
-      refit = setTimeout(() => { if (!userMovedCamera && !cameraTaken.current && framed) fit(300) }, 300)
+      refit = setTimeout(() => { if (!userMoved.current && !cameraTaken.current && framed) fit(300) }, 300)
     })
     ro.observe(el)
     g.width(el.clientWidth).height(el.clientHeight)
@@ -552,7 +615,7 @@ export function Graph3D(props: Graph3DProps) {
     const mo = new MutationObserver(() => {
       const before = insetNow
       applyOffset()
-      if (before !== insetNow && framed && !foldOn.current && (modeRef.current === '2d' || (!userMovedCamera && !cameraTaken.current))) fit(400)
+      if (before !== insetNow && framed && !foldOn.current && (modeRef.current === '2d' || (!userMoved.current && !cameraTaken.current))) fit(400)
     })
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'data-story-dock'] })
 
@@ -564,6 +627,11 @@ export function Graph3D(props: Graph3DProps) {
       el.removeEventListener('pointermove', onMove)
       el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onUp)
+      el.removeEventListener('pointerdown', onFlatDown)
+      window.removeEventListener('pointermove', onFlatMove)
+      window.removeEventListener('pointerup', onFlatUp)
+      window.removeEventListener('pointercancel', onFlatUp)
+      el.removeEventListener('wheel', onWheel)
       document.removeEventListener('visibilitychange', onVisibility)
       if (foldRaf.current) cancelAnimationFrame(foldRaf.current)
       if (camRaf.current) cancelAnimationFrame(camRaf.current)
@@ -710,7 +778,9 @@ export function Graph3D(props: Graph3DProps) {
       if (!sub) continue
       const a = hullAlpha.current.get(sub)?.cur ?? 1
       const m = (c as THREE.Mesh).material as THREE.Material
-      m.opacity = (c.userData.edge ? HULL_EDGE : HULL_FILL) * a
+      m.opacity = Math.min(0.95, (c.userData.edge ? HULL_EDGE : HULL_FILL) * a)
+      const blend = hullBlend(a)
+      if (!c.userData.edge && m.blending !== blend) { m.blending = blend; m.needsUpdate = true }
       if (a <= 0) needRebuild = true
     }
     // A hull arriving from nothing has no mesh yet; one rebuild gives it one.
@@ -779,7 +849,7 @@ export function Graph3D(props: Graph3DProps) {
         opacity: HULL_FILL * alpha,
         side: THREE.DoubleSide,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        blending: hullBlend(alpha),
       })
       const hull = new THREE.Mesh(geom, mat)
       hull.userData.subdomain = sub
@@ -827,7 +897,7 @@ export function Graph3D(props: Graph3DProps) {
       const shape = new THREE.Shape(poly.map(([x, y]) => new THREE.Vector2(x, y)))
       const fill = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({
         color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: HULL_FILL * alpha,
-        side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide, depthWrite: false, blending: hullBlend(alpha),
       }))
       fill.position.z = z
       fill.renderOrder = k
@@ -1376,7 +1446,8 @@ export function Graph3D(props: Graph3DProps) {
         ? !props.dimHulls.has(sub)
         : data.nodes.some((n) => n.kind === 'use_case' && n.subdomain === sub && !dimmed(n))
       const fh = props.focus?.hulls
-      const target = !arrived ? 0 : fh && !fh.has(sub) ? 0.35 : 1
+      // A domain the beat is about is drawn stronger, not just left alone.
+      const target = !arrived ? 0 : fh && !fh.has(sub) ? 0.35 : fh ? HULL_EMPHASIS : 1
       const a = hullAlpha.current.get(sub) ?? { cur: target, from: target, to: target, t0: 0 }
       if (!hullAlpha.current.has(sub)) hullAlpha.current.set(sub, a)
       if (a.to !== target) {
@@ -1654,6 +1725,30 @@ export function Graph3D(props: Graph3DProps) {
     return () => stops.forEach((f) => f())
   }, [pokeKey])
 
+  // The book can be picked up by its title and moved off whatever it covers.
+  // Held as a transform, so the wires, which read its box every frame, follow.
+  const bookOffset = useRef({ x: 0, y: 0 })
+  useEffect(() => { bookOffset.current = { x: 0, y: 0 }; if (bookEl.current) bookEl.current.style.transform = '' }, [props.book?.id])
+  const onBookDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const box = bookEl.current
+    const hb = holder.current?.getBoundingClientRect()
+    if (!box || !hb) return
+    e.preventDefault(); e.stopPropagation()
+    const start = { x: e.clientX, y: e.clientY }, from = { ...bookOffset.current }
+    const r0 = box.getBoundingClientRect()
+    const base = { left: r0.left - from.x, top: r0.top - from.y }
+    const move = (ev: PointerEvent) => {
+      // Kept on the canvas.
+      const x = Math.min(hb.right - r0.width - base.left, Math.max(hb.left - base.left, from.x + ev.clientX - start.x))
+      const y = Math.min(hb.bottom - r0.height - base.top, Math.max(hb.top - base.top, from.y + ev.clientY - start.y))
+      bookOffset.current = { x, y }
+      box.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`
+    }
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
   // The book's wires: one curve from the node to each ruled row, redrawn
   // every other frame in canvas pixels, so they follow the camera.
   const gestureEl = useRef<HTMLDivElement | null>(null)
@@ -1751,10 +1846,10 @@ export function Graph3D(props: Graph3DProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const controls = g.controls() as any
     if (!controls) return
-    controls.enabled = !moving
-    // Flat, the map never rotates: pan and zoom only, and a drag pans.
+    // Flat, the trackball is off: the map's own gestures pan and zoom it, and
+    // it never rotates.
+    controls.enabled = !moving && mode === '3d'
     controls.noRotate = mode === '2d'
-    if (controls.mouseButtons) controls.mouseButtons.LEFT = mode === '2d' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE
   }
 
   function moveCamera(goal: Pose, ms: number) {
@@ -1822,6 +1917,77 @@ export function Graph3D(props: Graph3DProps) {
     const o = blendOut.current
     cameraBlend(mode === '2d' ? 1 : 0, FOV_3D, f.halfView3, f.halfView2, ORIGIN, f.target2, o)
     return { pos: new THREE.Vector3(o.pos[0], o.pos[1], o.pos[2]), target: new THREE.Vector3(o.target[0], o.target[1], o.target[2]), up: new THREE.Vector3(o.up[0], o.up[1], o.up[2]), fov: o.fov }
+  }
+
+  /** World units per screen pixel on the flat map, at the target. */
+  function flatScale(): number {
+    const cam = gRef.current.camera() as THREE.PerspectiveCamera
+    const d = cam.position.distanceTo(camTarget.current)
+    return (2 * d * Math.tan((cam.fov * Math.PI) / 360)) / freeArea().fullH
+  }
+  /** Keep the view's centre over the map. */
+  function clampFlat() {
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity
+    for (const q of live2.current.values()) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]) }
+    if (!Number.isFinite(x0)) return
+    const cam = gRef.current.camera() as THREE.PerspectiveCamera
+    const t = camTarget.current
+    const cx = Math.min(x1, Math.max(x0, t.x)), cy = Math.min(y1, Math.max(y0, t.y))
+    cam.position.x += cx - t.x; cam.position.y += cy - t.y
+    t.x = cx; t.y = cy
+  }
+  function flatMoved() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(gRef.current?.controls() as any)?.target?.copy?.(camTarget.current)
+    if (!userMoved.current) { userMoved.current = true; setMoved(true) }
+    gestureEl.current?.classList.add('gone')
+  }
+  function flatPan(dx: number, dy: number) {
+    const g = gRef.current
+    if (!g || (dx === 0 && dy === 0)) return
+    const k = flatScale()
+    const cam = g.camera() as THREE.PerspectiveCamera
+    cam.position.x -= dx * k; cam.position.y += dy * k
+    camTarget.current.x -= dx * k; camTarget.current.y += dy * k
+    clampFlat()
+    cam.lookAt(camTarget.current)
+    flatMoved()
+  }
+  /** Zoom by a factor about a screen point, so what is under the pointer stays under it. */
+  function flatZoom(factor: number, clientX: number, clientY: number) {
+    const g = gRef.current
+    const el = holder.current
+    if (!g || !el) return
+    const cam = g.camera() as THREE.PerspectiveCamera
+    const t = camTarget.current
+    const d = cam.position.distanceTo(t)
+    if (flatDist.current <= 1) { const p = poseFor('2d'); flatDist.current = p.pos.distanceTo(p.target) }
+    const next = Math.min(flatDist.current * 1.8, Math.max(flatDist.current * 0.12, d * factor))
+    const real = next / d
+    if (Math.abs(real - 1) < 1e-4) return
+    // The pointer's spot on the map, from the view offset's geometry.
+    const box = el.getBoundingClientRect()
+    const { inset, top } = view.current
+    const k = flatScale()
+    // The view offset puts the projection's centre at half the free width
+    // across and half the full virtual height down.
+    const px = (clientX - box.left) - (box.width - inset) / 2
+    const py = (clientY - box.top) - (box.height + top) / 2
+    const wx = t.x + px * k, wy = t.y - py * k
+    t.x = wx + (t.x - wx) * real; t.y = wy + (t.y - wy) * real
+    cam.position.set(t.x, t.y, t.z + next)
+    clampFlat()
+    cam.lookAt(t)
+    setClip(next)
+    labelScale()
+    flatMoved()
+  }
+  /** Back to the pose for the current mode, and the button goes. */
+  function recentre() {
+    userMoved.current = false
+    cameraTaken.current = false
+    setMoved(false)
+    fitRef.current?.(500)
   }
 
   // ---- the fold ----
@@ -1893,7 +2059,7 @@ export function Graph3D(props: Graph3DProps) {
       if (alpha <= 0) continue
       let geom: ConvexGeometry
       try { geom = new ConvexGeometry(pts) } catch { continue }
-      const mat = new THREE.MeshBasicMaterial({ color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: HULL_FILL * alpha, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+      const mat = new THREE.MeshBasicMaterial({ color: SUBDOMAIN_COLOUR[sub] ?? NEUTRAL, transparent: true, opacity: HULL_FILL * alpha, side: THREE.DoubleSide, depthWrite: false, blending: hullBlend(alpha) })
       const hull = new THREE.Mesh(geom, mat)
       hull.frustumCulled = false
       hull.userData.subdomain = sub
@@ -2335,6 +2501,9 @@ export function Graph3D(props: Graph3DProps) {
           <div className="popover-body">{props.popover.content}</div>
         </div>
       )}
+      {moved && (
+        <button type="button" className="canvas-recentre" onClick={recentre} title={copy.recentre_hint}>{copy.recentre}</button>
+      )}
       {props.gestureHint && (
         <div ref={gestureEl} className="canvas-gesture" aria-hidden="true">
           <svg className="gesture-orbit" viewBox="0 0 48 48" width="34" height="34">
@@ -2362,7 +2531,7 @@ export function Graph3D(props: Graph3DProps) {
             {props.book.rows.map((_, i) => <path key={i} className={`wire w${i + 1}`} />)}
           </svg>
           <div ref={bookEl} className="canvas-book" aria-hidden="true">
-            <div className="book-title">{props.book.title}</div>
+            <div className="book-title book-drag" onPointerDown={onBookDown} title={copy.story_drag}>{props.book.title}</div>
             {props.book.rows.map((r, i) => <div key={i} className={`book-row ov-in d${i + 1}`}><span className="book-n">{i + 1}</span><span className="book-l">{r.label}{r.value && <span className="book-v">{r.value}</span>}</span><span className="book-rule" /></div>)}
             <div className="book-note ov-in d4">{props.book.note}</div>
           </div>

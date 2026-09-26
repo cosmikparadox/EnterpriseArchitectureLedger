@@ -15,9 +15,15 @@
 // handle drags it to 62 when the reading matters more than the picture, and
 // snaps to whichever of the two it is nearer when let go.
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNarrow } from '../app/useNarrow'
 import { copy } from '../copy'
+
+/**
+ * The panel's pinned footer, for anything that must stay in reach while the
+ * body scrolls: the walkthrough's Back and Next. Empty, it takes no room.
+ */
+export const PanelFootContext = createContext<HTMLElement | null>(null)
 
 export interface PanelShellProps {
   label: string
@@ -61,6 +67,7 @@ export function PanelShell({ label, collapsed, onToggle, tabHint, children }: Pa
   const [pct, setPct] = useState(SHORT)
   const dragging = useRef(false)
   const [width, setWidth] = useState(readWidth)
+  const [foot, setFoot] = useState<HTMLDivElement | null>(null)
   const [resizing, setResizing] = useState(false)
   useEffect(() => {
     publishWidth(narrow || collapsed ? null : width)
@@ -160,7 +167,10 @@ export function PanelShell({ label, collapsed, onToggle, tabHint, children }: Pa
       <button className="close" onClick={onToggle} aria-expanded={true} aria-label={`Collapse ${label}`}>
         x
       </button>
-      <div className="panel-body">{children}</div>
+      <PanelFootContext.Provider value={foot}>
+        <div className="panel-body">{children}</div>
+      </PanelFootContext.Provider>
+      <div className="panel-foot" ref={setFoot} />
     </aside>
   )
 }

@@ -132,6 +132,13 @@ export const copy = {
     'correlation. That is deliberate. See the Ledger paper, 9.3.8.',
 
   rail_tour: 'Tour',
+  // Tab 7: the standalone app, not built yet. Said plainly.
+  rail_plug: "Plug 'n' Play",
+  plug_eyebrow: "Plug 'n' Play",
+  plug_title: 'Coming soon',
+  plug_line: 'A standalone app you plug your own telemetry into.',
+  plug_line2: 'It maps your estate from what your systems actually do, and helps you weigh cost, risk and exit.',
+  plug_note: "Same ledger, your real numbers instead of Harbourline's.",
 
   // View 4, cursor dragged to a month before the node was adopted. The panel
   // keeps its shape; only the figures have nothing to say yet.
@@ -937,6 +944,8 @@ export const copy = {
   // The explorer's walkthrough: one node, six steps, the same rhythm as the story.
   walk_play: 'Walk me through it',
   walk_label: 'Walkthrough',
+  recentre: 'Recentre',
+  recentre_hint: 'Bring the whole map back into view',
   panel_resize: 'Resize the panel',
   panel_resize_hint: 'Drag to widen or narrow the panel. Double-click to reset.',
   walk_step: 'Step {k} of {n}',

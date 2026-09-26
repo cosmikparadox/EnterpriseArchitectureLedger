@@ -26,6 +26,7 @@ export const VIEW_SLUGS: Record<Exclude<View, 'landing'>, string> = {
   4: 'footprint',
   5: 'shapes',
   6: 'boundaries',
+  7: 'plug',
 }
 
 const SLUG_TO_VIEW = new Map<string, Exclude<View, 'landing'>>(
