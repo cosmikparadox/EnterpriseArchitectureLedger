@@ -1840,3 +1840,18 @@ button, input, select { font: inherit; color: inherit; }
   .paper-page { margin-bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .paper-loading span { animation: none; opacity: 0.8; } }
+
+/* The name under the pointer, set large beside its node: the label grows
+   out of the map rather than a tooltip trailing the cursor. */
+.node-lens { position: absolute; left: 0; top: 0; z-index: 12; pointer-events: none; will-change: transform; }
+.node-lens-chip {
+  position: absolute; left: 0; bottom: 14px; transform: translateX(-50%); transform-origin: 50% 100%;
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  padding: 6px 11px; border-radius: 8px; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,0.16);
+  font-size: 14px; font-weight: 600; line-height: 1.2;
+  animation: lens-in 160ms cubic-bezier(.2,.8,.2,1);
+}
+.node-lens-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+@keyframes lens-in { from { opacity: 0; transform: translateX(-50%) scale(0.6); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .node-lens-chip { animation: none; } }

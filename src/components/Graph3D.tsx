@@ -288,6 +288,8 @@ interface NodeObjs {
   ring: THREE.Mesh
   fail: THREE.Mesh
   label: SpriteText | null
+  /** Whether the state wants the label shown; on the flat map, room decides. */
+  labelWanted?: boolean
   ringSprite: THREE.Sprite | null
   colour: string
   /** Opacity tween: where it started, where it is going, and when it began. */
@@ -356,6 +358,9 @@ export function Graph3D(props: Graph3DProps) {
   /** The reader has moved the camera; a Recentre button offers the way back. */
   const userMoved = useRef(false)
   const [moved, setMoved] = useState(false)
+  // The node under the pointer, named large beside it.
+  const [hover, setHover] = useState<{ id: string; name: string; colour: string | null } | null>(null)
+  const lensEl = useRef<HTMLDivElement | null>(null)
   /** Where the canvas's free area is: the card's column and the wordmark. */
   const view = useRef({ inset: 0, top: 0, apply: () => {} })
 
@@ -383,8 +388,15 @@ export function Graph3D(props: Graph3DProps) {
       .showNavInfo(false)
       .nodeRelSize(4)
       .nodeVal((n: object) => (n as GNode).val)
-      // A node not yet revealed by the intro has no hover label and no click.
-      .nodeLabel((n: object) => (propsRef.current.dimNodes?.has((n as GNode).id) ? '' : (n as GNode).name))
+      // The name on hover is drawn by this component, large and beside the
+      // node, not by the library at the pointer. A node not yet revealed by
+      // the intro has no hover name and no click.
+      .nodeLabel(() => '')
+      .onNodeHover((raw: object | null) => {
+        const n = raw as GNode | null
+        if (!n || propsRef.current.dimNodes?.has(n.id)) { setHover(null); return }
+        setHover({ id: n.id, name: n.name, colour: n.kind === 'use_case' ? SUBDOMAIN_COLOUR[n.subdomain ?? ''] ?? null : null })
+      })
       .onNodeClick((n: object, ev: MouseEvent) => {
         const id = (n as GNode).id
         // A node the intro has not revealed is not there yet: the click falls
@@ -477,6 +489,7 @@ export function Graph3D(props: Graph3DProps) {
         })
       }
       ;(window as unknown as { __schemDots?: unknown }).__schemDots = () => schemFlow.current?.dots.length ?? 0
+      ;(window as unknown as { __labels?: unknown }).__labels = () => [...objs.current].filter(([, o]) => o.label).map(([id, o]) => ({ id, wanted: !!o.labelWanted, visible: o.label!.visible, sx: o.label!.scale.x, sy: o.label!.scale.y, rot: (o.label!.material as THREE.SpriteMaterial).rotation }))
       ;(window as unknown as { __hullScreen?: unknown }).__hullScreen = () => {
         const el = holder.current
         if (!el) return []
@@ -1342,14 +1355,23 @@ export function Graph3D(props: Graph3DProps) {
         // Hub labels are the only text on that screen and they carry the
         // comparison, so they are set larger than on a screen where everything
         // is named.
-        label.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 2.8 : 4.2
+        label.textHeight = labelMode === 'hubs' ? 6.4 : n.kind === 'use_case' ? 3.4 : 4.2
         label.position.set(0, r + 3.4, 0)
         label.visible = false
         label.userData.base = label.scale.clone()
+        label.userData.th = label.textHeight
+        // On the flat map a label keeps one size on screen, whatever the zoom:
+        // large enough to read, the busy ones thinned out rather than shrunk.
+        label.userData.px = labelMode === 'hubs' ? 14 : n.kind === 'use_case' ? 11 : 12.5
         label.userData.r = r
         // A label never hides what is behind it: its clear margin used to
         // punch pale bars through the domains.
         ;(label.material as THREE.SpriteMaterial).depthWrite = false
+        // Picking tests hidden objects too: a label the map has thinned out
+        // must not take a hover or a tap meant for what lies under it.
+        const pick = label.raycast.bind(label)
+        const own = label
+        label.raycast = (rc, out) => { if (own.visible) pick(rc, out) }
         group.add(label)
       }
 
@@ -1498,11 +1520,12 @@ export function Graph3D(props: Graph3DProps) {
     o.fail.visible = failed
     if (o.ringSprite) o.ringSprite.visible = !dim && !ghosted
     if (o.label) {
-      o.label.visible = ghosted ? false :
+      o.labelWanted = ghosted ? false :
         labelMode === 'all' ? !dim
         : labelMode === 'selected' ? (isSel || isNeighbour)
         : labelMode === 'hubs' ? (!dim && n.kind !== 'use_case' && (n.riders ?? 0) >= HUB_RIDERS)
         : false
+      o.label.visible = o.labelWanted
     }
   }
 
@@ -1940,6 +1963,8 @@ export function Graph3D(props: Graph3DProps) {
       if (on) { l.center.set(0, 0.5); mat.rotation = Math.PI / 4; l.position.set(r * 0.8 + 1, r * 0.8 + 1, 0) }
       else { l.center.set(0.5, 0.5); mat.rotation = 0; l.position.set(0, r + 3.4, 0) }
     }
+    // Off the map, every label the state wants is back; the map thins them.
+    if (!on) for (const o of objs.current.values()) if (o.label) o.label.visible = !!o.labelWanted
   }
   const RGBA = /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/
   /** Put the current colour, width and visibility of every line onto the map's lines. */
@@ -2708,23 +2733,75 @@ export function Graph3D(props: Graph3DProps) {
   const flatDist = useRef(1)
   function labelScale() {
     const g = gRef.current
-    if (!g) return
+    const el = holder.current
+    if (!g || !el) return
     const cam = g.camera() as THREE.PerspectiveCamera
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const controls = g.controls() as any
     const flatNow = modeRef.current === '2d' && !foldOn.current
-    // The flat pose is the reference size; a canvas that mounted flat and
-    // flew straight to a node has not framed it yet.
-    if (flatNow && flatDist.current <= 1 && live2.current.size > 0) { const p = poseFor('2d'); flatDist.current = p.pos.distanceTo(p.target) }
+    if (!flatNow) return
     const dist = cam.position.distanceTo(controls?.target ?? camTarget.current)
-    const k = flatNow ? Math.max(0.05, dist / flatDist.current) : 1
-    if (Math.abs(k - labelK.current) < 0.004) return
-    if (flatNow) setClip(dist)
-    labelK.current = k
-    for (const o of objs.current.values()) {
-      const l = o.label
-      const base = l?.userData.base as THREE.Vector3 | undefined
-      if (l && base) l.scale.set(base.x * k, base.y * k, base.z)
+    // Screen pixels per world unit at the map's plane.
+    const ppw = el.clientHeight / (2 * dist * Math.tan((cam.fov * Math.PI) / 360))
+    if (Math.abs(ppw / labelK.current - 1) >= 0.004) {
+      setClip(dist)
+      labelK.current = ppw
+      // A phone shows the whole map small; its labels a touch smaller too.
+      const small = el.clientWidth < 520 ? 0.88 : 1
+      for (const o of objs.current.values()) {
+        const l = o.label
+        const base = l?.userData.base as THREE.Vector3 | undefined
+        if (!l || !base) continue
+        const k = ((l.userData.px as number) * small) / ppw / (l.userData.th as number)
+        l.scale.set(base.x * k, base.y * k, base.z)
+      }
+    }
+    declutter(ppw)
+  }
+  /**
+   * On the flat map, labels that would print over each other give way: the
+   * chosen node and its neighbours first, then the platforms, busiest first,
+   * then the use cases. Zooming in makes room and brings them back. Every
+   * name is still there on hover.
+   */
+  const labelProbe = useRef(new THREE.Vector3())
+  function declutter(ppw: number) {
+    const g = gRef.current
+    const el = holder.current
+    if (!g || !el) return
+    const { selectedId } = propsRef.current
+    const near = new Set<string>()
+    if (selectedId) for (const raw of g.graphData().links as GLink[]) { if (raw.ucId === selectedId) near.add(raw.platformId); if (raw.platformId === selectedId) near.add(raw.ucId) }
+    const cam = g.camera()
+    const W = el.clientWidth, H = el.clientHeight
+    const cand: { l: SpriteText; rank: number; circles: number[] }[] = []
+    for (const n of g.graphData().nodes as GNode[]) {
+      const o = objs.current.get(n.id)
+      const l = o?.label
+      if (!o || !l) continue
+      if (!o.labelWanted) { l.visible = false; continue }
+      const rank = n.id === selectedId ? 0 : near.has(n.id) ? 1 : n.kind !== 'use_case' ? 2 + 1 / (1 + (n.riders ?? 0)) : 4
+      const v = l.getWorldPosition(labelProbe.current).project(cam)
+      const ax = (v.x * 0.5 + 0.5) * W, ay = (0.5 - v.y * 0.5) * H
+      const w = l.scale.x * ppw, h = l.scale.y * ppw
+      const rot = (l.material as THREE.SpriteMaterial).rotation
+      const dx = Math.cos(rot), dy = -Math.sin(rot)
+      const sx = ax - dx * w * l.center.x, sy = ay - dy * w * l.center.x
+      const r = h * 0.55, step = h * 0.6
+      const circles: number[] = []
+      for (let d = r; d <= w - r + 1e-6 || circles.length === 0; d += step) circles.push(sx + dx * d, sy + dy * d, r)
+      cand.push({ l, rank, circles })
+    }
+    cand.sort((a, b) => a.rank - b.rank)
+    const placed: number[] = []
+    for (const c of cand) {
+      let hit = false
+      outer: for (let i = 0; i < c.circles.length; i += 3) for (let j = 0; j < placed.length; j += 3) {
+        const ddx = c.circles[i]! - placed[j]!, ddy = c.circles[i + 1]! - placed[j + 1]!, rr = c.circles[i + 2]! + placed[j + 2]!
+        if (ddx * ddx + ddy * ddy < rr * rr) { hit = true; break outer }
+      }
+      c.l.visible = !hit || c.rank < 2
+      if (c.l.visible) placed.push(...c.circles)
     }
   }
   useEffect(() => {
@@ -3097,6 +3174,24 @@ export function Graph3D(props: Graph3DProps) {
     cameraTaken.current = true
     return true
   }
+  // The hover name follows its node while the camera or a fold moves it.
+  useEffect(() => {
+    if (!hover) return
+    let raf = 0
+    const place = () => {
+      const g = gRef.current
+      const el = lensEl.current
+      const n = (g?.graphData().nodes as (GNode & Positioned)[] | undefined)?.find((x) => x.id === hover.id)
+      if (g && el && n) {
+        const p = g.graph2ScreenCoords(n.x ?? 0, n.y ?? 0, n.z ?? 0)
+        el.style.transform = `translate(${Math.round(p.x)}px, ${Math.round(p.y)}px)`
+      }
+      raf = requestAnimationFrame(place)
+    }
+    place()
+    return () => cancelAnimationFrame(raf)
+  }, [hover])
+
   useEffect(() => {
     if (!props.flyToId) return
     const wanted = props.flyToId.split('#')[0]!
@@ -3124,6 +3219,14 @@ export function Graph3D(props: Graph3DProps) {
         <button type="button" className="canvas-recentre" onClick={recentre} title={copy.recentre_hint}>{copy.recentre}</button>
       )}
       <div ref={snipLayer} className="canvas-snips" aria-hidden="true" />
+      {hover && (
+        <div ref={lensEl} className="node-lens" aria-hidden="true">
+          <span className="node-lens-chip" key={hover.id}>
+            {hover.colour && <span className="node-lens-dot" style={{ background: hover.colour }} />}
+            {hover.name}
+          </span>
+        </div>
+      )}
       {props.gestureHint && (
         <div ref={gestureEl} className="canvas-gesture" aria-hidden="true">
           <svg className="gesture-orbit" viewBox="0 0 48 48" width="34" height="34">
